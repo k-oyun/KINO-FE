@@ -18,11 +18,9 @@ const HeaderContainer = styled.header<styleType>`
   align-items: center;
   width: 100%;
   height: 60px;
-  /* background: linear-gradient(to top, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.95)); */
-  background-color: black;
-  color: white;
+  background-color: ${({ theme }) => theme.backgroundColor};
+  color: ${({ theme }) => theme.textColor};
   backdrop-filter: blur(8px);
-  /* transition: background-color 0.3s ease, border-bottom 0.3s ease; */
   position: fixed;
   top: 0;
   z-index: 3000;
@@ -37,21 +35,20 @@ const HeaderMenuContainer = styled.div<styleType>`
 
 const HeaderMenuBtn = styled.button<styleType>`
   text-align: center;
-  background-color: black;
+  background-color: ${({ theme }) => theme.backgroundColor};
+  color: ${({ theme }) => theme.textColor};
   position: relative;
-  color: white;
   height: 100%;
   min-width: 5%;
   padding: 10px;
   margin-right: 15px;
   margin-left: ${(props) => (props.$ismobile ? "3px" : null)};
   font-size: ${(props) => (props.$ismobile ? "10px" : "14px")};
-  /* font-size: ${(props) => (props.$ismobile ? "7px" : "14px")}; */
   font-weight: 400;
   border: none;
   cursor: pointer;
   &:hover {
-    background-color: #212529;
+    background-color: ${({ theme }) => theme.hoverColor};
   }
 `;
 
@@ -64,12 +61,13 @@ const UserInfoContainer = styled.div<styleType>`
   overflow: hidden;
   margin-right: ${(props) => (props.$ismobile ? "20px" : "40px")};
 `;
+
 const Logo = styled.img<styleType>`
   width: ${(props) => (props.$ismobile ? "80px" : "100px")};
-  /* width: ${(props) => (props.$ismobile ? "50px" : "100px")}; */
   margin-left: ${(props) => (props.$ismobile ? "20px" : "30px")};
   cursor: pointer;
 `;
+
 const UserImageContainer = styled.div<userImageType>`
   width: ${(props) => (props.$ismobile ? "30px" : "35px")};
   height: ${(props) => (props.$ismobile ? "30px" : "35px")};
@@ -84,7 +82,7 @@ const UserImageContainer = styled.div<userImageType>`
 
 const HeaderText = styled.span<styleType>`
   font-size: ${(props) => (props.$ismobile ? "12px" : "14px")};
-  color: white;
+  color: ${({ theme }) => theme.textColor};
 `;
 
 const LoginBtn = styled.button<styleType>`
@@ -94,7 +92,7 @@ const LoginBtn = styled.button<styleType>`
   padding: 0px 5px;
   font-size: ${(props) => (props.$ismobile ? "12px" : "14px")};
   border: none;
-  color: white;
+  color: ${({ theme }) => theme.textColor};
   cursor: pointer;
   &:hover {
     transform: scale(1.1);
@@ -106,8 +104,7 @@ const Popup = styled.div<styleType>`
   width: ${(props) => (props.$ismobile ? "130px" : "150px")};
   height: ${(props) => (props.$ismobile ? "100px" : "120px")};
   border-radius: 14px;
-  background-color: black;
-  box-shadow: 1px 3px 4px 2px rgba(0, 0, 0, 0.3);
+  background-color: ${({ theme }) => theme.backgroundColor};
   box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.3);
   display: flex;
   flex-direction: column;
@@ -123,8 +120,8 @@ const PopupBtn = styled.button`
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: black;
-  color: white;
+  background-color: ${({ theme }) => theme.backgroundColor};
+  color: ${({ theme }) => theme.textColor};
   width: 80%;
   height: 50px;
   cursor: pointer;
@@ -145,17 +142,11 @@ const MenuPopup = styled.div`
   left: 0px;
   width: 200px;
   height: 200px;
-  background-color: black;
+  background-color: ${({ theme }) => theme.backgroundColor};
 `;
-
-// const PopupImg = styled.img`
-//   width: ${(props) => props.$width};
-//   margin-right: ${(props) => props.$mr};
-// `;
 
 const MenuPopupText = styled.text<{ $ismenupopupopen: boolean }>`
   font-size: 7px;
-  /* font-size: 5px; */
   text-align: center;
   margin-left: 4px;
   display: inline-block;
@@ -178,6 +169,7 @@ const Header = () => {
     { label: "영화", path: "/movies" },
     { label: "내가 찜한 리스트", path: "/wish" },
   ];
+
   const handlePopup = () => {
     setIsPopupOpen((prev) => !prev);
     setIsMenuPopupOpen(false);
@@ -196,7 +188,6 @@ const Header = () => {
     if (!isPopupOpen && !isMenuPopupOpen) return;
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as Node;
-
       if (
         isPopupOpen &&
         popupRef.current &&
@@ -206,33 +197,20 @@ const Header = () => {
       ) {
         setIsPopupOpen(false);
       }
-
-      // if (
-      //   isMenuPopupOpen &&
-      //   menuPopupRef.current &&
-      //   !menuPopupRef.current.contains(target)
-      // ) {
-      //   setIsMenuPopupOpen(false);
-      // }
     };
-
     document.addEventListener("mousedown", handleClickOutside);
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [isPopupOpen]);
-
-  useEffect(() => {
-    console.log(isMobile);
-  }, [isMobile]);
+  }, [isPopupOpen, isMenuPopupOpen]);
 
   const [mounted, setMounted] = useState(false);
-
   useEffect(() => {
     setMounted(true);
   }, []);
 
   if (!mounted) return null;
+
   return (
     <>
       <HeaderContainer $ismobile={isMobile}>
@@ -246,7 +224,7 @@ const Header = () => {
                   ▼
                 </MenuPopupText>
               </HeaderMenuBtn>
-              {isMenuPopupOpen ? (
+              {isMenuPopupOpen && (
                 <MenuPopup ref={menuPopupRef}>
                   {menuItems.map(({ label, path }) => (
                     <HeaderMenuBtn
@@ -259,7 +237,7 @@ const Header = () => {
                     </HeaderMenuBtn>
                   ))}
                 </MenuPopup>
-              ) : null}
+              )}
             </>
           ) : (
             <>
@@ -289,12 +267,12 @@ const Header = () => {
           )}
         </UserInfoContainer>
       </HeaderContainer>
-      {isPopupOpen ? (
-        <Popup ref={popupRef} $ismobile={isMobile}>
+      {isPopupOpen && (
+        <Popup $ismobile={isMobile} ref={popupRef}>
           <PopupBtn onClick={onClickMypage}>마이페이지</PopupBtn>
           <PopupBtn>로그아웃</PopupBtn>
         </Popup>
-      ) : null}
+      )}
     </>
   );
 };
