@@ -38,6 +38,7 @@ const HeaderMenuContainer = styled.div<styleType>`
 const HeaderMenuBtn = styled.button<styleType>`
   text-align: center;
   background-color: black;
+  position: relative;
   color: white;
   height: 100%;
   min-width: 5%;
@@ -45,6 +46,7 @@ const HeaderMenuBtn = styled.button<styleType>`
   margin-right: 15px;
   margin-left: ${(props) => (props.$ismobile ? "3px" : null)};
   font-size: ${(props) => (props.$ismobile ? "10px" : "14px")};
+  /* font-size: ${(props) => (props.$ismobile ? "7px" : "14px")}; */
   font-weight: 400;
   border: none;
   cursor: pointer;
@@ -64,6 +66,7 @@ const UserInfoContainer = styled.div<styleType>`
 `;
 const Logo = styled.img<styleType>`
   width: ${(props) => (props.$ismobile ? "80px" : "100px")};
+  /* width: ${(props) => (props.$ismobile ? "50px" : "100px")}; */
   margin-left: ${(props) => (props.$ismobile ? "20px" : "30px")};
   cursor: pointer;
 `;
@@ -132,24 +135,57 @@ const PopupBtn = styled.button`
   transition: transform 0.2s ease-in-out;
 `;
 
+const MenuPopup = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  top: 60px;
+  left: 0px;
+  width: 200px;
+  height: 200px;
+  background-color: black;
+`;
+
 // const PopupImg = styled.img`
 //   width: ${(props) => props.$width};
 //   margin-right: ${(props) => props.$mr};
 // `;
 
+const MenuPopupText = styled.text<{ $ismenupopupopen: boolean }>`
+  font-size: 7px;
+  /* font-size: 5px; */
+  text-align: center;
+  margin-left: 4px;
+  display: inline-block;
+  transform: rotate(${(props) => (props.$ismenupopupopen ? "180deg" : "0deg")});
+  transition: transform 0.4s ease;
+`;
+
 const Header = () => {
   const [nickname, setNickname] = useState("오윤");
   const [userImg, setUserImg] = useState("");
   const [isPopupOpen, setIsPopupOpen] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isModalConfirm, setIsModalConfirm] = useState(false);
+  const [isMenuPopupOpen, setIsMenuPopupOpen] = useState(false);
   const popupRef = useRef<HTMLDivElement>(null);
+  const menuPopupRef = useRef<HTMLDivElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
-  const isMobile = useMediaQuery({
-    query: "(max-width:767px)",
-  });
+  const isMobile = useMediaQuery({ query: "(max-width: 767px)" });
+  const menuItems = [
+    { label: "홈", path: "/" },
+    { label: "커뮤니티", path: "/comnmuniy" },
+    { label: "영화", path: "/movies" },
+    { label: "내가 찜한 리스트", path: "/wish" },
+  ];
   const handlePopup = () => {
     setIsPopupOpen((prev) => !prev);
+    setIsMenuPopupOpen(false);
+  };
+
+  const handleMenuPopup = () => {
+    setIsMenuPopupOpen((prev) => !prev);
+    setIsPopupOpen(false);
   };
 
   const onClickMypage = () => {
@@ -157,10 +193,12 @@ const Header = () => {
   };
 
   useEffect(() => {
-    if (!isPopupOpen) return;
-    function handleClickOutside(event: MouseEvent) {
+    if (!isPopupOpen && !isMenuPopupOpen) return;
+    const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as Node;
+
       if (
+        isPopupOpen &&
         popupRef.current &&
         !popupRef.current.contains(target) &&
         imageRef.current &&
@@ -168,28 +206,68 @@ const Header = () => {
       ) {
         setIsPopupOpen(false);
       }
-    }
+
+      // if (
+      //   isMenuPopupOpen &&
+      //   menuPopupRef.current &&
+      //   !menuPopupRef.current.contains(target)
+      // ) {
+      //   setIsMenuPopupOpen(false);
+      // }
+    };
+
     document.addEventListener("mousedown", handleClickOutside);
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [isPopupOpen]);
 
+  useEffect(() => {
+    console.log(isMobile);
+  }, [isMobile]);
+
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) return null;
   return (
     <>
       <HeaderContainer $ismobile={isMobile}>
         <Logo $ismobile={isMobile} src={logoText} alt="로고 이미지" />
         <HeaderMenuContainer $ismobile={isMobile}>
           {isMobile ? (
-            <HeaderMenuBtn $ismobile={isMobile}>메뉴</HeaderMenuBtn>
+            <>
+              <HeaderMenuBtn $ismobile={isMobile} onClick={handleMenuPopup}>
+                메뉴
+                <MenuPopupText $ismenupopupopen={isMenuPopupOpen}>
+                  ▼
+                </MenuPopupText>
+              </HeaderMenuBtn>
+              {isMenuPopupOpen ? (
+                <MenuPopup ref={menuPopupRef}>
+                  {menuItems.map(({ label, path }) => (
+                    <HeaderMenuBtn
+                      key={path}
+                      $ismobile={isMobile}
+                      style={{ width: "100%" }}
+                      onClick={handleMenuPopup}
+                    >
+                      {label}
+                    </HeaderMenuBtn>
+                  ))}
+                </MenuPopup>
+              ) : null}
+            </>
           ) : (
             <>
-              <HeaderMenuBtn $ismobile={isMobile}>홈</HeaderMenuBtn>
-              <HeaderMenuBtn $ismobile={isMobile}>커뮤니티</HeaderMenuBtn>
-              <HeaderMenuBtn $ismobile={isMobile}>영화</HeaderMenuBtn>
-              <HeaderMenuBtn $ismobile={isMobile}>
-                내가 찜한 리스트
-              </HeaderMenuBtn>
+              {menuItems.map(({ label, path }) => (
+                <HeaderMenuBtn key={path} $ismobile={isMobile}>
+                  {label}
+                </HeaderMenuBtn>
+              ))}
             </>
           )}
         </HeaderMenuContainer>
