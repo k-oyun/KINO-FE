@@ -22,26 +22,21 @@ const HeaderContainer = styled.header<styleType>`
   background-color: black;
   color: white;
   backdrop-filter: blur(8px);
-
   /* transition: background-color 0.3s ease, border-bottom 0.3s ease; */
   position: fixed;
   top: 0;
   z-index: 3000;
-  /* background-color: red; */
 `;
 
 const HeaderMenuContainer = styled.div<styleType>`
   display: flex;
-  /* justify-content: center; */
   align-items: center;
   width: 70%;
   height: 100%;
-  /* background-color: blue; */
 `;
 
 const HeaderMenuBtn = styled.button<styleType>`
   text-align: center;
-  background-color: red;
   background-color: black;
   color: white;
   height: 100%;
@@ -55,13 +50,13 @@ const HeaderMenuBtn = styled.button<styleType>`
   cursor: pointer;
   &:hover {
     background-color: #212529;
-    /* transform: scale(1.1); */
   }
 `;
 
 const UserInfoContainer = styled.div<styleType>`
   display: flex;
   width: ${(props) => (props.$ismobile ? "30%" : "auto")};
+  min-width: 12%;
   justify-content: flex-end;
   align-items: center;
   overflow: hidden;
@@ -78,6 +73,7 @@ const UserImageContainer = styled.div<userImageType>`
   border-radius: 10%;
   background-color: grey;
   margin-left: 15px;
+  background-image: ${(props) => `url(${props.$image})`};
   background-position: center;
   background-size: cover;
   cursor: pointer;
@@ -93,7 +89,6 @@ const LoginBtn = styled.button<styleType>`
   height: 30px;
   background-color: transparent;
   padding: 0px 5px;
-  margin-right: 15px;
   font-size: ${(props) => (props.$ismobile ? "12px" : "14px")};
   border: none;
   color: white;
@@ -143,8 +138,8 @@ const PopupBtn = styled.button`
 // `;
 
 const Header = () => {
-  const [nickname, setNickname] = useState("권오윤");
-  const [userImg, setUserImg] = useState(null);
+  const [nickname, setNickname] = useState("오윤");
+  const [userImg, setUserImg] = useState("");
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isModalConfirm, setIsModalConfirm] = useState(false);
@@ -200,18 +195,20 @@ const Header = () => {
         </HeaderMenuContainer>
         <UserInfoContainer $ismobile={isMobile}>
           {nickname === "" ? (
-            <LoginBtn $ismobile={isMobile}>로그인하러 가기</LoginBtn>
+            <LoginBtn $ismobile={isMobile}>
+              {isMobile ? "로그인" : "로그인하러 가기"}
+            </LoginBtn>
           ) : (
             <>
               <HeaderText $ismobile={isMobile}>{nickname}</HeaderText>
+              <UserImageContainer
+                ref={imageRef}
+                $ismobile={isMobile}
+                $image={userImg ? userImg : profileIcon}
+                onClick={handlePopup}
+              />
             </>
           )}
-          <UserImageContainer
-            ref={imageRef}
-            $ismobile={isMobile}
-            $image={userImg ? userImg : profileIcon}
-            onClick={handlePopup}
-          />
         </UserInfoContainer>
       </HeaderContainer>
       {isPopupOpen ? (
