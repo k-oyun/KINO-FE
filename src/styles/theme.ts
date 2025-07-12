@@ -1,6 +1,7 @@
 export interface Theme {
   backgroundColor: string;
   textColor: string;
+  hoverColor: string;
 }
 
 export const lightTheme = {
