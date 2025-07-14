@@ -17,6 +17,7 @@
     "react-responsive": "^10.0.1",
     "react-router-dom": "^7.6.3",
     "styled-components": "^6.1.19",
+    "swiper": "^11.2.10",
     "ts-node": "^10.9.2"
   },
   "devDependencies": {
