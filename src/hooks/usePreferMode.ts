@@ -10,11 +10,9 @@ export const usePreferMode = (): boolean => {
 
   useEffect(() => {
     const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-
     const handleChange = () => {
       setPreferMode(mediaQuery.matches);
     };
-
     mediaQuery.addEventListener("change", handleChange);
 
     return () => {

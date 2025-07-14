@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import "./App.css";
 import Header from "./components/Header";
 import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom";
@@ -7,7 +6,7 @@ import { ThemeProvider } from "styled-components";
 import Login from "./pages/Login";
 import Main from "./pages/Main";
 import MainHeader from "./components/MainHeader";
-import { usePreferMode } from "./hooks/useDarkMode";
+import { usePreferMode } from "./hooks/usePreferMode";
 
 function HeaderSelector() {
   const location = useLocation();
