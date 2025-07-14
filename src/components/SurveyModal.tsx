@@ -45,12 +45,12 @@ const MainText = styled.span`
   font-size: 1.9rem;
   font-weight: 600;
   color: white;
-  font-family: sans-serif;
+  /* font-family: sans-serif; */
 `;
 
 const SubText = styled.span`
   font-size: 0.8rem;
-  font-family: sans-serif;
+  /* font-family: sans-serif; */
   color: white;
 `;
 
