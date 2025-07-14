@@ -12,6 +12,10 @@ interface styleType {
 interface userImageType extends styleType {
   $image: string;
 }
+interface SearchBarProps {
+  keyword: string;
+  setKeyword: (value: string) => void;
+}
 
 const HeaderContainer = styled.header<styleType>`
   display: flex;
@@ -156,10 +160,9 @@ const MenuPopupText = styled.span<{ $ismenupopupopen: boolean }>`
   font-family: sans-serif;
 `;
 
-const Header = () => {
+const MainHeader = ({ keyword, setKeyword }: SearchBarProps) => {
   const [nickname, setNickname] = useState("오윤");
   const [userImg, setUserImg] = useState("");
-  const [keyword, setKeyword] = useState("");
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [isMenuPopupOpen, setIsMenuPopupOpen] = useState(false);
   const popupRef = useRef<HTMLDivElement>(null);
@@ -206,10 +209,6 @@ const Header = () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [isPopupOpen, isMenuPopupOpen]);
-
-  useEffect(() => {
-    console.log(keyword);
-  }, [keyword]);
 
   return (
     <>
@@ -280,4 +279,4 @@ const Header = () => {
   );
 };
 
-export default Header;
+export default MainHeader;

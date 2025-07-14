@@ -1,4 +1,6 @@
 import styled from "styled-components";
+import MainHeader from "../components/MainHeader";
+import { useEffect, useState } from "react";
 
 const MainContainer = styled.div`
   display: flex;
@@ -8,7 +10,14 @@ const MainContainer = styled.div`
 `;
 
 const Main = () => {
-  return <MainContainer></MainContainer>;
+  const [keyword, setKeyword] = useState("");
+
+  return (
+    <>
+      <MainHeader keyword={keyword} setKeyword={setKeyword} />
+      <MainContainer></MainContainer>
+    </>
+  );
 };
 
 export default Main;

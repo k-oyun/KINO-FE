@@ -13,7 +13,7 @@ function HeaderSelector() {
   const path = location.pathname;
 
   if (path === "/Login") return null;
-  if (path === "/") return <MainHeader />;
+  if (path === "/") return null;
   return <Header />;
 }
 function App() {

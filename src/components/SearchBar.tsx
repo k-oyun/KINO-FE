@@ -2,6 +2,11 @@ import styled from "styled-components";
 import { motion, useAnimate } from "framer-motion";
 import { useState, type ChangeEvent } from "react";
 
+interface SearchBarProps {
+  keyword: string;
+  setKeyword: (value: string) => void;
+}
+
 const SearchWrapper = styled(motion.form)`
   display: flex;
   align-items: center;
@@ -29,11 +34,6 @@ const Input = styled(motion.input)`
   z-index: 3001;
 `;
 
-interface SearchBarProps {
-  keyword: string;
-  setKeyword: (value: string) => void;
-}
-
 export const SearchBar = ({ keyword, setKeyword }: SearchBarProps) => {
   const [searchOpen, setSearchOpen] = useState(false);
   const [scope, animate] = useAnimate();
@@ -51,7 +51,6 @@ export const SearchBar = ({ keyword, setKeyword }: SearchBarProps) => {
 
   const onChange = (e: ChangeEvent<HTMLInputElement>) => {
     setKeyword(e.target.value);
-    console.log(keyword);
   };
 
   return (
