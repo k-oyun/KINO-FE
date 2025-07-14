@@ -4,6 +4,10 @@
   /* font-family: "BMHANNA", sans-serif; */
 }
 
+::-webkit-scrollbar {
+  display: none;
+}
+
 img {
   user-drag: none; /* Safari */
   user-select: none;

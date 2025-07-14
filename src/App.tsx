@@ -6,6 +6,7 @@ import { ThemeProvider } from "styled-components";
 import Login from "./pages/Login";
 import Main from "./pages/Main";
 import { usePreferMode } from "./hooks/usePreferMode";
+import GlobalStyle from "./styles/GlobalStyle";
 
 function HeaderSelector() {
   const location = useLocation();
@@ -20,6 +21,7 @@ function App() {
   return (
     <>
       <ThemeProvider theme={isDarkMode ? darkTheme : lightTheme}>
+        <GlobalStyle />
         <BrowserRouter>
           <HeaderSelector />
           <Routes>
