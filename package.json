@@ -15,7 +15,8 @@
     "react-dom": "^19.1.0",
     "react-responsive": "^10.0.1",
     "react-router-dom": "^7.6.3",
-    "styled-components": "^6.1.19"
+    "styled-components": "^6.1.19",
+    "ts-node": "^10.9.2"
   },
   "devDependencies": {
     "@eslint/js": "^9.25.0",
