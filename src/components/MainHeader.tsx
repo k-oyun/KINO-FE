@@ -3,6 +3,7 @@ import styled from "styled-components";
 import { useMediaQuery } from "react-responsive";
 import profileIcon from "../assets/img/profileIcon.png";
 import logoText from "../assets/img/LogoTxt.png";
+import { SearchBar } from "./SearchBar";
 
 interface styleType {
   $ismobile: boolean;
@@ -39,7 +40,7 @@ const HeaderMenuBtn = styled.button<styleType>`
   color: ${({ theme }) => theme.textColor};
   position: relative;
   height: 100%;
-  min-width: 5%;
+  min-width: 8%;
   padding: 10px;
   margin-right: 15px;
   margin-left: ${(props) => (props.$ismobile ? "3px" : null)};
@@ -54,7 +55,7 @@ const HeaderMenuBtn = styled.button<styleType>`
 
 const UserInfoContainer = styled.div<styleType>`
   display: flex;
-  width: ${(props) => (props.$ismobile ? "30%" : "auto")};
+  width: 30%;
   min-width: 12%;
   justify-content: flex-end;
   align-items: center;
@@ -158,6 +159,7 @@ const MenuPopupText = styled.span<{ $ismenupopupopen: boolean }>`
 const Header = () => {
   const [nickname, setNickname] = useState("오윤");
   const [userImg, setUserImg] = useState("");
+  const [keyword, setKeyword] = useState("");
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [isMenuPopupOpen, setIsMenuPopupOpen] = useState(false);
   const popupRef = useRef<HTMLDivElement>(null);
@@ -205,12 +207,9 @@ const Header = () => {
     };
   }, [isPopupOpen, isMenuPopupOpen]);
 
-  const [mounted, setMounted] = useState(false);
   useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!mounted) return null;
+    console.log(keyword);
+  }, [keyword]);
 
   return (
     <>
@@ -250,7 +249,10 @@ const Header = () => {
             </>
           )}
         </HeaderMenuContainer>
+
         <UserInfoContainer $ismobile={isMobile}>
+          {!isMobile && <SearchBar keyword={keyword} setKeyword={setKeyword} />}
+
           {nickname === "" ? (
             <LoginBtn $ismobile={isMobile}>
               {isMobile ? "로그인" : "로그인하러 가기"}
