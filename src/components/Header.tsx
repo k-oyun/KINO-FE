@@ -145,7 +145,7 @@ const MenuPopup = styled.div`
   background-color: ${({ theme }) => theme.backgroundColor};
 `;
 
-const MenuPopupText = styled.text<{ $ismenupopupopen: boolean }>`
+const MenuPopupText = styled.span<{ $ismenupopupopen: boolean }>`
   font-size: 7px;
   text-align: center;
   margin-left: 4px;
