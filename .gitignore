@@ -26,3 +26,5 @@ dist-ssr
 run.sh
 
 .env
+
+.tsbuildinfo.app
