@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { useMediaQuery } from "react-responsive";
 import profileIcon from "../assets/img/profileIcon.png";
 import logoText from "../assets/img/LogoTxt.png";
+import { SearchBar } from "./SearchBar";
 
 interface styleType {
   $ismobile: boolean;
@@ -11,6 +12,10 @@ interface styleType {
 
 interface userImageType extends styleType {
   $image: string;
+}
+interface SearchBarProps {
+  keyword: string;
+  setKeyword: (value: string) => void;
 }
 
 const HeaderContainer = styled.header<styleType>`
@@ -40,7 +45,7 @@ const HeaderMenuBtn = styled.button<styleType>`
   color: ${({ theme }) => theme.textColor};
   position: relative;
   height: 100%;
-  min-width: 5%;
+  min-width: 8%;
   padding: 10px;
   margin-right: 15px;
   margin-left: ${(props) => (props.$ismobile ? "3px" : null)};
@@ -55,7 +60,7 @@ const HeaderMenuBtn = styled.button<styleType>`
 
 const UserInfoContainer = styled.div<styleType>`
   display: flex;
-  width: ${(props) => (props.$ismobile ? "30%" : "auto")};
+  width: 30%;
   min-width: 12%;
   justify-content: flex-end;
   align-items: center;
@@ -157,7 +162,7 @@ const MenuPopupText = styled.span<{ $ismenupopupopen: boolean }>`
   font-family: sans-serif;
 `;
 
-const Header = () => {
+const MainHeader = ({ keyword, setKeyword }: SearchBarProps) => {
   const [nickname, setNickname] = useState("오윤");
   const [userImg, setUserImg] = useState("");
   const [isPopupOpen, setIsPopupOpen] = useState(false);
@@ -207,13 +212,6 @@ const Header = () => {
     };
   }, [isPopupOpen, isMenuPopupOpen]);
 
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!mounted) return null;
-
   return (
     <>
       <HeaderContainer $ismobile={isMobile}>
@@ -258,7 +256,10 @@ const Header = () => {
             </>
           )}
         </HeaderMenuContainer>
+
         <UserInfoContainer $ismobile={isMobile}>
+          {!isMobile && <SearchBar keyword={keyword} setKeyword={setKeyword} />}
+
           {nickname === "" ? (
             <LoginBtn $ismobile={isMobile}>
               {isMobile ? "로그인" : "로그인하러 가기"}
@@ -293,4 +294,4 @@ const Header = () => {
   );
 };
 
-export default Header;
+export default MainHeader;
