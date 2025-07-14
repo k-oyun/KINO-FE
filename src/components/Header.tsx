@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import styled from "styled-components";
+import { motion } from "framer-motion";
 import { useMediaQuery } from "react-responsive";
 import profileIcon from "../assets/img/profileIcon.png";
 import logoText from "../assets/img/LogoTxt.png";
@@ -100,7 +101,7 @@ const LoginBtn = styled.button<styleType>`
   transition: transform 0.2s ease-in-out;
 `;
 
-const Popup = styled.div<styleType>`
+const Popup = styled(motion.div)<styleType>`
   width: ${(props) => (props.$ismobile ? "130px" : "150px")};
   height: ${(props) => (props.$ismobile ? "100px" : "120px")};
   border-radius: 14px;
@@ -132,7 +133,7 @@ const PopupBtn = styled.button`
   transition: transform 0.2s ease-in-out;
 `;
 
-const MenuPopup = styled.div`
+const MenuPopup = styled(motion.div)`
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -143,6 +144,7 @@ const MenuPopup = styled.div`
   width: 200px;
   height: 200px;
   background-color: ${({ theme }) => theme.backgroundColor};
+  box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.3);
 `;
 
 const MenuPopupText = styled.span<{ $ismenupopupopen: boolean }>`
@@ -226,7 +228,13 @@ const Header = () => {
                 </MenuPopupText>
               </HeaderMenuBtn>
               {isMenuPopupOpen && (
-                <MenuPopup ref={menuPopupRef}>
+                <MenuPopup
+                  ref={menuPopupRef}
+                  initial={{ opacity: 0, y: -20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.3 }}
+                >
                   {menuItems.map(({ label, path }) => (
                     <HeaderMenuBtn
                       key={path}
@@ -269,7 +277,14 @@ const Header = () => {
         </UserInfoContainer>
       </HeaderContainer>
       {isPopupOpen && (
-        <Popup $ismobile={isMobile} ref={popupRef}>
+        <Popup
+          $ismobile={isMobile}
+          ref={popupRef}
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -20 }}
+          transition={{ duration: 0.3 }}
+        >
           <PopupBtn onClick={onClickMypage}>마이페이지</PopupBtn>
           <PopupBtn>로그아웃</PopupBtn>
         </Popup>

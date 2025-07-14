@@ -5,7 +5,6 @@ import { darkTheme, lightTheme } from "./styles/theme";
 import { ThemeProvider } from "styled-components";
 import Login from "./pages/Login";
 import Main from "./pages/Main";
-import MainHeader from "./components/MainHeader";
 import { usePreferMode } from "./hooks/usePreferMode";
 
 function HeaderSelector() {
