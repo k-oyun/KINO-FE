@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useMediaQuery } from "react-responsive";
 import styled from "styled-components";
 import UserList from "../components/AdminList";
+import AdminModal from "../components/AdminModal";
 
 interface styleProp {
   $ismobile: boolean;
@@ -80,26 +81,29 @@ const Admin = () => {
   //   }, [selectedOption]);
 
   return (
-    <AmdinContainer $ismobile={isMobile}>
-      <Sidebar $ismobile={isMobile}>
-        {!isMobile && <AdminText>관리자 {adminName}</AdminText>}
-        {sideBarOption.map((label, idx) => (
-          <SidebarBtn
-            key={idx}
-            onClick={() => handleOptionClick(label)}
-            $ismobile={isMobile}
-            $selected={label === selectedOption}
-          >
-            {label}
-          </SidebarBtn>
-        ))}
-      </Sidebar>
-      <ManagementContainer $ismobile={isMobile}>
-        <ManagementInfoContainer $ismobile={isMobile}>
-          <UserList selectedOption={selectedOption} />
-        </ManagementInfoContainer>
-      </ManagementContainer>
-    </AmdinContainer>
+    <>
+      <AmdinContainer $ismobile={isMobile}>
+        <Sidebar $ismobile={isMobile}>
+          {!isMobile && <AdminText>관리자 {adminName}</AdminText>}
+          {sideBarOption.map((label, idx) => (
+            <SidebarBtn
+              key={idx}
+              onClick={() => handleOptionClick(label)}
+              $ismobile={isMobile}
+              $selected={label === selectedOption}
+            >
+              {label}
+            </SidebarBtn>
+          ))}
+        </Sidebar>
+        <ManagementContainer $ismobile={isMobile}>
+          <ManagementInfoContainer $ismobile={isMobile}>
+            <UserList selectedOption={selectedOption} />
+          </ManagementInfoContainer>
+        </ManagementContainer>
+      </AmdinContainer>
+      <AdminModal />
+    </>
   );
 };
 
