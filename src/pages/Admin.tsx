@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useMediaQuery } from "react-responsive";
 import styled from "styled-components";
-import UserList from "../components/AdminList";
+import AdminList from "../components/AdminList";
 import AdminModal from "../components/AdminModal";
 
 interface styleProp {
@@ -69,6 +69,7 @@ const Admin = () => {
   const isMobile = useMediaQuery({ query: "(max-width: 767px)" });
   const [adminName, setAdminName] = useState("권오윤");
   const [selectedOption, setSelectedOption] = useState("회원관리");
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const sideBarOption = ["회원관리", "게시글", "한줄평", "댓글"];
 
@@ -98,11 +99,14 @@ const Admin = () => {
         </Sidebar>
         <ManagementContainer $ismobile={isMobile}>
           <ManagementInfoContainer $ismobile={isMobile}>
-            <UserList selectedOption={selectedOption} />
+            <AdminList
+              selectedOption={selectedOption}
+              setIsModalOpen={setIsModalOpen}
+            />
           </ManagementInfoContainer>
         </ManagementContainer>
       </AmdinContainer>
-      <AdminModal />
+      {isModalOpen && <AdminModal setIsModalOpen={setIsModalOpen} />}
     </>
   );
 };

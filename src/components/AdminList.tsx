@@ -19,12 +19,13 @@ interface User {
   joinDate: string;
 }
 
-interface SelectedProps {
-  selectedOption: string;
-}
-
 interface StyleProps {
   $ismobile: boolean;
+}
+
+interface adminProps {
+  selectedOption: string;
+  setIsModalOpen: (value: boolean) => void;
 }
 
 const Table = styled.table`
@@ -99,7 +100,7 @@ const CustomSwipeableListItem = styled(SwipeableListItem)`
   margin-top: 15px;
 `;
 
-const UserList = ({ selectedOption }: SelectedProps) => {
+const AdminList = ({ selectedOption, setIsModalOpen }: adminProps) => {
   const [selectedUser, setSelectedUser] = useState<string[]>([]);
 
   const isMobile = useMediaQuery({ query: "(max-width: 767px)" });
@@ -242,7 +243,13 @@ const UserList = ({ selectedOption }: SelectedProps) => {
                   }
                 >
                   <MobileContainer>
-                    <MobileInfoContainer>
+                    <MobileInfoContainer
+                      onClick={() => {
+                        selectedOption !== "회원관리"
+                          ? setIsModalOpen(true)
+                          : null;
+                      }}
+                    >
                       <div>
                         <strong>닉네임:</strong> {user.nickname}
                       </div>
@@ -320,7 +327,12 @@ const UserList = ({ selectedOption }: SelectedProps) => {
                   </Td>
                 ) : (
                   <Td>
-                    <ManageBtn $ismobile={isMobile}>상세정보</ManageBtn>
+                    <ManageBtn
+                      $ismobile={isMobile}
+                      onClick={() => setIsModalOpen(true)}
+                    >
+                      상세정보
+                    </ManageBtn>
                   </Td>
                 )}
               </tr>
@@ -332,4 +344,4 @@ const UserList = ({ selectedOption }: SelectedProps) => {
   );
 };
 
-export default UserList;
+export default AdminList;

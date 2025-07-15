@@ -6,6 +6,10 @@ import logo from "../assets/img/Logo.png";
 interface styleType {
   $ismobile: boolean;
 }
+interface adminProps {
+  setIsModalOpen: (value: boolean) => void;
+}
+
 const ModalContainer = styled.div<styleType>`
   width: ${(props) => (props.$ismobile ? "90%" : "50%")};
   height: ${(props) => (props.$ismobile ? "85%" : "90%")};
@@ -138,7 +142,20 @@ const ConfirmBtn = styled.button<{
     background-color: #e04a78;
   }
 `;
-const AdminModal = () => {
+
+const CloseBtn = styled.svg`
+  position: absolute;
+  width: 25px;
+  top: 5px;
+  right: 5px;
+  fill: ${({ theme }) => theme.textColor};
+  viewbox: "0 0 24 24";
+  stroke-width: 2;
+  stroke: currentColor;
+  cursor: pointer;
+`;
+
+const AdminModal = ({ setIsModalOpen }: adminProps) => {
   const isMobile = useMediaQuery({ query: "(max-width: 767px)" });
   const [reportProcessType, setReportProcessType] = useState("");
   const [reportInfo, setReportInfo] = useState({
@@ -171,6 +188,19 @@ const AdminModal = () => {
   return (
     <ModalContainer $ismobile={isMobile}>
       <Modal>
+        <CloseBtn
+          xmlns="http://www.w3.org/2000/svg"
+          onClick={() => {
+            setIsModalOpen(false);
+          }}
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M6 18 18 6M6 6l12 12"
+          />
+        </CloseBtn>
+
         <Logo src={logo} $ismobile={isMobile} />
         <TitleContainer $ismobile={isMobile}>신고 상세 정보</TitleContainer>
         <GreySection>
@@ -205,7 +235,12 @@ const AdminModal = () => {
           </SelectBox>
         </GreySection>
         {reportProcessType !== "" && (
-          <ConfirmBtn $ismobile={isMobile}>처리 완료</ConfirmBtn>
+          <ConfirmBtn
+            $ismobile={isMobile}
+            onClick={() => setIsModalOpen(false)}
+          >
+            처리 완료
+          </ConfirmBtn>
         )}
       </Modal>
     </ModalContainer>
