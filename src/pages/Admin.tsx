@@ -1,0 +1,114 @@
+import { useEffect, useState } from "react";
+import { useMediaQuery } from "react-responsive";
+import styled from "styled-components";
+import AdminList from "../components/AdminList";
+import AdminModal from "../components/AdminModal";
+
+interface styleProp {
+  $ismobile: boolean;
+}
+
+const AmdinContainer = styled.div<styleProp>`
+  display: flex;
+  flex-direction: ${(props) => (props.$ismobile ? "column" : "row")};
+  align-items: center;
+  width: 100%;
+  height: 100vh;
+  background-color: ${({ theme }) => theme.backgroundColor};
+  color: ${({ theme }) => theme.textColor};
+`;
+
+const Sidebar = styled.div<styleProp>`
+  display: flex;
+  flex-direction: ${(props) => (props.$ismobile ? "row" : "column")};
+  align-items: center;
+  background-color: ${(props) => (props.$ismobile ? "transparent" : "#fa5a8e")};
+  width: ${(props) => (props.$ismobile ? "80%" : "16%")};
+  height: ${(props) => (props.$ismobile ? "5%" : "100%")};
+  margin-top: ${(props) => (props.$ismobile ? "100px" : "0px")};
+`;
+
+const SidebarBtn = styled.button<{ $selected: boolean; $ismobile: boolean }>`
+  text-align: center;
+  width: 100%;
+  height: ${(props) => (props.$ismobile ? " 30px" : "100px")};
+  border: none;
+  background-color: ${(props) => (props.$selected ? "#FF2E72" : "#fa5a8e")};
+  color: ${({ theme }) => theme.textColor};
+  font-size: ${(props) => (props.$ismobile ? "14px" : "18px")};
+  font-weight: 700;
+  cursor: pointer;
+`;
+
+const AdminText = styled.span`
+  font-size: 20px;
+  margin-top: 130px;
+  margin-bottom: 80px;
+  font-weight: 700;
+  /* color: ${({ theme }) => theme.backgroundColor}; */
+`;
+
+const ManagementContainer = styled.div<styleProp>`
+  display: flex;
+  flex-direction: column;
+  justify-content: ${(props) => (props.$ismobile ? "none" : "center")};
+  align-items: center;
+  width: 88%;
+  height: ${(props) => (props.$ismobile ? "auto" : "100%")};
+  background-color: ${({ theme }) => theme.backgroundColor};
+`;
+
+const ManagementInfoContainer = styled.div<styleProp>`
+  display: flex;
+  width: ${(props) => (props.$ismobile ? "auto" : "80%")};
+  height: ${(props) => (props.$ismobile ? "auto" : "80%")};
+  border: ${(props) => (props.$ismobile ? "none" : "1.5px solid #d9d9d9")};
+  border-radius: 1px;
+`;
+const Admin = () => {
+  const isMobile = useMediaQuery({ query: "(max-width: 767px)" });
+  const [adminName, setAdminName] = useState("권오윤");
+  const [selectedOption, setSelectedOption] = useState("회원관리");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const sideBarOption = ["회원관리", "게시글", "한줄평", "댓글"];
+
+  const handleOptionClick = (option: string) => {
+    setSelectedOption(option);
+  };
+
+  //   useEffect(() => {
+  //     console.log(selectedOption);
+  //   }, [selectedOption]);
+
+  return (
+    <>
+      <AmdinContainer $ismobile={isMobile}>
+        <Sidebar $ismobile={isMobile}>
+          {!isMobile && <AdminText>관리자 {adminName}</AdminText>}
+          {sideBarOption.map((label, idx) => (
+            <SidebarBtn
+              key={idx}
+              onClick={() => handleOptionClick(label)}
+              $ismobile={isMobile}
+              $selected={label === selectedOption}
+            >
+              {label}
+            </SidebarBtn>
+          ))}
+        </Sidebar>
+        <ManagementContainer $ismobile={isMobile}>
+          <ManagementInfoContainer $ismobile={isMobile}>
+            <AdminList
+              selectedOption={selectedOption}
+              setIsModalOpen={setIsModalOpen}
+            />
+          </ManagementInfoContainer>
+        </ManagementContainer>
+      </AmdinContainer>
+      {isModalOpen && <AdminModal setIsModalOpen={setIsModalOpen} />}
+    </>
+  );
+};
+
+export default Admin;
