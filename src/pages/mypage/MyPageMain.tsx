@@ -1,38 +1,39 @@
-import React from 'react';
+import React, { useState } from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
-// import { useQuery } from '@tanstack/react-query';
-// import { useRecoilValue } from 'recoil';
 
-// import { fetchUserProfile, fetchMyShortReviewsPreview, fetchMyDetailReviewsPreview, fetchMyFavoriteMoviesPreview } from '../../api/users';
+import UserProfileSection from '../../components/mypage/UserProfileSection';
+import ReviewCard from '../../components/mypage/ReviewCard';
+import MovieCard from '../../components/mypage/MovieCard';
 
-// 더미데이터로 일단 처리
-// import UserProfileSection from '../../components/mypage/UserProfileSection';
-// import ReviewPreviewSection from '../../components/mypage/ReviewPreviewSection';
-// import MoviePreviewSection from '../../components/mypage/MoviePreviewSection';
-
-// import { authState } from '../../store/authState';
-
-
-// 1. 스타일 정의
 const MyPageContainer = styled.div`
   max-width: 1200px;
   margin: 0 auto;
-  padding: 40px 20px;
-  background-color: #1a1a1a;
+  padding-top: 300px;
+  background-color: transparent;
   min-height: calc(100vh - 60px);
   color: #f0f0f0;
+
+  display: flex;
+  flex-direction: column;
+
+  @media (max-width: 767px) {
+    padding: 20px 15px;
+    padding-top: 80px;
+  }
 `;
 
 const SectionWrapper = styled.section`
-  background-color: #2a2a2a;
-  border-radius: 8px;
+  background-color: #000000;
   padding: 25px;
-  margin-bottom: 30px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 
   &:last-child {
     margin-bottom: 0;
+  }
+
+  @media (max-width: 767px) {
+    padding: 20px;
   }
 `;
 
@@ -41,33 +42,88 @@ const SectionHeader = styled.div`
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
+
+  @media (max-width: 767px) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 15px;
+  }
 `;
 
 const SectionTitle = styled.h3`
   font-size: 1.8em;
   font-weight: bold;
   color: #e0e0e0;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+
+  svg {
+    margin-left: 10px;
+    font-size: 1.5em;
+    color: #f0f0f0;
+    transition: transform 0.2s ease-in-out;
+
+    &:hover {
+      transform: translateX(5px);
+    }
+  }
+  
+  @media (max-width: 767px) {
+    font-size: 1.4em;
+  }
+  @media (max-width: 480px) {
+    font-size: 1.2em;
+  }
 `;
 
-const MoreButton = styled.button`
+const SortOptions = styled.div`
+  display: flex;
+  gap: 10px;
+  font-size: 0.9em;
+
+  @media (max-width: 767px) {
+    font-size: 0.8em;
+  }
+`;
+
+const SortButton = styled.button<{ isActive: boolean }>`
   background: none;
   border: none;
-  color: #888;
-  font-size: 1em;
+  color: ${props => (props.isActive ? '#e0e0e0' : '#888')};
+  font-weight: ${props => (props.isActive ? 'bold' : 'normal')};
   cursor: pointer;
-  padding: 5px 10px;
-  border-radius: 4px;
-  transition: color 0.2s ease-in-out;
+  padding: 5px 0;
+  position: relative;
 
   &:hover {
     color: #f0f0f0;
   }
+
+  ${props =>
+    props.isActive &&
+    `
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 2px;
+      background-color: #e0e0e0;
+    }
+  `}
 `;
 
 const PreviewContent = styled.div`
   display: flex;
   flex-direction: column;
   gap: 15px;
+
+  @media (max-width: 767px) {
+    gap: 10px;
+  }
 `;
 
 const EmptyState = styled.div`
@@ -75,22 +131,91 @@ const EmptyState = styled.div`
   text-align: center;
   padding: 30px 0;
   font-size: 1.1em;
+
+  @media (max-width: 767px) {
+    padding: 20px 0;
+    font-size: 1em;
+  }
 `;
 
-// 2. 더미 데이터 정의
-const DUMMY_USER_PROFILE = {
+const MovieCardGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 20px;
+  padding-top: 10px;
+
+  @media (max-width: 767px) {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 15px;
+  }
+  @media (max-width: 480px) {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 10px;
+  }
+`;
+
+const PinkText = styled.span`
+  color: #ff69b4;
+  font-weight: bold;
+  margin-left: 0.25em;
+`;
+
+interface UserProfileType {
+  nickname: string;
+  profileImageUrl: string;
+  followerCount: number;
+  followingCount: number;
+}
+
+interface ShortReviewType {
+  id: string;
+  movieTitle: string;
+  content: string;
+  rating: number;
+  likeCount: number;
+  createdAt: string;
+  viewCount?: number;
+}
+
+interface DetailReviewType {
+  id: string;
+  movieTitle: string;
+  moviePosterUrl: string;
+  title: string;
+  content: string;
+  rating: number;
+  likeCount: number;
+  createdAt: string;
+  viewCount?: number;
+}
+
+type ReviewType = ShortReviewType | DetailReviewType;
+
+interface FavoriteMovieType {
+  id: string;
+  title: string;
+  director: string;
+  releaseDate: string;
+  posterUrl: string;
+}
+
+
+const DUMMY_USER_PROFILE: UserProfileType = {
   nickname: 'Nick_name',
   profileImageUrl: 'https://via.placeholder.com/100/3498db/ffffff?text=User',
   followerCount: 123,
   followingCount: 45,
 };
 
-const DUMMY_SHORT_REVIEWS = [
-  { id: 'sr1', movieTitle: '노이즈', content: '무서워요 무서워요무서워요무서워요무서워요무서워요', rating: 4.5, likeCount: 7, createdAt: '2023.08.15 11:00' },
-  { id: 'sr2', movieTitle: '타이타닉', content: '잭과 로즈의 아름다운 사랑 이야기. OST가 정말 좋아요!', rating: 5.0, likeCount: 25, createdAt: '2023.07.20 14:30' },
+const DUMMY_SHORT_REVIEWS: ShortReviewType[] = [
+  { id: 'sr1', movieTitle: '노이즈', content: '무서워요 무서워요무서워요무서워요무서워요무서워요', rating: 4.5, likeCount: 7, createdAt: '2023.08.15 11:00', viewCount: 150 },
+  { id: 'sr2', movieTitle: '타이타닉', content: '잭과 로즈의 아름다운 사랑 이야기. OST가 정말 좋아요!', rating: 5.0, likeCount: 25, createdAt: '2023.07.20 14:30', viewCount: 300 },
+  { id: 'sr3', movieTitle: '아바타', content: '아바타 진짜 재밌어요 너무 재밌어요 또 보러갈 거예요', rating: 4.0, likeCount: 10, createdAt: '2024.01.10 10:00', viewCount: 200 },
+  { id: 'sr4', movieTitle: '아바타', content: '아바타 진짜 재밌어요 너무 재밌어요 또 보러갈 거예요', rating: 4.0, likeCount: 10, createdAt: '2024.01.10 10:00', viewCount: 200 },
+  { id: 'sr5', movieTitle: '아바타', content: '아바타 진짜 재밌어요 너무 재밌어요 또 보러갈 거예요', rating: 4.0, likeCount: 10, createdAt: '2024.01.10 10:00', viewCount: 200 },
 ];
 
-const DUMMY_DETAIL_REVIEWS = [
+const DUMMY_DETAIL_REVIEWS: DetailReviewType[] = [
   {
     id: 'dr1',
     movieTitle: '엘리오',
@@ -100,6 +225,7 @@ const DUMMY_DETAIL_REVIEWS = [
     rating: 4.0,
     likeCount: 15,
     createdAt: '14시간 전',
+    viewCount: 217,
   },
   {
     id: 'dr2',
@@ -110,167 +236,104 @@ const DUMMY_DETAIL_REVIEWS = [
     rating: 3.5,
     likeCount: 10,
     createdAt: '2023.09.01 10:00',
+    viewCount: 500,
+  },
+    {
+    id: 'dr3',
+    movieTitle: '박시영',
+    moviePosterUrl: 'https://via.placeholder.com/100x150/2ecc71/ffffff?text=Poster2',
+    title: '2025년 7/10 박스오피스',
+    content: '매트릭스를 보고, 나라면 빨간약과 파란약 중에... (중략)',
+    rating: 3.5,
+    likeCount: 10,
+    createdAt: '2023.09.01 10:00',
+    viewCount: 500,
+  },
+    {
+    id: 'dr4',
+    movieTitle: '박시영',
+    moviePosterUrl: 'https://via.placeholder.com/100x150/2ecc71/ffffff?text=Poster2',
+    title: '2025년 7/10 박스오피스',
+    content: '매트릭스를 보고, 나라면 빨간약과 파란약 중에... (중략)',
+    rating: 3.5,
+    likeCount: 10,
+    createdAt: '2023.09.01 10:00',
+    viewCount: 500,
   },
 ];
 
-const DUMMY_FAVORITE_MOVIES = [
-  { id: 'fm1', title: '인터스텔라', director: '크리스토퍼 놀란', releaseDate: '2014' },
-  { id: 'fm2', title: '아바타: 물의 길', director: '제임스 카메론', releaseDate: '2022' },
-  { id: 'fm3', title: '스파이더맨: 노 웨이 홈', director: '존 왓츠', releaseDate: '2021' },
-  { id: 'fm4', title: '기생충', director: '봉준호', releaseDate: '2019' },
-  { id: 'fm5', title: '범죄도시 3', director: '이상용', releaseDate: '2023' },
+const DUMMY_FAVORITE_MOVIES: FavoriteMovieType[] = [
+  { id: 'fm1', title: '인터스텔라', director: '크리스토퍼 놀란', releaseDate: '2014', posterUrl: 'https://via.placeholder.com/200x300/3498db/ffffff?text=Interstellar' },
+  { id: 'fm2', title: '아바타: 물의 길', director: '제임스 카메론', releaseDate: '2022', posterUrl: 'https://via.placeholder.com/200x300/9b59b6/ffffff?text=Avatar2' },
+  { id: 'fm3', title: '스파이더맨: 노 웨이 홈', director: '존 왓츠', releaseDate: '2021', posterUrl: 'https://via.placeholder.com/200x300/e67e22/ffffff?text=Spiderman' },
+  { id: 'fm4', title: '기생충', director: '봉준호', releaseDate: '2019', posterUrl: 'https://via.placeholder.com/200x300/27ae60/ffffff?text=Parasite' },
+  { id: 'fm6', title: '범죄도시 3', director: '이상용', releaseDate: '2023', posterUrl: 'https://via.placeholder.com/200x300/c0392b/ffffff?text=The+Outlaws3' },
+  { id: 'fm7', title: '범죄도시 3', director: '이상용', releaseDate: '2023', posterUrl: 'https://via.placeholder.com/200x300/c0392b/ffffff?text=The+Outlaws3' },
+  { id: 'fm8', title: '범죄도시 3', director: '이상용', releaseDate: '2023', posterUrl: 'https://via.placeholder.com/200x300/c0392b/ffffff?text=The+Outlaws3' },
+  { id: 'fm9', title: '범죄도시 3', director: '이상용', releaseDate: '2023', posterUrl: 'https://via.placeholder.com/200x300/c0392b/ffffff?text=The+Outlaws3' },
+  { id: 'fm10', title: '범죄도시 3', director: '이상용', releaseDate: '2023', posterUrl: 'https://via.placeholder.com/200x300/c0392b/ffffff?text=The+Outlaws3' },
+  { id: 'fm11', title: '범죄도시 3', director: '이상용', releaseDate: '2023', posterUrl: 'https://via.placeholder.com/200x300/c0392b/ffffff?text=The+Outlaws3' },
+  { id: 'fm12', title: '범죄도시 3', director: '이상용', releaseDate: '2023', posterUrl: 'https://via.placeholder.com/200x300/c0392b/ffffff?text=The+Outlaws3' },
+  { id: 'fm13', title: '범죄도시 3', director: '이상용', releaseDate: '2023', posterUrl: 'https://via.placeholder.com/200x300/c0392b/ffffff?text=The+Outlaws3' },
+  { id: 'fm14', title: '범죄도시 3', director: '이상용', releaseDate: '2023', posterUrl: 'https://via.placeholder.com/200x300/c0392b/ffffff?text=The+Outlaws3' },
+  { id: 'fm15', title: '범죄도시 3', director: '이상용', releaseDate: '2023', posterUrl: 'https://via.placeholder.com/200x300/c0392b/ffffff?text=The+Outlaws3' },
+  { id: 'fm16', title: '범죄도시 3', director: '이상용', releaseDate: '2023', posterUrl: 'https://via.placeholder.com/200x300/c0392b/ffffff?text=The+Outlaws3' },
 ];
 
-// UserProfileSection 임시 컴포넌트
-const TempUserProfileSection = styled.div`
-  background-color: #2a2a2a;
-  border-radius: 8px;
-  padding: 25px;
-  margin-bottom: 30px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  position: relative;
-  min-height: 200px;
 
-  img {
-    width: 100px;
-    height: 100px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 2px solid #888;
-  }
-  h2 {
-    color: #e0e0e0;
-    margin-top: 15px;
-    font-size: 1.8em;
-    font-weight: bold;
-  }
-  p {
-    color: #aaa;
-    font-size: 1em;
-    margin-top: 5px;
-  }
-  button {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    background: none;
-    border: none;
-    color: #888;
-    font-size: 1.5em;
-    cursor: pointer;
-    &:hover {
-      color: #e0e0e0;
-    }
-  }
-  .tag-button {
-    right: 60px;
-    border: 1px solid #888;
-    font-size: 0.9em;
-    padding: 5px 12px;
-    border-radius: 20px;
-  }
-`;
-
-// ReviewPreviewSection 임시 컴포넌트
-const TempReviewPreviewSection = styled.div`
-  background-color: #3a3a3a;
-  border-radius: 6px;
-  padding: 15px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-
-  .review-title {
-    font-weight: bold;
-    color: #f0f0f0;
-    font-size: 1.1em;
-  }
-  .review-movie-title {
-    color: #bbb;
-    font-size: 0.9em;
-  }
-  .review-content {
-    color: #ddd;
-    font-size: 0.95em;
-    white-space: pre-wrap;
-  }
-  .review-meta {
-    display: flex;
-    justify-content: space-between;
-    font-size: 0.8em;
-    color: #888;
-  }
-`;
-
-// MoviePreviewSection 임시 컴포넌트
-const TempMoviePreviewSection = styled.div`
-  .movie-list-item {
-    display: grid;
-    grid-template-columns: 2fr 1.5fr 1fr; /* 제목, 감독, 연도 */
-    gap: 10px;
-    padding: 10px 0;
-    border-bottom: 1px solid #444;
-
-    &:last-child {
-      border-bottom: none;
-    }
-
-    span {
-      color: #ddd;
-      font-size: 0.95em;
-    }
-  }
-  .movie-list-header {
-      font-weight: bold;
-      color: #bbb;
-      border-bottom: 2px solid #555;
-      padding-bottom: 10px;
-      margin-bottom: 10px;
-  }
-`;
-
-
-// 3. MyPageMain 
 const MyPageMain: React.FC = () => {
   const navigate = useNavigate();
+  const [shortReviewSort, setShortReviewSort] = useState<'latest' | 'views' | 'likes'>('latest');
+  const [detailReviewSort, setDetailReviewSort] = useState<'latest' | 'views' | 'likes'>('latest');
 
-  const userProfile = DUMMY_USER_PROFILE;
-  const shortReviews = DUMMY_SHORT_REVIEWS;
-  const detailReviews = DUMMY_DETAIL_REVIEWS;
-  const favoriteMovies = DUMMY_FAVORITE_MOVIES;
+  const userProfile = DUMMY_USER_PROFILE; // useQuery로 대체 예정
+  const shortReviews = DUMMY_SHORT_REVIEWS; // useQuery로 대체 예정
+  const detailReviews = DUMMY_DETAIL_REVIEWS; // useQuery로 대체 예정
+  const favoriteMovies = DUMMY_FAVORITE_MOVIES; // useQuery로 대체 예정
+
+  const sortedShortReviews = [...shortReviews].sort((a, b) => {
+    if (shortReviewSort === 'latest') {
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    } else if (shortReviewSort === 'views') {
+      return (b.viewCount || 0) - (a.viewCount || 0);
+    } else if (shortReviewSort === 'likes') {
+      return b.likeCount - a.likeCount;
+    }
+    return 0;
+  });
+
+  const sortedDetailReviews = [...detailReviews].sort((a, b) => {
+    if (detailReviewSort === 'latest') {
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    } else if (detailReviewSort === 'views') {
+      return (b.viewCount || 0) - (a.viewCount || 0);
+    } else if (detailReviewSort === 'likes') {
+      return b.likeCount - a.likeCount;
+    }
+    return 0;
+  });
 
   return (
     <MyPageContainer>
-      {/* 1. 사용자 프로필 섹션 */}
-      <TempUserProfileSection>
-        <button onClick={() => navigate('/mypage/settings')}>⚙️</button>
-        <button className="tag-button" onClick={() => navigate('/mypage/tags')}>태그</button>
-        <img src={userProfile.profileImageUrl} alt="프로필 이미지" />
-        <h2>{userProfile.nickname}</h2>
-        <p>팔로워 {userProfile.followerCount} | 팔로잉 {userProfile.followingCount}</p>
-      </TempUserProfileSection>
-
-      {/* 2. 내가 작성한 한줄평 섹션 */}
-      <SectionWrapper>
+      <UserProfileSection userProfile={userProfile} />
+      <SectionWrapper style={{ gridArea: 'shortReview' }}>
         <SectionHeader>
-          <SectionTitle>내가 작성한 한줄평</SectionTitle>
-          <MoreButton onClick={() => navigate('/mypage/reviews/short')}>더보기</MoreButton>
+          <SectionTitle onClick={() => navigate('/mypage/reviews/short')}>
+            내가 작성한<PinkText>한줄평</PinkText>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M9 5L15 12L9 19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </SectionTitle>
+          <SortOptions>
+            <SortButton isActive={shortReviewSort === 'latest'} onClick={() => setShortReviewSort('latest')}>최신순</SortButton>
+            <SortButton isActive={shortReviewSort === 'views'} onClick={() => setShortReviewSort('views')}>조회순</SortButton>
+            <SortButton isActive={shortReviewSort === 'likes'} onClick={() => setShortReviewSort('likes')}>좋아요순</SortButton>
+          </SortOptions>
         </SectionHeader>
         <PreviewContent>
-          {shortReviews && shortReviews.length > 0 ? (
-            shortReviews.map((review: any) => (
-              <TempReviewPreviewSection key={review.id}>
-                <div className="review-movie-title">영화: {review.movieTitle}</div>
-                <div className="review-content">{review.content}</div>
-                <div className="review-meta">
-                    <span>⭐ {review.rating}</span>
-                    <span>👍 {review.likeCount}</span>
-                    <span>{review.createdAt}</span>
-                </div>
-              </TempReviewPreviewSection>
+          {sortedShortReviews && sortedShortReviews.length > 0 ? (
+            sortedShortReviews.slice(0,3).map((review: ShortReviewType) => (
+              <ReviewCard key={review.id} review={review as ReviewType} type="short" />
             ))
           ) : (
             <EmptyState>작성한 한줄평이 없습니다.</EmptyState>
@@ -278,27 +341,24 @@ const MyPageMain: React.FC = () => {
         </PreviewContent>
       </SectionWrapper>
 
-      {/* 3. 내가 작성한 상세 리뷰 섹션 */}
-      <SectionWrapper>
+      <SectionWrapper style={{ gridArea: 'detailReview' }}>
         <SectionHeader>
-          <SectionTitle>내가 작성한 상세 리뷰</SectionTitle>
-          <MoreButton onClick={() => navigate('/mypage/reviews/detail')}>더보기</MoreButton>
+          <SectionTitle onClick={() => navigate('/mypage/reviews/detail')}>
+            내가 작성한<PinkText>상세 리뷰</PinkText>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M9 5L15 12L9 19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </SectionTitle>
+          <SortOptions>
+            <SortButton isActive={detailReviewSort === 'latest'} onClick={() => setDetailReviewSort('latest')}>최신순</SortButton>
+            <SortButton isActive={detailReviewSort === 'views'} onClick={() => setDetailReviewSort('views')}>조회순</SortButton>
+            <SortButton isActive={detailReviewSort === 'likes'} onClick={() => setDetailReviewSort('likes')}>좋아요순</SortButton>
+          </SortOptions>
         </SectionHeader>
         <PreviewContent>
-          {detailReviews && detailReviews.length > 0 ? (
-            detailReviews.map((review: any) => (
-              <TempReviewPreviewSection key={review.id}>
-                {review.moviePosterUrl && <img src={review.moviePosterUrl} alt="포스터" style={{width: '60px', height: '90px', objectFit: 'cover', borderRadius: '4px', float: 'left', marginRight: '10px'}} />}
-                <div className="review-title">{review.title}</div>
-                <div className="review-movie-title">영화: {review.movieTitle}</div>
-                <div className="review-content">{review.content.substring(0, 100)}...</div>
-                <div className="review-meta">
-                    <span>⭐ {review.rating}</span>
-                    <span>👍 {review.likeCount}</span>
-                    <span>{review.createdAt}</span>
-                </div>
-                <div style={{clear: 'both'}}></div>
-              </TempReviewPreviewSection>
+          {sortedDetailReviews && sortedDetailReviews.length > 0 ? (
+            sortedDetailReviews.slice(0,3).map((review: DetailReviewType) => (
+              <ReviewCard key={review.id} review={review as ReviewType} type="detail" />
             ))
           ) : (
             <EmptyState>작성한 상세 리뷰가 없습니다.</EmptyState>
@@ -306,32 +366,24 @@ const MyPageMain: React.FC = () => {
         </PreviewContent>
       </SectionWrapper>
 
-      {/* 4. 내가 찜한 영화 섹션 */}
-      <SectionWrapper>
+      <SectionWrapper style={{ gridArea: 'favoriteMovies' }}>
         <SectionHeader>
-          <SectionTitle>내가 찜한 영화</SectionTitle>
-          <MoreButton onClick={() => navigate('/mypage/movies/favorite')}>더보기</MoreButton>
+          <SectionTitle onClick={() => navigate('/mypage/movies/favorite')}>
+            내가<PinkText>찜한 영화</PinkText> 
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M9 5L15 12L9 19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </SectionTitle>
         </SectionHeader>
-        <PreviewContent>
+        <MovieCardGrid>
           {favoriteMovies && favoriteMovies.length > 0 ? (
-            <TempMoviePreviewSection>
-                <div className="movie-list-item movie-list-header">
-                    <span>제목</span>
-                    <span>감독</span>
-                    <span>개봉년도</span>
-                </div>
-                {favoriteMovies.map((movie: any) => (
-                    <div className="movie-list-item" key={movie.id}>
-                        <span>{movie.title}</span>
-                        <span>{movie.director}</span>
-                        <span>{movie.releaseDate}</span>
-                    </div>
-                ))}
-            </TempMoviePreviewSection>
+            favoriteMovies.slice(0, 12).map((movie: FavoriteMovieType) => (
+              <MovieCard key={movie.id} movie={movie} />
+            ))
           ) : (
             <EmptyState>찜한 영화가 없습니다.</EmptyState>
           )}
-        </PreviewContent>
+        </MovieCardGrid>
       </SectionWrapper>
     </MyPageContainer>
   );
