@@ -31,6 +31,7 @@ const Td = styled.td`
 
 const Status = styled.span<{ $status: "정상" | "정지" }>`
   color: ${({ $status }) => ($status === "정상" ? "green" : "red")};
+  font-weight: 700;
 `;
 
 const UnBanBtn = styled.button`
