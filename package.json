@@ -11,11 +11,13 @@
   },
   "dependencies": {
     "axios": "^1.10.0",
+    "framer-motion": "^12.23.5",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-responsive": "^10.0.1",
     "react-router-dom": "^7.6.3",
     "styled-components": "^6.1.19",
+    "swiper": "^11.2.10",
     "ts-node": "^10.9.2"
   },
   "devDependencies": {

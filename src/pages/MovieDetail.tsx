@@ -3,6 +3,7 @@ import { useMediaQuery } from "react-responsive";
 import { useEffect, useState } from "react";
 import GeneralMovieInfo from "../components/GeneralMovieInfo";
 import TabSelector from "../components/TabSelector";
+import MovieInfo from "../components/MovieInfo";
 
 const movieDetail = {
   id: 603692,
@@ -49,7 +50,15 @@ const movieDetail = {
   imdb_id: "tt1234567",
 };
 
-const MovieDetailContainer = styled.div``;
+const MovieDetailContainer = styled.div`
+  width: 100%;
+  margin-top: 65px; /* 헤더 높이만큼 여백 */
+`;
+
+const Categories = styled.div<{ $ismobile: boolean }>`
+  width: 100%;
+  padding: ${(props) => (props.$ismobile ? "20px" : "20px 50px")};
+`;
 
 const tabs = [
   { id: "info", label: "작품정보" },
@@ -71,34 +80,29 @@ const MovieDetail = () => {
   return (
     <MovieDetailContainer>
       <GeneralMovieInfo isMobile={isMobile} movieDetail={movieDetail} />
-      <TabSelector
-        isMobile={isMobile}
-        tabs={tabs}
-        selectedTab={selectedTab}
-        onChange={setSelectedTab}
-      />
-      {selectedTab === "info" && (
-        <div>
-          <h2>작품 정보</h2>
-          <p>제목: {movieDetail.title}</p>
-          <p>개봉일: {movieDetail.release_date}</p>
-          <p>장르: {movieDetail.genres.map((g) => g.name).join(", ")}</p>
-          <p>평점: {movieDetail.vote_average}</p>
-          <p>상세 정보: {movieDetail.overview}</p>
-        </div>
-      )}
-      {selectedTab === "shortReview" && (
-        <div>
-          <h2>한줄평</h2>
-          <p>아직 작성된 한줄평이 없습니다.</p>
-        </div>
-      )}
-      {selectedTab === "review" && (
-        <div>
-          <h2>상세 리뷰</h2>
-          <p>아직 작성된 상세 리뷰가 없습니다.</p>
-        </div>
-      )}
+      <Categories $ismobile={isMobile}>
+        <TabSelector
+          isMobile={isMobile}
+          tabs={tabs}
+          selectedTab={selectedTab}
+          onChange={setSelectedTab}
+        />
+        {selectedTab === "info" && (
+          <MovieInfo isMobile={isMobile} movieId={movieDetail.id} />
+        )}
+        {selectedTab === "shortReview" && (
+          <div>
+            <h2>한줄평</h2>
+            <p>아직 작성된 한줄평이 없습니다.</p>
+          </div>
+        )}
+        {selectedTab === "review" && (
+          <div>
+            <h2>상세 리뷰</h2>
+            <p>아직 작성된 상세 리뷰가 없습니다.</p>
+          </div>
+        )}
+      </Categories>
     </MovieDetailContainer>
   );
 };

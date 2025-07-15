@@ -1,6 +1,6 @@
 import styled from "styled-components";
 
-interface TagSelectorProps {
+interface GeneralMovieProps {
   isMobile: boolean;
   movieDetail: {
     title: string;
@@ -28,13 +28,13 @@ const GeneralMovieInfoContainer = styled.div<{ $imgurl: string } & styleType>`
   padding: ${(props) => (props.$ismobile ? "20px" : "40px")};
 `;
 
-const GeneralMovieInfo = ({ isMobile, movieDetail }: TagSelectorProps) => {
+const GeneralMovieInfo = ({ isMobile, movieDetail }: GeneralMovieProps) => {
   const imgUrl = `https://image.tmdb.org/t/p/w500${movieDetail.backdrop_path}`;
   return (
     <GeneralMovieInfoContainer $ismobile={isMobile} $imgurl={imgUrl}>
       <h1>{movieDetail.title}</h1>
       <p>{movieDetail.release_date}</p>
-      <p>평점: {movieDetail.vote_average}</p>
+      <p>★ {movieDetail.vote_average}</p>
     </GeneralMovieInfoContainer>
   );
 };

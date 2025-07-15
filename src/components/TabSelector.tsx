@@ -30,6 +30,7 @@ const TabButton = styled.button<{ selected: boolean } & StyleType>`
   border: none;
   border-bottom: ${(props) => (props.selected ? "3px solid #000000" : "none")};
   background-color: transparent;
+  padding-bottom: 2px;
 `;
 
 const TabSelector = <T extends string>({
