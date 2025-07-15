@@ -8,6 +8,7 @@ import Main from "./pages/Main";
 import { usePreferMode } from "./hooks/usePreferMode";
 import GlobalStyle from "./styles/GlobalStyle";
 import Movie from "./pages/Movie";
+import Admin from "./pages/Admin";
 
 function HeaderSelector() {
   const location = useLocation();
@@ -29,6 +30,7 @@ function App() {
             <Route path="/" element={<Main />}></Route>
             <Route path="/Login" element={<Login />}></Route>
             <Route path="/Movie" element={<Movie />}></Route>
+            <Route path="/Admin" element={<Admin />}></Route>
           </Routes>
         </BrowserRouter>
       </ThemeProvider>
