@@ -11,6 +11,10 @@ interface User {
   joinDate: string;
 }
 
+interface selectedProps {
+  selectedOption: string;
+}
+
 const Table = styled.table`
   width: 100%;
   border-collapse: collapse;
@@ -54,7 +58,7 @@ const CheckBox = styled.input`
   margin-left: 20px;
 `;
 
-const UserList = ({ selectedOption }: string) => {
+const UserList = ({ selectedOption }: selectedProps) => {
   const [selectedUser, setSelectedUser] = useState<string[]>([]);
   const users: User[] = [
     {
