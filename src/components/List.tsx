@@ -154,7 +154,8 @@ const UserList = ({ selectedOption }: selectedProps) => {
     }
   };
 
-  const selectUser = (userId: string) => {
+  const selectUser = (userId: string, userStatus: string) => {
+    if (userStatus !== "정지") return;
     setSelectedUser((prev) =>
       prev.includes(userId)
         ? prev.filter((id) => id !== userId)
@@ -202,7 +203,7 @@ const UserList = ({ selectedOption }: selectedProps) => {
               <CheckBox
                 type="checkbox"
                 checked={selectedUser.includes(user.id)}
-                onChange={() => selectUser(user.id)}
+                onChange={() => selectUser(user.id, user.status)}
               />
             </Td>
             <Td>{user.nickname}</Td>
