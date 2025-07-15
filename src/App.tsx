@@ -32,7 +32,6 @@ function App() {
     <BrowserRouter>
       <ThemeProvider theme={isDarkMode ? darkTheme : lightTheme}>
         <GlobalStyle />
-        <BrowserRouter>
           <HeaderSelector />
           <Routes>
             <Route path="/" element={<Main />}></Route>
@@ -49,9 +48,8 @@ function App() {
             <Route path ="/mypage" element={<MyPageMain />} />
             <Route path ="/mypage" element={<MyPageMain />} />  
           </Routes>
-        </BrowserRouter>
-      </ThemeProvider>
-    </BrowserRouter>
+        </ThemeProvider>
+      </BrowserRouter>
     </>
   );
 }
