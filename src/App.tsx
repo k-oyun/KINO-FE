@@ -3,6 +3,12 @@ import Header from "./components/Header";
 import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom";
 import { darkTheme, lightTheme } from "./styles/theme";
 import { ThemeProvider } from "styled-components";
+import MyPageMain from "./pages/mypage/MyPageMain";
+import MyReviewsShortPage from "./pages/mypage/MyReviewsShortPage";
+import MyReviewsDetailPage from "./pages/mypage/MyReviewsDetailPage";
+import MyFavoriteMoviesPage from "./pages/mypage/MyFavoriteMoviesPage";
+import MySettingsPage from "./pages/mypage/MySettingsPage";
+import MyTagsPage from "./pages/mypage/MyTagsPage";
 import Login from "./pages/Login";
 import Main from "./pages/Main";
 import { usePreferMode } from "./hooks/usePreferMode";
@@ -18,23 +24,33 @@ function HeaderSelector() {
   if (path === "/") return null;
   return <Header />;
 }
+
 function App() {
   const isDarkMode = usePreferMode();
   console.log("test");
   return (
     <>
+    <BrowserRouter>
       <ThemeProvider theme={isDarkMode ? darkTheme : lightTheme}>
         <GlobalStyle />
-        <BrowserRouter>
           <HeaderSelector />
           <Routes>
             <Route path="/" element={<Main />}></Route>
             <Route path="/Login" element={<Login />}></Route>
             <Route path="/Movie" element={<Movie />}></Route>
             <Route path="/Admin" element={<Admin />}></Route>
+            <Route path ="/mypage" element={<MyPageMain />} />
+            <Route path ="/mypage/reviews/short" element={<MyReviewsShortPage />} />
+            <Route path ="/mypage/reviews/detail" element={<MyReviewsDetailPage />} />
+            <Route path ="/mypage/movies/favorite" element={<MyFavoriteMoviesPage />} />
+            <Route path ="/mypage/settings" element={<MySettingsPage />} />
+            <Route path ="/mypage/tags" element={<MyTagsPage />} />
+            <Route path ="/mypage" element={<MyPageMain />} />
+            <Route path ="/mypage" element={<MyPageMain />} />
+            <Route path ="/mypage" element={<MyPageMain />} />  
           </Routes>
-        </BrowserRouter>
-      </ThemeProvider>
+        </ThemeProvider>
+      </BrowserRouter>
     </>
   );
 }
