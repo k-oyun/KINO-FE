@@ -22,14 +22,15 @@ const TagContainer = styled.div<styleType>`
 
 const GenreList = styled.ul<styleType>`
   list-style-type: none;
+  margin: ${(props) => (props.$ismobile ? "5px 10px 0px 13px" : "0")};
   display: flex;
   flex-wrap: ${(props) => (props.$ismobile ? "nowrap" : "wrap")};
   justify-content: ${(props) => (props.$ismobile ? "flex-start" : "center")};
 `;
 
 const GenreTag = styled.button<{ selected: boolean } & styleType>`
-  margin: 5px;
-  padding: ${(props) => (props.$ismobile ? "8px 16px" : "10px 20px")};
+  margin: ${(props) => (props.$ismobile ? "0px 4px" : "5px")};
+  padding: ${(props) => (props.$ismobile ? "4px 10px" : "10px 20px")};
   width: ${(props) => (props.$ismobile ? "auto" : "150px")};
   font-size: ${(props) => (props.$ismobile ? "16px" : "20px")};
   flex-shrink: 0;
