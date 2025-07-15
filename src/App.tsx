@@ -20,6 +20,7 @@ function HeaderSelector() {
 }
 function App() {
   const isDarkMode = usePreferMode();
+  console.log("test");
   return (
     <>
       <ThemeProvider theme={isDarkMode ? darkTheme : lightTheme}>
