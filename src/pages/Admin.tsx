@@ -1,10 +1,15 @@
 import { useEffect, useState } from "react";
 import { useMediaQuery } from "react-responsive";
 import styled from "styled-components";
-import UserList from "../components/List";
+import UserList from "../components/AdminList";
 
-const AmdinContainer = styled.div`
+interface styleProp {
+  $ismobile: boolean;
+}
+
+const AmdinContainer = styled.div<styleProp>`
   display: flex;
+  flex-direction: ${(props) => (props.$ismobile ? "column" : "row")};
   align-items: center;
   width: 100%;
   height: 100vh;
@@ -12,23 +17,24 @@ const AmdinContainer = styled.div`
   color: ${({ theme }) => theme.textColor};
 `;
 
-const Sidebar = styled.div`
+const Sidebar = styled.div<styleProp>`
   display: flex;
-  flex-direction: column;
+  flex-direction: ${(props) => (props.$ismobile ? "row" : "column")};
   align-items: center;
-  background-color: #fa5a8e;
-  width: 16%;
-  height: 100%;
+  background-color: ${(props) => (props.$ismobile ? "transparent" : "#fa5a8e")};
+  width: ${(props) => (props.$ismobile ? "80%" : "16%")};
+  height: ${(props) => (props.$ismobile ? "5%" : "100%")};
+  margin-top: ${(props) => (props.$ismobile ? "100px" : "0px")};
 `;
 
-const SidebarBtn = styled.button<{ $selected: boolean }>`
+const SidebarBtn = styled.button<{ $selected: boolean; $ismobile: boolean }>`
   text-align: center;
   width: 100%;
-  height: 100px;
+  height: ${(props) => (props.$ismobile ? " 30px" : "100px")};
   border: none;
   background-color: ${(props) => (props.$selected ? "#FF2E72" : "#fa5a8e")};
   color: ${({ theme }) => theme.textColor};
-  font-size: 18px;
+  font-size: ${(props) => (props.$ismobile ? "14px" : "18px")};
   font-weight: 700;
   cursor: pointer;
 `;
@@ -41,21 +47,21 @@ const AdminText = styled.span`
   /* color: ${({ theme }) => theme.backgroundColor}; */
 `;
 
-const ManagementContainer = styled.div`
+const ManagementContainer = styled.div<styleProp>`
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: ${(props) => (props.$ismobile ? "none" : "center")};
   align-items: center;
   width: 88%;
-  height: 100%;
+  height: ${(props) => (props.$ismobile ? "auto" : "100%")};
   background-color: ${({ theme }) => theme.backgroundColor};
 `;
 
-const ManagementInfoContainer = styled.div`
+const ManagementInfoContainer = styled.div<styleProp>`
   display: flex;
-  width: 80%;
-  height: 80%;
-  border: 1.5px solid #d9d9d9;
+  width: ${(props) => (props.$ismobile ? "auto" : "80%")};
+  height: ${(props) => (props.$ismobile ? "auto" : "80%")};
+  border: ${(props) => (props.$ismobile ? "none" : "1.5px solid #d9d9d9")};
   border-radius: 1px;
 `;
 const Admin = () => {
@@ -74,21 +80,22 @@ const Admin = () => {
   //   }, [selectedOption]);
 
   return (
-    <AmdinContainer>
-      <Sidebar>
-        <AdminText>관리자 {adminName}</AdminText>
+    <AmdinContainer $ismobile={isMobile}>
+      <Sidebar $ismobile={isMobile}>
+        {!isMobile && <AdminText>관리자 {adminName}</AdminText>}
         {sideBarOption.map((label, idx) => (
           <SidebarBtn
             key={idx}
             onClick={() => handleOptionClick(label)}
+            $ismobile={isMobile}
             $selected={label === selectedOption}
           >
             {label}
           </SidebarBtn>
         ))}
       </Sidebar>
-      <ManagementContainer>
-        <ManagementInfoContainer>
+      <ManagementContainer $ismobile={isMobile}>
+        <ManagementInfoContainer $ismobile={isMobile}>
           <UserList selectedOption={selectedOption} />
         </ManagementInfoContainer>
       </ManagementContainer>
