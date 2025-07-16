@@ -47,7 +47,8 @@ const ModalContainer = styled.div<styleType>`
   border-radius: 8px;
   transform: translate(-50%, -50%);
   position: fixed;
-  color: ${({ theme }) => theme.textColor};
+  /* color: ${({ theme }) => theme.textColor}; */
+  color: black;
   z-index: 3100;
 `;
 
@@ -61,7 +62,8 @@ const Modal = styled(motion.div)<styleType>`
   /* height: auto; */
   justify-content: center;
   align-items: center;
-  background-color: ${({ theme }) => theme.backgroundColor};
+  /* background-color: ${({ theme }) => theme.backgroundColor}; */
+  background-color: white;
   border: 1px solid #d9d9d9;
   border-radius: 15px;
 `;
@@ -69,7 +71,8 @@ const Modal = styled(motion.div)<styleType>`
 const TitleContainer = styled.div<styleType>`
   font-size: ${(props) => (props.$ismobile ? "1rem" : "1.3rem")};
   font-weight: 600;
-  color: ${({ theme }) => theme.textColor};
+  /* color: ${({ theme }) => theme.textColor}; */
+  color: black;
   /* background-color: ${({ theme }) => theme.backgroundColor}; */
   /* background-color: red; */
   display: flex;
@@ -82,7 +85,8 @@ const TitleContainer = styled.div<styleType>`
 
 const SubText = styled.span`
   font-size: 0.8rem;
-  color: ${({ theme }) => theme.textColor};
+  /* color: ${({ theme }) => theme.textColor}; */
+  color: black;
   margin-top: 7px;
   margin-bottom: 7px;
   margin-left: 50px;
@@ -90,12 +94,14 @@ const SubText = styled.span`
 
 const DateText = styled.span`
   font-size: 0.6rem;
-  color: ${({ theme }) => theme.textColor};
+  /* color: ${({ theme }) => theme.textColor}; */
+  color: black;
   margin-right: 50px;
 `;
 const UriText = styled.a`
   font-size: 0.6rem;
-  color: ${({ theme }) => theme.textColor};
+  /* color: ${({ theme }) => theme.textColor}; */
+  color: black;
   margin-left: 50px;
   cursor: pointer;
   text-decoration: none;
@@ -134,8 +140,10 @@ const ReportTextContainer = styled.div`
   border: 1px solid #d9d9d9;
   font-size: 0.7rem;
   padding: 10px;
-  background-color: ${({ theme }) => theme.backgroundColor};
-  color: ${({ theme }) => theme.textColor};
+  /* background-color: ${({ theme }) => theme.backgroundColor}; */
+  background-color: white;
+  /* color: ${({ theme }) => theme.textColor}; */
+  color: black;
   z-index: 30000;
   margin-left: 50px;
 `;
@@ -166,7 +174,8 @@ const ConfirmBtn = styled(motion.button)<{
   margin: ${(props) => (props.$ismobile ? "30px 0px" : "0px")};
   margin-top: ${(props) => (props.$ismobile ? "30px" : "35px")};
   background-color: #fa5a8e;
-  color: ${({ theme }) => theme.textColor};
+  /* color: ${({ theme }) => theme.textColor}; */
+  color: white;
   border: none;
   border-radius: 10px;
   cursor: pointer;
@@ -184,11 +193,13 @@ const CloseBtn = styled.svg`
   width: 25px;
   top: 5px;
   right: 5px;
-  fill: ${({ theme }) => theme.textColor};
+  /* fill: ${({ theme }) => theme.textColor}; */
+  fill: black;
   viewbox: "0 0 24 24";
   stroke-width: 2;
   stroke: currentColor;
   cursor: pointer;
+  height: 25px;
 `;
 
 const AdminModal = ({
