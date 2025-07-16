@@ -53,7 +53,7 @@ const Status = styled.span<{ $status: "정상" | "정지"; $ismobile: boolean }>
 
 const ManageBtn = styled.button<StyleProps>`
   background-color: ${(props) => (props.$ismobile ? "red" : "#f06292")};
-  color: ${({ theme }) => theme.textColor};
+  color: white;
   font-weight: 600;
   border: none;
   border-radius: 4px;
@@ -87,8 +87,9 @@ const MobileContainer = styled.div`
   border-radius: 8px;
   padding: 12px;
   width: 300px;
-  background-color: ${({ theme }) => theme.backgroundColor};
-  color: ${({ theme }) => theme.textColor};
+  /* background-color: ${({ theme }) => theme.backgroundColor}; */
+  /* color: ${({ theme }) => theme.textColor}; */
+  color: black;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
 `;
 
