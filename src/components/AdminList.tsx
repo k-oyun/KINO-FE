@@ -8,7 +8,7 @@ import {
   SwipeAction,
 } from "react-swipeable-list";
 import "react-swipeable-list/dist/styles.css";
-import ConfirmDialog from "../components/ConfirmDialog";
+import AdminConfirmDialog from "../components/AdminConfirmDialog";
 
 type UserStatus = "정상" | "정지";
 
@@ -370,7 +370,7 @@ const AdminList = ({ selectedOption, setIsModalOpen }: adminProps) => {
           </tbody>
         </Table>
       )}
-      <ConfirmDialog
+      <AdminConfirmDialog
         isOpen={isConfirmModalOpen}
         title="정지 철회"
         message="OOO님을 철회하시겠습니까?"
