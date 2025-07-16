@@ -2,6 +2,7 @@ import { useEffect, useState, type ChangeEvent } from "react";
 import { useMediaQuery } from "react-responsive";
 import { styled } from "styled-components";
 import logo from "../assets/img/Logo.png";
+import { motion } from "framer-motion";
 
 interface styleType {
   $ismobile: boolean;
@@ -22,17 +23,19 @@ const ModalContainer = styled.div<styleType>`
   z-index: 3100;
 `;
 
-const Modal = styled.div`
+const Modal = styled(motion.div)<styleType>`
   display: flex;
   flex-direction: column;
   width: 100%;
-  height: 80%;
+  height: ${(props) => (props.$ismobile ? "auto" : "80%")};
+  max-height: ${(props) => (props.$ismobile ? "90%" : "80%")};
+  /* min-height: 80%; */
+  /* height: auto; */
   justify-content: center;
   align-items: center;
   background-color: ${({ theme }) => theme.backgroundColor};
   border: 1px solid #d9d9d9;
   border-radius: 15px;
-  padding-bottom: 10px;
 `;
 
 const TitleContainer = styled.div<styleType>`
@@ -123,23 +126,28 @@ const SelectBox = styled.select`
   width: 30%;
   margin-left: 50px;
 `;
-const ConfirmBtn = styled.button<{
+const ConfirmBtn = styled(motion.button)<{
   $ismobile: boolean;
+  $isbtnpos: boolean;
 }>`
-  display: flex;
+  display: "flex";
   justify-content: center;
   align-items: center;
   width: ${(props) => (props.$ismobile ? "80px" : "100px")};
   height: 30px;
-  margin: 30px 0px;
+  margin: ${(props) => (props.$ismobile ? "30px 0px" : "0px")};
+  margin-top: ${(props) => (props.$ismobile ? "30px" : "35px")};
   background-color: #fa5a8e;
   color: ${({ theme }) => theme.textColor};
   border: none;
   border-radius: 10px;
   cursor: pointer;
-
+  &:disabled {
+    cursor: not-allowed;
+    background-color: #5f5d5d;
+  }
   &:hover {
-    background-color: #e04a78;
+    background-color: ${(props) => (props.$isbtnpos ? "#e04a78" : " #d9d9d9")};
   }
 `;
 
@@ -157,8 +165,7 @@ const CloseBtn = styled.svg`
 
 const AdminModal = ({ setIsModalOpen }: adminProps) => {
   const isMobile = useMediaQuery({ query: "(max-width: 767px)" });
-  const [reportProcessType, setReportProcessType] = useState("");
-
+  const [reportProcessType, setReportProcessType] = useState("선택하세요.");
   const [reportInfo, setReportInfo] = useState({
     reporter: "seebaby@gmail.com",
     date: "2025.06.17",
@@ -174,6 +181,7 @@ const AdminModal = ({ setIsModalOpen }: adminProps) => {
   }, [reportProcessType]);
 
   const processType: string[] = [
+    "선택하세요.",
     "처리안함",
     "1일",
     "3일",
@@ -185,10 +193,17 @@ const AdminModal = ({ setIsModalOpen }: adminProps) => {
 
   const handleSelectBox = (option: ChangeEvent<HTMLSelectElement>) => {
     setReportProcessType(option.target.value);
+    console.log(reportProcessType);
   };
   return (
     <ModalContainer $ismobile={isMobile}>
-      <Modal>
+      <Modal
+        $ismobile={isMobile}
+        initial={{ opacity: 0, visibility: "hidden", y: -20 }}
+        animate={{ opacity: 1, visibility: "visible", y: 0 }}
+        exit={{ opacity: 0, visibility: "hidden", y: -20 }}
+        transition={{ duration: 0.3 }}
+      >
         <CloseBtn
           xmlns="http://www.w3.org/2000/svg"
           onClick={() => {
@@ -235,14 +250,19 @@ const AdminModal = ({ setIsModalOpen }: adminProps) => {
             ))}
           </SelectBox>
         </GreySection>
-        {reportProcessType !== "" && (
-          <ConfirmBtn
-            $ismobile={isMobile}
-            onClick={() => setIsModalOpen(false)}
-          >
-            처리 완료
-          </ConfirmBtn>
-        )}
+
+        <ConfirmBtn
+          $ismobile={isMobile}
+          $isbtnpos={reportProcessType !== "선택하세요."}
+          disabled={reportProcessType === "선택하세요."}
+          onClick={() => setIsModalOpen(false)}
+          initial={{ opacity: 0, visibility: "hidden", y: -20 }}
+          animate={{ opacity: 1, visibility: "visible", y: 0 }}
+          exit={{ opacity: 0, visibility: "hidden", y: -20 }}
+          transition={{ duration: 0.3 }}
+        >
+          처리 완료
+        </ConfirmBtn>
       </Modal>
     </ModalContainer>
   );
