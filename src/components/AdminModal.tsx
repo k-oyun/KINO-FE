@@ -158,6 +158,7 @@ const CloseBtn = styled.svg`
 const AdminModal = ({ setIsModalOpen }: adminProps) => {
   const isMobile = useMediaQuery({ query: "(max-width: 767px)" });
   const [reportProcessType, setReportProcessType] = useState("");
+
   const [reportInfo, setReportInfo] = useState({
     reporter: "seebaby@gmail.com",
     date: "2025.06.17",

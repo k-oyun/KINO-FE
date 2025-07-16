@@ -8,6 +8,7 @@ import {
   SwipeAction,
 } from "react-swipeable-list";
 import "react-swipeable-list/dist/styles.css";
+import ConfirmDialog from "../components/ConfirmDialog";
 
 type UserStatus = "정상" | "정지";
 
@@ -47,6 +48,7 @@ const Td = styled.td`
 const Status = styled.span<{ $status: "정상" | "정지" }>`
   color: ${({ $status }) => ($status === "정상" ? "green" : "red")};
   font-weight: 700;
+  font-size: 12px;
 `;
 
 const ManageBtn = styled.button<StyleProps>`
@@ -100,10 +102,20 @@ const CustomSwipeableListItem = styled(SwipeableListItem)`
   margin-top: 15px;
 `;
 
+const MobileTitleTxt = styled.span`
+  font-weight: 700;
+  font-size: 12px;
+`;
+
+const MobileContentTxt = styled.span`
+  font-size: 12px;
+`;
+
 const AdminList = ({ selectedOption, setIsModalOpen }: adminProps) => {
   const [selectedUser, setSelectedUser] = useState<string[]>([]);
-
   const isMobile = useMediaQuery({ query: "(max-width: 767px)" });
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const [isConfirmModalOk, setIsConfirmModalOk] = useState(false);
 
   const users: User[] = [
     {
@@ -251,17 +263,20 @@ const AdminList = ({ selectedOption, setIsModalOpen }: adminProps) => {
                       }}
                     >
                       <div>
-                        <strong>닉네임:</strong> {user.nickname}
+                        <MobileTitleTxt>닉네임 : </MobileTitleTxt>
+                        <MobileContentTxt>{user.nickname}</MobileContentTxt>
                       </div>
                       <div>
-                        <strong>계정:</strong> {user.email}
+                        <MobileTitleTxt>계정 : </MobileTitleTxt>
+                        <MobileContentTxt>{user.email}</MobileContentTxt>
                       </div>
                       <div>
-                        <strong>회원상태:</strong>{" "}
+                        <MobileTitleTxt>회원상태 : </MobileTitleTxt>
                         <Status $status={user.status}>{user.status}</Status>
                       </div>
                       <div>
-                        <strong>가입일:</strong> {user.joinDate}
+                        <MobileTitleTxt>가입일 : </MobileTitleTxt>
+                        <MobileContentTxt>{user.joinDate}</MobileContentTxt>
                       </div>
                     </MobileInfoContainer>
                   </MobileContainer>
@@ -287,6 +302,9 @@ const AdminList = ({ selectedOption, setIsModalOpen }: adminProps) => {
                     <ManageBtn
                       disabled={selectedUser.length === 0}
                       $ismobile={isMobile}
+                      onClick={() => {
+                        setIsConfirmModalOpen(true);
+                      }}
                     >
                       정지 철회
                     </ManageBtn>
@@ -322,7 +340,14 @@ const AdminList = ({ selectedOption, setIsModalOpen }: adminProps) => {
                 {selectedOption === "회원관리" ? (
                   <Td>
                     {user.status === "정지" && (
-                      <ManageBtn $ismobile={isMobile}>정지 철회</ManageBtn>
+                      <ManageBtn
+                        $ismobile={isMobile}
+                        onClick={() => {
+                          setIsConfirmModalOpen(true);
+                        }}
+                      >
+                        정지 철회
+                      </ManageBtn>
                     )}
                   </Td>
                 ) : (
@@ -340,6 +365,20 @@ const AdminList = ({ selectedOption, setIsModalOpen }: adminProps) => {
           </tbody>
         </Table>
       )}
+      <ConfirmDialog
+        isOpen={isConfirmModalOpen}
+        title="정지 철회"
+        message="OOO님을 철회하시겠습니까?"
+        onConfirm={() => {
+          setIsConfirmModalOpen(false);
+          setIsConfirmModalOk(true);
+        }}
+        onCancel={() => {
+          setIsConfirmModalOpen(false);
+        }}
+        showCancel={true}
+        isRedButton={true}
+      />
     </>
   );
 };
