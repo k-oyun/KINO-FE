@@ -3,14 +3,42 @@ import { useMediaQuery } from "react-responsive";
 import { styled } from "styled-components";
 import logo from "../assets/img/Logo.png";
 import { motion } from "framer-motion";
+import axios from "axios";
+import { useFormatDate } from "../hooks/useFormatDate";
 
 interface styleType {
   $ismobile: boolean;
 }
 interface adminProps {
   setIsModalOpen: (value: boolean) => void;
+  setIsConfirmBtnprs: (value: boolean) => void;
+  reportType?: string;
+  reportId?: number;
 }
 
+interface reportType {
+  reportedId?: number;
+  reportId?: number;
+  relatedId?: number;
+  reportType?: number;
+  reporterEmail?: string;
+  reportedEmail?: string;
+  reportedDate?: string;
+  content?: string;
+  reportContent?: string;
+}
+
+interface ProcessType {
+  "선택하세요.": number;
+  "처리 안함": number;
+  "1일": number;
+  "3일": number;
+  "5일": number;
+  "7일": number;
+  "30일": number;
+  "영구 정지": number;
+  [key: string]: number;
+}
 const ModalContainer = styled.div<styleType>`
   width: ${(props) => (props.$ismobile ? "90%" : "50%")};
   height: ${(props) => (props.$ismobile ? "85%" : "90%")};
@@ -163,38 +191,83 @@ const CloseBtn = styled.svg`
   cursor: pointer;
 `;
 
-const AdminModal = ({ setIsModalOpen }: adminProps) => {
+const AdminModal = ({
+  setIsModalOpen,
+  reportType,
+  reportId,
+  setIsConfirmBtnprs,
+}: adminProps) => {
   const isMobile = useMediaQuery({ query: "(max-width: 767px)" });
   const [reportProcessType, setReportProcessType] = useState("선택하세요.");
-  const [reportInfo, setReportInfo] = useState({
-    reporter: "seebaby@gmail.com",
-    date: "2025.06.17",
-    writer: "angrySung@gmail.com",
-    type: "부적절한 언어 사용",
-    reportContents: "인성이 너무 터졌어요ㅜㅜ 정지 시켜주세요!",
-    contents: "",
-    uri: "https://www.kino.com/post/13",
+  const [reportInfo, setReportInfo] = useState<reportType>({
+    reportedId: 0,
+    reportId: 0,
+    relatedId: 0,
+    reportType: 0,
+    reporterEmail: "",
+    reportedEmail: "",
+    reportedDate: "",
+    content: "",
+    reportContent: "",
   });
 
   useEffect(() => {
     console.log(reportProcessType);
   }, [reportProcessType]);
 
-  const processType: string[] = [
-    "선택하세요.",
-    "처리안함",
-    "1일",
-    "3일",
-    "5일",
-    "7일",
-    "30일",
-    "영구정지",
-  ];
+  const processType: ProcessType = {
+    "선택하세요.": -1,
+    "처리 안함": 0,
+    "1일": 1,
+    "3일": 3,
+    "5일": 5,
+    "7일": 7,
+    "30일": 30,
+    "영구 정지": 999,
+  };
 
   const handleSelectBox = (option: ChangeEvent<HTMLSelectElement>) => {
     setReportProcessType(option.target.value);
     console.log(reportProcessType);
   };
+
+  const reportGet = async () => {
+    const res = await axios.get(
+      `http://43.203.218.183:8080/api/admin/${reportType}/${reportId}`
+    );
+    return res.data;
+  };
+
+  const reportProcess = async (
+    reportId: number,
+    reportedId: number,
+    result: string
+  ) => {
+    const res = await axios.post(
+      "http://43.203.218.183:8080/api/admin/process",
+      {
+        reportId,
+        reportedId,
+        result: Number(result),
+      }
+    );
+    console.log(res);
+    return res;
+  };
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const res = await reportGet();
+        console.log(res.data);
+        setReportInfo(res.data);
+      } catch (error) {
+        console.error("신고 페이지 조회 실패:", error);
+      }
+    };
+
+    fetchData();
+  }, []);
   return (
     <ModalContainer $ismobile={isMobile}>
       <Modal
@@ -222,31 +295,40 @@ const AdminModal = ({ setIsModalOpen }: adminProps) => {
         <GreySection>
           <DeclarationSection>
             <SubText style={{ color: "black" }}>
-              신고자 : {reportInfo.reporter}
+              신고자 : {reportInfo.reporterEmail}
             </SubText>
-            <DateText>신고일 : {reportInfo.date}</DateText>
+            <DateText>
+              신고일 : {useFormatDate(reportInfo.reportedDate ?? "")}
+            </DateText>
           </DeclarationSection>
 
           <SubText style={{ color: "black" }}>
-            작성자 : {reportInfo.writer}
+            작성자 : {reportInfo.reportedEmail}
           </SubText>
         </GreySection>
         <WhiteSection>
-          <SubText>신고 유형: {reportInfo.type}</SubText>
+          <SubText>신고 유형: {reportInfo.content}</SubText>
         </WhiteSection>
         <GreySection>
           <SubText style={{ color: "black" }}>신고 내용</SubText>
-          <ReportTextContainer>{reportInfo.reportContents}</ReportTextContainer>
+          <ReportTextContainer>{reportInfo.reportContent}</ReportTextContainer>
         </GreySection>
         <WhiteSection>
           <SubText>신고된 콘텐츠</SubText>
-          <UriText>{reportInfo.uri}</UriText>
+          <UriText>
+            http://43.203.218.183:8080/api/{reportType}/{reportId}
+          </UriText>
         </WhiteSection>
         <GreySection>
           <SubText>처리 방법</SubText>
           <SelectBox value={reportProcessType} onChange={handleSelectBox}>
-            {processType.map((opt, idx) => (
-              <option key={idx}>{opt}</option>
+            {Object.keys(processType).map((key, idx) => (
+              <option
+                key={idx}
+                value={(processType[key] as keyof ProcessType) ?? 0}
+              >
+                {key}
+              </option>
             ))}
           </SelectBox>
         </GreySection>
@@ -255,7 +337,15 @@ const AdminModal = ({ setIsModalOpen }: adminProps) => {
           $ismobile={isMobile}
           $isbtnpos={reportProcessType !== "선택하세요."}
           disabled={reportProcessType === "선택하세요."}
-          onClick={() => setIsModalOpen(false)}
+          onClick={() => {
+            setIsModalOpen(false);
+            reportProcess(
+              reportInfo.reportId ?? 0,
+              reportInfo.reportedId ?? 0,
+              reportProcessType ?? 0
+            );
+            setIsConfirmBtnprs(true);
+          }}
           initial={{ opacity: 0, visibility: "hidden", y: -20 }}
           animate={{ opacity: 1, visibility: "visible", y: 0 }}
           exit={{ opacity: 0, visibility: "hidden", y: -20 }}

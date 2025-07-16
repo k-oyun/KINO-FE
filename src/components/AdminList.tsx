@@ -34,7 +34,10 @@ interface StyleProps {
 
 interface adminProps {
   selectedOption: string;
+  isConfirmBtnPrs: boolean;
   setIsModalOpen: (value: boolean) => void;
+  setIsConfirmBtnprs: (value: boolean) => void;
+  setSelectedReportId: (value: number) => void;
 }
 
 const TableContainer = styled.div`
@@ -129,7 +132,13 @@ const MobileContentTxt = styled.span`
   font-size: 12px;
 `;
 
-const AdminList = ({ selectedOption, setIsModalOpen }: adminProps) => {
+const AdminList = ({
+  selectedOption,
+  setIsModalOpen,
+  setSelectedReportId,
+  isConfirmBtnPrs,
+  setIsConfirmBtnprs,
+}: adminProps) => {
   const [selectedUser, setSelectedUser] = useState<number[]>([]);
   const isMobile = useMediaQuery({ query: "(max-width: 767px)" });
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
@@ -205,7 +214,7 @@ const AdminList = ({ selectedOption, setIsModalOpen }: adminProps) => {
     fetchData();
   }, []);
 
-  useEffect(() => {
+  const listGet = () => {
     if (selectedOption === "게시글") {
       const fetchData = async () => {
         try {
@@ -242,7 +251,14 @@ const AdminList = ({ selectedOption, setIsModalOpen }: adminProps) => {
       };
       fetchData();
     }
-    console.log(reportDatas);
+  };
+
+  useEffect(() => {
+    listGet();
+  }, [isConfirmBtnPrs]);
+
+  useEffect(() => {
+    listGet();
   }, [selectedOption]);
 
   // 12명으로 페이지네이션
@@ -380,29 +396,17 @@ const AdminList = ({ selectedOption, setIsModalOpen }: adminProps) => {
                       </Status>
                     </Td>
                     <Td>{useFormatDate(user.createdAt)}</Td>
-                    {selectedOption === "회원관리" ? (
-                      <Td>
-                        {user.role == "BAN" && (
-                          <ManageBtn
-                            $ismobile={isMobile}
-                            onClick={() => {
-                              setIsConfirmModalOpen(true);
-                            }}
-                          >
-                            정지 철회
-                          </ManageBtn>
-                        )}
-                      </Td>
-                    ) : (
-                      <Td>
+
+                    <Td>
+                      {user.role == "BAN" && (
                         <ManageBtn
                           $ismobile={isMobile}
-                          onClick={() => setIsModalOpen(true)}
+                          onClick={() => setIsConfirmModalOpen(true)}
                         >
-                          상세정보
+                          정지 철회
                         </ManageBtn>
-                      </Td>
-                    )}
+                      )}
+                    </Td>
                   </tr>
                 ))}
               </tbody>
@@ -516,7 +520,10 @@ const AdminList = ({ selectedOption, setIsModalOpen }: adminProps) => {
                   <Td>
                     <ManageBtn
                       $ismobile={isMobile}
-                      onClick={() => setIsModalOpen(true)}
+                      onClick={() => {
+                        setIsModalOpen(true);
+                        setSelectedReportId(data.reportId);
+                      }}
                     >
                       상세정보
                     </ManageBtn>
