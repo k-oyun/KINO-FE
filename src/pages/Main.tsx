@@ -95,16 +95,16 @@ const NextSlideBtn = styled.button`
   cursor: pointer;
 `;
 
-const SliderTypeTxt = styled.span<{ isFirst?: boolean }>`
+const SliderTypeTxt = styled.span<{ $isfirst?: boolean }>`
   font-size: 18px;
   font-weight: 400;
   margin-top: 30px;
-  color: ${({ isFirst, theme }) => (isFirst ? "#ffffff" : theme.textColor)};
+  color: ${({ $isfirst, theme }) => ($isfirst ? "#ffffff" : theme.textColor)};
 `;
 
 const Main = () => {
   const [keyword, setKeyword] = useState("");
-  const [isNewUser, setIsNewUser] = useState(false);
+  const [isNewUser, setIsNewUser] = useState(true);
   const sliderData = [
     { prefix: "사용자 좋아요", highlight: "TOP 10 리뷰" },
     { prefix: "사용자 좋아요", highlight: "TOP 10 영화" },
@@ -131,7 +131,7 @@ const Main = () => {
         <ListContainer>
           {sliderData.map(({ prefix, highlight }, idx) => (
             <MovieContainer key={idx}>
-              <SliderTypeTxt isFirst={idx === 0}>
+              <SliderTypeTxt $isfirst={idx === 0}>
                 {prefix} <strong>{highlight}</strong>
               </SliderTypeTxt>
               <MoviesSlider>

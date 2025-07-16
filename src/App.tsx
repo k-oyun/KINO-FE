@@ -9,6 +9,7 @@ import Movie from "./pages/Movie";
 import MovieDetail from "./pages/MovieDetail";
 import { usePreferMode } from "./hooks/usePreferMode";
 import GlobalStyle from "./styles/GlobalStyle";
+import Movie from "./pages/Movie";
 
 function HeaderSelector() {
   const location = useLocation();
