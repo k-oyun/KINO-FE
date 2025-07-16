@@ -3,7 +3,7 @@ import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import MovieCard from '../../components/mypage/MovieCard';
 
-interface FavoriteMovieType { 
+interface FavoriteMovieType {
   id: string;
   title: string;
   director: string;
@@ -61,7 +61,7 @@ const PageHeader = styled.div`
   display: flex;
   align-items: center;
   margin-bottom: 20px;
-  
+
   @media (max-width: 767px) {
     flex-direction: column;
     align-items: flex-start;
@@ -109,6 +109,47 @@ const PageTitle = styled.h1`
   }
 `;
 
+const SortOptions = styled.div`
+  display: flex;
+  gap: 10px;
+  font-size: 0.9em;
+  margin-bottom: 20px;
+  justify-content: flex-end; /* 오른쪽 정렬 */
+
+  @media (max-width: 767px) {
+    font-size: 0.8em;
+    justify-content: flex-start;
+  }
+`;
+
+const SortButton = styled.button<{ isActive: boolean }>`
+  background: none;
+  border: none;
+  color: ${props => (props.isActive ? '#e0e0e0' : '#888')};
+  font-weight: ${props => (props.isActive ? 'bold' : 'normal')};
+  cursor: pointer;
+  padding: 5px 0;
+  position: relative;
+
+  &:hover {
+    color: #f0f0f0;
+  }
+
+  ${props =>
+    props.isActive &&
+    `
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 2px;
+      background-color: #e0e0e0;
+    }
+  `}
+`;
+
 const MovieCardGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
@@ -147,11 +188,14 @@ const MyFavoriteMoviesPage: React.FC = () => {
         <PageHeader>
           <BackButton onClick={() => navigate('/mypage')}>
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M15 5L9 12L15 19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M15 5L9 12L15 19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </BackButton>
           <PageTitle>내가 찜한 영화</PageTitle>
         </PageHeader>
+        <SortOptions>
+          <SortButton isActive={true}>최신순</SortButton>
+        </SortOptions>
         {favoriteMovies && favoriteMovies.length > 0 ? (
           <MovieCardGrid>
             {favoriteMovies.map((movie: FavoriteMovieType) => (

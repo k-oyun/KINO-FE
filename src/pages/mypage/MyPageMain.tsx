@@ -283,8 +283,8 @@ const DUMMY_FAVORITE_MOVIES: FavoriteMovieType[] = [
 
 const MyPageMain: React.FC = () => {
   const navigate = useNavigate();
-  const [shortReviewSort, setShortReviewSort] = useState<'latest' | 'views' | 'likes'>('latest');
-  const [detailReviewSort, setDetailReviewSort] = useState<'latest' | 'views' | 'likes'>('latest');
+  const [shortReviewSort, setShortReviewSort] = useState<'latest' | 'views' | 'likes' | 'rating'>('latest');
+  const [detailReviewSort, setDetailReviewSort] = useState<'latest' | 'views' | 'likes' | 'rating'>('latest');
 
   const userProfile = DUMMY_USER_PROFILE; // useQuery로 대체 예정
   const shortReviews = DUMMY_SHORT_REVIEWS; // useQuery로 대체 예정
@@ -298,6 +298,8 @@ const MyPageMain: React.FC = () => {
       return (b.viewCount || 0) - (a.viewCount || 0);
     } else if (shortReviewSort === 'likes') {
       return b.likeCount - a.likeCount;
+    } else if (shortReviewSort === 'rating') {
+      return (b.rating || 0) - (a.rating || 0);
     }
     return 0;
   });
@@ -309,6 +311,8 @@ const MyPageMain: React.FC = () => {
       return (b.viewCount || 0) - (a.viewCount || 0);
     } else if (detailReviewSort === 'likes') {
       return b.likeCount - a.likeCount;
+    } else if (detailReviewSort === 'rating') {
+      return (b.rating || 0) - (a.rating || 0);
     }
     return 0;
   });
@@ -328,6 +332,7 @@ const MyPageMain: React.FC = () => {
             <SortButton isActive={shortReviewSort === 'latest'} onClick={() => setShortReviewSort('latest')}>최신순</SortButton>
             <SortButton isActive={shortReviewSort === 'views'} onClick={() => setShortReviewSort('views')}>조회순</SortButton>
             <SortButton isActive={shortReviewSort === 'likes'} onClick={() => setShortReviewSort('likes')}>좋아요순</SortButton>
+            <SortButton isActive={shortReviewSort === 'rating'} onClick={() => setShortReviewSort('rating')}>별점순</SortButton>
           </SortOptions>
         </SectionHeader>
         <PreviewContent>
@@ -353,6 +358,7 @@ const MyPageMain: React.FC = () => {
             <SortButton isActive={detailReviewSort === 'latest'} onClick={() => setDetailReviewSort('latest')}>최신순</SortButton>
             <SortButton isActive={detailReviewSort === 'views'} onClick={() => setDetailReviewSort('views')}>조회순</SortButton>
             <SortButton isActive={detailReviewSort === 'likes'} onClick={() => setDetailReviewSort('likes')}>좋아요순</SortButton>
+            <SortButton isActive={detailReviewSort === 'rating'} onClick={() => setDetailReviewSort('rating')}>별점순</SortButton>          
           </SortOptions>
         </SectionHeader>
         <PreviewContent>
@@ -374,6 +380,9 @@ const MyPageMain: React.FC = () => {
               <path d="M9 5L15 12L9 19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           </SectionTitle>
+          <SortOptions>
+            <SortButton isActive={true}>최신순</SortButton>
+          </SortOptions>
         </SectionHeader>
         <MovieCardGrid>
           {favoriteMovies && favoriteMovies.length > 0 ? (

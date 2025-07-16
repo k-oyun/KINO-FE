@@ -182,7 +182,7 @@ const EmptyState = styled.div`
 
 const MyReviewsShortPage: React.FC = () => {
   const navigate = useNavigate();
-  const [sortOrder, setSortOrder] = useState<'latest' | 'views' | 'likes'>('latest');
+  const [sortOrder, setSortOrder] = useState<'latest' | 'views' | 'likes' | 'rating'>('latest');
 
   const shortReviews = DUMMY_SHORT_REVIEWS;
 
@@ -193,6 +193,8 @@ const MyReviewsShortPage: React.FC = () => {
       return (b.viewCount || 0) - (a.viewCount || 0);
     } else if (sortOrder === 'likes') {
       return b.likeCount - a.likeCount;
+    } else if (sortOrder === 'rating') {
+      return (b.rating || 0) - (a.rating || 0);
     }
     return 0;
   });
@@ -212,6 +214,7 @@ const MyReviewsShortPage: React.FC = () => {
           <SortButton isActive={sortOrder === 'latest'} onClick={() => setSortOrder('latest')}>최신순</SortButton>
           <SortButton isActive={sortOrder === 'views'} onClick={() => setSortOrder('views')}>조회순</SortButton>
           <SortButton isActive={sortOrder === 'likes'} onClick={() => setSortOrder('likes')}>좋아요순</SortButton>
+          <SortButton isActive={sortOrder === 'rating'} onClick={() => setSortOrder('rating')}>별점순</SortButton>
         </SortOptions>
         {sortedReviews && sortedReviews.length > 0 ? (
           <ReviewList>

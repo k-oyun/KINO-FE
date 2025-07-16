@@ -29,7 +29,7 @@ type ReviewType = DetailReviewType | {
 const DUMMY_DETAIL_REVIEWS: DetailReviewType[] = [
   {
     id: 'dr1', movieTitle: '엘리오', moviePosterUrl: 'https://via.placeholder.com/100x150/e74c3c/ffffff?text=Poster1',
-    title: '엘리오 내용 평가 4.0', content: '엘리오는 영화 (콜 미 바이 유어 네임) 속에서 섬세하고 감성적인 소년으로 그려진다. 그는 이탈리아의 한적한 시골 마을에서 가족과 함께 지내며 지적이고 조용한 삶을 살고 있지만, 여름 방학 동안 올리버를 만나면서 그의 일상은 서서히 변화하기 시작한다. 처음에는 올리버에게 낯섦과 경계심을 느끼지만, 시간이 흐를수록 그들은 서로에게 깊은 감정을 느끼게 된다. 그 감정은 삶에 대한 새로운 통찰과 함께 서로에게 변화를 가져다준다. 시간이 흐를수록 그는 모든 것을 올리버에게 걸게 된다.',
+    title: '엘리오 내용 평가 4.0', content: '엘리오는 영화 (콜 미 바이 유어 네임) 속에서 섬세하고 감성적인 소년으로 그려진다. 그는 이탈리아의 한적한 시골 마을에서 가족과 함께 지내며 지적이고 조용한 삶을 살고 있지만, 여름 방학 동안 올리버를 만나면서 그의 일상은 서서히 변화하기 시작한다. 처음에는 올리버에게 낯섦과 경계심을 느끼지만, 시간이 흐를수록 그들은 서로에게 깊은 감정을 느끼게 된다. 그 감정은 삶에 대한 새로운 통찰과 함께 서로에게 변화를 가져다준다. 시간이 흐를수록 그는 모든 것을 올리버에게 걸게 된다. 엘리오는 영화 (콜 미 바이 유어 네임) 속에서 섬세하고 감성적인 소년으로 그려진다.엘리오는 영화 (콜 미 바이 유어 네임) 속에서 섬세하고 감성적인 소년으로 그려진다.엘리오는 영화 (콜 미 바이 유어 네임) 속에서 섬세하고 감성적인 소년으로 그려진다.v엘리오는 영화 (콜 미 바이 유어 네임) 속에서 섬세하고 감성적인 소년으로 그려진다.v엘리오는 영화 (콜 미 바이 유어 네임) 속에서 섬세하고 감성적인 소년으로 그려진다.v엘리오는 영화 (콜 미 바이 유어 네임) 속에서 섬세하고 감성적인 소년으로 그려진다.엘리오는 영화 (콜 미 바이 유어 네임) 속에서 섬세하고 감성적인 소년으로 그려진다.',
     rating: 4.0, likeCount: 15, createdAt: '2024.07.15 10:00',
     viewCount: 217,
   },
@@ -200,7 +200,7 @@ const EmptyState = styled.div`
 
 const MyReviewsDetailPage: React.FC = () => {
   const navigate = useNavigate();
-  const [sortOrder, setSortOrder] = useState<'latest' | 'views' | 'likes'>('latest');
+  const [sortOrder, setSortOrder] = useState<'latest' | 'views' | 'likes' | 'rating' >('latest');
   const detailReviews = DUMMY_DETAIL_REVIEWS;
 
   const sortedReviews = [...detailReviews].sort((a, b) => {
@@ -210,6 +210,8 @@ const MyReviewsDetailPage: React.FC = () => {
       return (b.viewCount || 0) - (a.viewCount || 0);
     } else if (sortOrder === 'likes') {
       return b.likeCount - a.likeCount;
+    } else if (sortOrder === 'rating') {
+      return (b.rating || 0) - (a.rating || 0);
     }
     return 0;
   });
@@ -229,6 +231,7 @@ const MyReviewsDetailPage: React.FC = () => {
           <SortButton isActive={sortOrder === 'latest'} onClick={() => setSortOrder('latest')}>최신순</SortButton>
           <SortButton isActive={sortOrder === 'views'} onClick={() => setSortOrder('views')}>조회순</SortButton>
           <SortButton isActive={sortOrder === 'likes'} onClick={() => setSortOrder('likes')}>좋아요순</SortButton>
+          <SortButton isActive={sortOrder === 'rating'} onClick={() => setSortOrder('rating')}>별점순</SortButton>
         </SortOptions>
         {sortedReviews && sortedReviews.length > 0 ? (
           <ReviewList>
