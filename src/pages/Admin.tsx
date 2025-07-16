@@ -70,7 +70,6 @@ const Admin = () => {
   const [adminName, setAdminName] = useState("권오윤");
   const [selectedOption, setSelectedOption] = useState("회원관리");
   const [isModalOpen, setIsModalOpen] = useState(false);
-
   const sideBarOption = ["회원관리", "게시글", "한줄평", "댓글"];
 
   const handleOptionClick = (option: string) => {
