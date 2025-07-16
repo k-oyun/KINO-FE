@@ -15,12 +15,14 @@ import { usePreferMode } from "./hooks/usePreferMode";
 import GlobalStyle from "./styles/GlobalStyle";
 import Movie from "./pages/Movie";
 import Admin from "./pages/Admin";
+import ReportModal from "./components/ReportModal";
+import { useState } from "react";
 
 function HeaderSelector() {
   const location = useLocation();
   const path = location.pathname;
 
-  if (path === "/Login") return null;
+  if (path === "/login") return null;
   if (path === "/") return null;
   return <Header />;
 }
@@ -30,24 +32,33 @@ function App() {
   console.log("test");
   return (
     <>
-    <BrowserRouter>
-      <ThemeProvider theme={isDarkMode ? darkTheme : lightTheme}>
-        <GlobalStyle />
+      <BrowserRouter>
+        <ThemeProvider theme={isDarkMode ? darkTheme : lightTheme}>
+          <GlobalStyle />
           <HeaderSelector />
           <Routes>
             <Route path="/" element={<Main />}></Route>
-            <Route path="/Login" element={<Login />}></Route>
-            <Route path="/Movie" element={<Movie />}></Route>
-            <Route path="/Admin" element={<Admin />}></Route>
-            <Route path ="/mypage" element={<MyPageMain />} />
-            <Route path ="/mypage/reviews/short" element={<MyReviewsShortPage />} />
-            <Route path ="/mypage/reviews/detail" element={<MyReviewsDetailPage />} />
-            <Route path ="/mypage/movies/favorite" element={<MyFavoriteMoviesPage />} />
-            <Route path ="/mypage/settings" element={<MySettingsPage />} />
-            <Route path ="/mypage/tags" element={<MyTagsPage />} />
-            <Route path ="/mypage" element={<MyPageMain />} />
-            <Route path ="/mypage" element={<MyPageMain />} />
-            <Route path ="/mypage" element={<MyPageMain />} />  
+            <Route path="/login" element={<Login />}></Route>
+            <Route path="/movie" element={<Movie />}></Route>
+            <Route path="/admin" element={<Admin />}></Route>
+            <Route path="/mypage" element={<MyPageMain />} />
+            <Route
+              path="/mypage/reviews/short"
+              element={<MyReviewsShortPage />}
+            />
+            <Route
+              path="/mypage/reviews/detail"
+              element={<MyReviewsDetailPage />}
+            />
+            <Route
+              path="/mypage/movies/favorite"
+              element={<MyFavoriteMoviesPage />}
+            />
+            <Route path="/mypage/settings" element={<MySettingsPage />} />
+            <Route path="/mypage/tags" element={<MyTagsPage />} />
+            <Route path="/mypage" element={<MyPageMain />} />
+            <Route path="/mypage" element={<MyPageMain />} />
+            <Route path="/mypage" element={<MyPageMain />} />
           </Routes>
         </ThemeProvider>
       </BrowserRouter>

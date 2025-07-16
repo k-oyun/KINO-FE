@@ -7,33 +7,34 @@ import { motion } from "framer-motion";
 interface styleType {
   $ismobile: boolean;
 }
-interface adminProps {
+interface reportProp {
   setIsModalOpen: (value: boolean) => void;
 }
 
 const ModalContainer = styled.div<styleType>`
   width: ${(props) => (props.$ismobile ? "90%" : "50%")};
   height: ${(props) => (props.$ismobile ? "85%" : "90%")};
-  top: 55%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  top: 50%;
   left: 50%;
   border-radius: 8px;
   transform: translate(-50%, -50%);
   position: fixed;
-  color: ${({ theme }) => theme.textColor};
+  color: black;
   z-index: 3100;
 `;
 
 const Modal = styled(motion.div)<styleType>`
   display: flex;
   flex-direction: column;
-  width: 100%;
+  width: ${(props) => (props.$ismobile ? "100%" : "70%")};
   height: ${(props) => (props.$ismobile ? "auto" : "80%")};
-  max-height: ${(props) => (props.$ismobile ? "90%" : "80%")};
-  /* min-height: 80%; */
-  /* height: auto; */
-  justify-content: center;
+  max-height: ${(props) => (props.$ismobile ? "80%" : "60%")};
+  position: relative;
   align-items: center;
-  background-color: ${({ theme }) => theme.backgroundColor};
+  background-color: white;
   border: 1px solid #d9d9d9;
   border-radius: 15px;
 `;
@@ -41,37 +42,33 @@ const Modal = styled(motion.div)<styleType>`
 const TitleContainer = styled.div<styleType>`
   font-size: ${(props) => (props.$ismobile ? "1rem" : "1.3rem")};
   font-weight: 600;
-  color: ${({ theme }) => theme.textColor};
-  /* background-color: ${({ theme }) => theme.backgroundColor}; */
-  /* background-color: red; */
+  /* color: ${({ theme }) => theme.textColor}; */
+  color: black;
   display: flex;
   justify-content: center;
   align-items: center;
-  margin: 15px 0px;
+  margin-top: 15px;
+  margin-bottom: 30px;
   width: 100%;
   height: 30px;
 `;
 
 const SubText = styled.span`
   font-size: 0.8rem;
-  color: ${({ theme }) => theme.textColor};
+  /* color: ${({ theme }) => theme.textColor}; */
+  color: black;
   margin-top: 7px;
   margin-bottom: 7px;
   margin-left: 50px;
 `;
 
-const DateText = styled.span`
-  font-size: 0.6rem;
-  color: ${({ theme }) => theme.textColor};
-  margin-right: 50px;
-`;
-const UriText = styled.a`
-  font-size: 0.6rem;
-  color: ${({ theme }) => theme.textColor};
+const ReportTextarea = styled.textarea`
+  width: 70%;
+  height: 100px;
+  min-height: 5%;
   margin-left: 50px;
-  cursor: pointer;
-  text-decoration: none;
   margin-bottom: 30px;
+  padding: 5px;
 `;
 
 const GreySection = styled.div`
@@ -82,34 +79,6 @@ const GreySection = styled.div`
   color: black;
   display: flex;
   flex-direction: column;
-`;
-
-const WhiteSection = styled.div`
-  width: 100%;
-  height: auto;
-  padding: 10px 0px;
-  background-color: transparent;
-  display: flex;
-  flex-direction: column;
-`;
-
-const DeclarationSection = styled.div`
-  display: flex;
-  width: 100%;
-  position: relative;
-  justify-content: space-between;
-`;
-
-const ReportTextContainer = styled.div`
-  width: 70%;
-  /* height: 100px; */
-  border: 1px solid #d9d9d9;
-  font-size: 0.7rem;
-  padding: 10px;
-  background-color: ${({ theme }) => theme.backgroundColor};
-  color: ${({ theme }) => theme.textColor};
-  z-index: 30000;
-  margin-left: 50px;
 `;
 
 const Logo = styled.img<styleType>`
@@ -164,33 +133,31 @@ const CloseBtn = styled.svg`
   height: 25px;
 `;
 
-const AdminModal = ({ setIsModalOpen }: adminProps) => {
+const AdminModal = ({ setIsModalOpen }: reportProp) => {
   const isMobile = useMediaQuery({ query: "(max-width: 767px)" });
   const [reportProcessType, setReportProcessType] = useState("선택하세요.");
-  const [reportInfo, setReportInfo] = useState({
-    reporter: "seebaby@gmail.com",
-    date: "2025.06.17",
-    writer: "angrySung@gmail.com",
-    type: "부적절한 언어 사용",
-    reportContents: "인성이 너무 터졌어요ㅜㅜ 정지 시켜주세요!",
-    contents: "",
-    uri: "https://www.kino.com/post/13",
-  });
-
-  useEffect(() => {
-    console.log(reportProcessType);
-  }, [reportProcessType]);
-
+  const [reportReason, setReportReason] = useState("");
+  const isBtnDisable =
+    reportProcessType === "선택하세요." || reportReason === "";
   const processType: string[] = [
     "선택하세요.",
-    "처리안함",
-    "1일",
-    "3일",
-    "5일",
-    "7일",
-    "30일",
-    "영구정지",
+    "욕설 / 비방",
+    "음란물 / 선정적 내용",
+    "폭력적 / 혐오 표현",
+    "스팸 / 광고",
+    "개인정보 노출",
+    "허위 사실 / 잘못된 정보",
+    "도배 / 중복 게시",
+    "저작권 침해",
+    "정치적 / 종교적 선전",
+    "불법 행위 및 범죄 조장",
+    "기타 운영 정책 위반",
+    "혐오 표현 및 차별",
   ];
+
+  const onChangeTextarea = (text: ChangeEvent<HTMLTextAreaElement>) => {
+    setReportReason(text.target.value);
+  };
 
   const handleSelectBox = (option: ChangeEvent<HTMLSelectElement>) => {
     setReportProcessType(option.target.value);
@@ -219,43 +186,29 @@ const AdminModal = ({ setIsModalOpen }: adminProps) => {
         </CloseBtn>
 
         <Logo src={logo} $ismobile={isMobile} />
-        <TitleContainer $ismobile={isMobile}>신고 상세 정보</TitleContainer>
-        <GreySection>
-          <DeclarationSection>
-            <SubText style={{ color: "black" }}>
-              신고자 : {reportInfo.reporter}
-            </SubText>
-            <DateText>신고일 : {reportInfo.date}</DateText>
-          </DeclarationSection>
+        <TitleContainer $ismobile={isMobile}>사용자 신고</TitleContainer>
 
-          <SubText style={{ color: "black" }}>
-            작성자 : {reportInfo.writer}
-          </SubText>
-        </GreySection>
-        <WhiteSection>
-          <SubText>신고 유형: {reportInfo.type}</SubText>
-        </WhiteSection>
         <GreySection>
-          <SubText style={{ color: "black" }}>신고 내용</SubText>
-          <ReportTextContainer>{reportInfo.reportContents}</ReportTextContainer>
-        </GreySection>
-        <WhiteSection>
-          <SubText>신고된 콘텐츠</SubText>
-          <UriText>{reportInfo.uri}</UriText>
-        </WhiteSection>
-        <GreySection>
-          <SubText>처리 방법</SubText>
+          <SubText>신고 사유</SubText>
           <SelectBox value={reportProcessType} onChange={handleSelectBox}>
             {processType.map((opt, idx) => (
               <option key={idx}>{opt}</option>
             ))}
           </SelectBox>
         </GreySection>
+        <GreySection>
+          <SubText>자세한 신고 사유를 입력해주세요.</SubText>
+          <ReportTextarea
+            onChange={onChangeTextarea}
+            value={reportReason}
+            disabled={reportProcessType === "선택하세요."}
+          ></ReportTextarea>
+        </GreySection>
 
         <ConfirmBtn
           $ismobile={isMobile}
           $isbtnpos={reportProcessType !== "선택하세요."}
-          disabled={reportProcessType === "선택하세요."}
+          disabled={isBtnDisable}
           onClick={() => setIsModalOpen(false)}
           initial={{ opacity: 0, visibility: "hidden", y: -20 }}
           animate={{ opacity: 1, visibility: "visible", y: 0 }}
