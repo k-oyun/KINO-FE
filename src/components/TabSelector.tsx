@@ -16,7 +16,8 @@ const TabContainer = styled.div<StyleType>`
   display: flex;
   justify-content: center;
   gap: ${(props) => (props.$ismobile ? "10px" : "20px")};
-  border-bottom: 2px solid #000000;
+  /* border-bottom: 2px solid #000000; */
+  border-bottom: ${({ theme }) => `1.5px solid ${theme.textColor}`};
 `;
 
 const TabList = styled.ul<StyleType>`
@@ -28,9 +29,11 @@ const TabButton = styled.button<{ selected: boolean } & StyleType>`
   cursor: pointer;
   font-size: ${(props) => (props.$ismobile ? "16px" : "20px")};
   border: none;
-  border-bottom: ${(props) => (props.selected ? "3px solid #000000" : "none")};
+  border-bottom: ${({ selected, theme }) =>
+    selected ? `3px solid ${theme.textColor}` : "none"};
   background-color: transparent;
   padding-bottom: 2px;
+  color: ${({ theme }) => theme.textColor};
 `;
 
 const TabSelector = <T extends string>({

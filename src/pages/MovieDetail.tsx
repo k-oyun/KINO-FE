@@ -5,6 +5,7 @@ import GeneralMovieInfo from "../components/GeneralMovieInfo";
 import TabSelector from "../components/TabSelector";
 import MovieInfo from "../components/MovieInfo";
 import ShortReview from "../components/ShortReview";
+import Review from "../components/Review";
 
 const movieDetail = {
   id: 603692,

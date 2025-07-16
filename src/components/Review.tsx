@@ -1,6 +1,6 @@
 import styled from "styled-components";
-import ReviewCard from "./mypage/ReviewCard";
 import { useEffect, useState } from "react";
+import DetailReviewCard from "./mypage/DetailReviewCard";
 
 interface ReviewProps {
   isMobile: boolean;
@@ -12,15 +12,21 @@ interface StyleType {
 }
 
 interface Review {
-  userId: string;
-  nickname: string;
-  image: string;
+  id: string;
   title: string;
+  image: string;
   content: string;
   likes: number;
-  createdAt: string;
   views: number;
   comments: number;
+  createdAt: string;
+  reviewer: Reviewer;
+}
+
+interface Reviewer {
+  id: string;
+  nickname: string;
+  image: string;
 }
 
 const ReviewContainer = styled.div<StyleType>`
@@ -28,6 +34,31 @@ const ReviewContainer = styled.div<StyleType>`
   flex-direction: column;
   margin: ${(props) => (props.$ismobile ? "15px" : "30px")};
   padding: ${(props) => (props.$ismobile ? "0 10px" : "0 20px")};
+`;
+
+const Head = styled.div<StyleType>`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-left: ${(props) => (props.$ismobile ? "10px" : "10px")};
+  font-size: ${(props) => (props.$ismobile ? "0.7em" : "1.1em")};
+  margin-bottom: ${(props) => (props.$ismobile ? "6px" : "10px")};
+`;
+
+const WriteBtn = styled.button<StyleType>`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #fd6782;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: ${(props) => (props.$ismobile ? "5px" : "6px 12px")};
+  font-size: ${(props) => (props.$ismobile ? "10px" : "20px")};
+  cursor: pointer;
+  &:hover {
+    background-color: #f73c63;
+  }
 `;
 
 const Review = ({ isMobile, movieId }: ReviewProps) => {
@@ -38,52 +69,90 @@ const Review = ({ isMobile, movieId }: ReviewProps) => {
 
     const reviewList: Review[] = [
       {
-        userId: "reviewer_001",
-        nickname: "MovieFan88",
-        image: "https://randomuser.me/api/portraits/men/71.jpg",
-        title: "감동과 스릴이 가득한 최고의 영화!",
+        id: "r1",
+        title: "감동 그 자체였던 엘리오",
+        image:
+          "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSM-0UIN6BUeV3hd7redgZZha6-BXyAwCRE8Q&s",
         content:
-          "처음부터 끝까지 긴장감이 넘치고, 캐릭터들의 감정선이 매우 섬세하게 그려져 있어 정말 몰입해서 봤습니다. 특히 마지막 반전은 예상하지 못해서 소름이 돋았어요. 보면 볼수록 여운이 긴 작품입니다. 추천합니다!",
-        likes: 21,
-        createdAt: "2025-07-15T12:10:23+09:00",
-        views: 402,
-        comments: 5,
+          "영화 '엘리오'는 인물의 감정을 너무도 섬세하게 잘 묘사했어요. 중반부 이후 감정 몰입이 정말 장난 아닙니다. 보면서 울컥했어요. 영화 '엘리오'는 인물의 감정을 너무도 섬세하게 잘 묘사했어요. 중반부 이후 감정 몰입이 정말 장난 아닙니다. 보면서 울컥했어요. 영화 '엘리오'는 인물의 감정을 너무도 섬세하게 잘 묘사했어요. 중반부 이후 감정 몰입이 정말 장난 아닙니다. 보면서 울컥했어요. 영화 '엘리오'는 인물의 감정을 너무도 섬세하게 잘 묘사했어요. 중반부 이후 감정 몰입이 정말 장난 아닙니다. 보면서 울컥했어요.",
+        likes: 42,
+        views: 350,
+        comments: 12,
+        createdAt: "2025-07-16 14:35",
+        reviewer: {
+          id: "u001",
+          nickname: "cine_lover",
+          image: "https://randomuser.me/api/portraits/men/21.jpg",
+        },
       },
       {
-        userId: "reviewer_002",
-        nickname: "영화찐애호가",
-        image: "https://randomuser.me/api/portraits/women/43.jpg",
-        title: "음악과 영상미가 정말 아름답습니다",
+        id: "r2",
+        title: "인셉션, 다시 봐도 대단하다",
+        image:
+          "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSM-0UIN6BUeV3hd7redgZZha6-BXyAwCRE8Q&s",
         content:
-          "이 영화는 한 장면 한 장면이 마치 그림처럼 아름다웠어요. OST도 매우 인상적이어서 영화 본 이후 계속 찾아 듣고 있네요. 스토리텔링도 섬세해서 감동을 받았습니다. 강력 추천!",
-        likes: 33,
-        createdAt: "2025-07-12T20:41:13+09:00",
-        views: 397,
-        comments: 4,
+          "놀란 감독의 천재성이 또 느껴졌습니다. 꿈속의 꿈이라는 개념이 이렇게 흥미진진할 수 있다니!",
+        likes: 68,
+        views: 510,
+        comments: 23,
+        createdAt: "2025-07-15 08:10",
+        reviewer: {
+          id: "u002",
+          nickname: "film_buff",
+          image: "https://randomuser.me/api/portraits/women/45.jpg",
+        },
       },
       {
-        userId: "reviewer_003",
-        nickname: "ISP_FilmBoi",
-        image: "https://randomuser.me/api/portraits/men/25.jpg",
-        title: "아쉬운 점도 있지만 전반적으로 만족",
+        id: "r3",
+        title: "범죄도시3, 마동석은 믿고 보는 배우",
+        image:
+          "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSM-0UIN6BUeV3hd7redgZZha6-BXyAwCRE8Q&s",
         content:
-          "스토리 전개가 약간 늘어지는 부분이 있었지만 배우들의 연기력과 화면 연출이 이를 상쇄할 만큼 훌륭했습니다. 특히 주인공의 심리 변화를 따라가는 연출이 인상 깊었습니다.",
-        likes: 14,
-        createdAt: "2025-07-10T14:25:52+09:00",
-        views: 222,
-        comments: 2,
+          "통쾌한 액션과 속 시원한 전개가 정말 좋았습니다. 관객을 시원하게 해주는 영화!",
+        likes: 55,
+        views: 400,
+        comments: 17,
+        createdAt: "2025-07-14 17:50",
+        reviewer: {
+          id: "u003",
+          nickname: "action_junkie",
+          image: "https://randomuser.me/api/portraits/men/31.jpg",
+        },
       },
       {
-        userId: "reviewer_004",
-        nickname: "소피아",
-        image: "https://randomuser.me/api/portraits/women/32.jpg",
-        title: "볼수록 새로운 디테일이 발견되는 영화",
+        id: "r4",
+        title: "기생충, 왜 다시 봐도 찝찝한가",
+        image:
+          "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSM-0UIN6BUeV3hd7redgZZha6-BXyAwCRE8Q&s",
         content:
-          "두 번째로 다시 보니 처음에 놓쳤던 부분들이 보이고 인물 간의 관계도 더 깊이 이해할 수 있었어요. 내러티브가 탄탄해서 여러 번 돌려보기 좋아요.",
-        likes: 19,
-        createdAt: "2025-07-16T09:12:04+09:00",
-        views: 331,
-        comments: 3,
+          "볼 때마다 묻어나오는 사회성과 디테일에 감탄하게 됩니다. 연기, 연출, 편집 모두 명작이에요.",
+        likes: 72,
+        views: 620,
+        comments: 34,
+        createdAt: "2025-07-13 10:00",
+        reviewer: {
+          id: "u004",
+          nickname: "classyCritic",
+          image: "https://randomuser.me/api/portraits/men/51.jpg",
+        },
+      },
+      {
+        id: "r5",
+        title: "듄, 시각미의 극치",
+        image:
+          "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSM-0UIN6BUeV3hd7redgZZha6-BXyAwCRE8Q&s",
+
+        content:
+          "전개는 조금 느리지만, 스케일과 세계관의 깊이에 놀라웠습니다. 꼭 극장에서 봐야 할 작품!",
+        likes: 38,
+        views: 300,
+        comments: 9,
+        createdAt: "2025-07-12 19:20",
+        reviewer: {
+          id: "u005",
+          nickname: "scifi_enthusiast",
+          image: "https://randomuser.me/api/portraits/women/34.jpg",
+        },
       },
     ];
     setReviews(reviewList);
@@ -91,7 +160,19 @@ const Review = ({ isMobile, movieId }: ReviewProps) => {
 
   return (
     <ReviewContainer $ismobile={isMobile}>
-      <ReviewCard review={} type="detail"></ReviewCard>
+      <Head $ismobile={isMobile}>
+        <div>리뷰가 총 {reviews.length} 개 등록되어 있어요!</div>
+        <WriteBtn $ismobile={isMobile}>작성하기</WriteBtn>
+      </Head>
+      {reviews.map((review) => (
+        <DetailReviewCard
+          key={review.id}
+          review={review}
+          isMine={review.reviewer.id === "r1"} // 임시로 첫 번째 리뷰어가 작성한 것으로 간주
+          showProfile={true}
+          isMobile={isMobile}
+        />
+      ))}
     </ReviewContainer>
   );
 };
