@@ -122,7 +122,7 @@ const TrailerLabel = styled.h2<styleType>`
 `;
 
 const MovieInfo = ({ isMobile, movieId }: MovieInfoProps) => {
-  const [providers, setProviders] = useState([]);
+  const [providers, setProviders] = useState<string[]>([]);
 
   useEffect(() => {
     // 영화 상세 정보를 가져오는 로직

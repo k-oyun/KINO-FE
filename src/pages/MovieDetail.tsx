@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import GeneralMovieInfo from "../components/GeneralMovieInfo";
 import TabSelector from "../components/TabSelector";
 import MovieInfo from "../components/MovieInfo";
+import ShortReview from "../components/ShortReview";
 
 const movieDetail = {
   id: 603692,
@@ -91,10 +92,7 @@ const MovieDetail = () => {
           <MovieInfo isMobile={isMobile} movieId={movieDetail.id} />
         )}
         {selectedTab === "shortReview" && (
-          <div>
-            <h2>한줄평</h2>
-            <p>아직 작성된 한줄평이 없습니다.</p>
-          </div>
+          <ShortReview isMobile={isMobile} movieId={movieDetail.id} />
         )}
         {selectedTab === "review" && (
           <div>
