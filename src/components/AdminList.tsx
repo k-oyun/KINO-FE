@@ -181,7 +181,13 @@ const AdminList = ({
 
   const hiddenDeleteSection = (userId: number) => (
     <TrailingActions>
-      <SwipeAction onClick={() => handleRevoke(userId)} destructive={true}>
+      <SwipeAction
+        onClick={() => {
+          handleRevoke(userId);
+          userActive(userId);
+        }}
+        destructive={true}
+      >
         <ManageBtn $ismobile={isMobile}>철회</ManageBtn>
       </SwipeAction>
     </TrailingActions>
@@ -265,14 +271,15 @@ const AdminList = ({
     listGet();
   }, [selectedOption]);
 
-  // 12명으로 페이지네이션
-
   const userActive = async (id: number) => {
     const res = await axios.post(
       `http://43.203.218.183:8080/api/admin/active/${id}`
     );
+    console.log(res);
     listGet();
   };
+
+  // 12명으로 페이지네이션
 
   return (
     <>
@@ -282,7 +289,7 @@ const AdminList = ({
             <SwipeableList threshold={0.25} fullSwipe={false}>
               {users.map((user) => {
                 const showSwipe =
-                  selectedOption === "회원관리" && user.role !== "정지";
+                  selectedOption === "회원관리" && user.role === "BAN";
 
                 return (
                   <CustomSwipeableListItem
