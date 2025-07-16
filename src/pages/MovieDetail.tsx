@@ -52,12 +52,10 @@ const movieDetail = {
 };
 
 const MovieDetailContainer = styled.div`
-  width: 100%;
   margin-top: 65px; /* 헤더 높이만큼 여백 */
 `;
 
 const Categories = styled.div<{ $ismobile: boolean }>`
-  width: 100%;
   padding: ${(props) => (props.$ismobile ? "20px" : "20px 50px")};
 `;
 
@@ -95,10 +93,7 @@ const MovieDetail = () => {
           <ShortReview isMobile={isMobile} movieId={movieDetail.id} />
         )}
         {selectedTab === "review" && (
-          <div>
-            <h2>상세 리뷰</h2>
-            <p>아직 작성된 상세 리뷰가 없습니다.</p>
-          </div>
+          <Review isMobile={isMobile} movieId={movieDetail.id} />
         )}
       </Categories>
     </MovieDetailContainer>

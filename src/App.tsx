@@ -39,6 +39,7 @@ function App() {
             <Route path="/" element={<Main />}></Route>
             <Route path="/login" element={<Login />}></Route>
             <Route path="/movie" element={<Movie />}></Route>
+            <Route path="/movie/:id" element={<MovieDetail />}></Route>
             <Route path="/Admin" element={<Admin />}></Route>
             <Route path="/mypage" element={<MyPageMain />} />
             <Route
@@ -58,7 +59,6 @@ function App() {
             <Route path="/mypage" element={<MyPageMain />} />
             <Route path="/mypage" element={<MyPageMain />} />
             <Route path="/mypage" element={<MyPageMain />} />
-            <Route path="/movie/:id" element={<MovieDetail />}></Route>
           </Routes>
         </ThemeProvider>
       </BrowserRouter>
