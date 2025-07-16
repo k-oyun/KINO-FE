@@ -45,10 +45,10 @@ const Td = styled.td`
   text-align: center;
 `;
 
-const Status = styled.span<{ $status: "정상" | "정지" }>`
+const Status = styled.span<{ $status: "정상" | "정지"; $ismobile: boolean }>`
   color: ${({ $status }) => ($status === "정상" ? "green" : "red")};
   font-weight: 700;
-  font-size: 12px;
+  font-size: ${(props) => (props.$ismobile ? "12px" : "15px")};
 `;
 
 const ManageBtn = styled.button<StyleProps>`
@@ -272,7 +272,9 @@ const AdminList = ({ selectedOption, setIsModalOpen }: adminProps) => {
                       </div>
                       <div>
                         <MobileTitleTxt>회원상태 : </MobileTitleTxt>
-                        <Status $status={user.status}>{user.status}</Status>
+                        <Status $ismobile={isMobile} $status={user.status}>
+                          {user.status}
+                        </Status>
                       </div>
                       <div>
                         <MobileTitleTxt>가입일 : </MobileTitleTxt>
@@ -334,7 +336,9 @@ const AdminList = ({ selectedOption, setIsModalOpen }: adminProps) => {
                 <Td>{user.nickname}</Td>
                 <Td>{user.email}</Td>
                 <Td>
-                  <Status $status={user.status}>{user.status}</Status>
+                  <Status $ismobile={isMobile} $status={user.status}>
+                    {user.status}
+                  </Status>
                 </Td>
                 <Td>{user.joinDate}</Td>
                 {selectedOption === "회원관리" ? (
