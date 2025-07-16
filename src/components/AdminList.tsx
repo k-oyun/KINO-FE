@@ -9,6 +9,7 @@ import {
 } from "react-swipeable-list";
 import "react-swipeable-list/dist/styles.css";
 import ConfirmDialog from "../components/ConfirmDialog";
+import axios from "axios";
 
 type UserStatus = "정상" | "정지";
 
@@ -237,6 +238,24 @@ const AdminList = ({ selectedOption, setIsModalOpen }: adminProps) => {
       </SwipeAction>
     </TrailingActions>
   );
+
+  const userGet = async () => {
+    const res = await axios.get("http://43.203.218.183:8080/admin/user");
+    return res.data;
+  };
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const res = await userGet();
+        console.log(res);
+      } catch (error) {
+        console.error("호출 실패:", error);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   return (
     <>
