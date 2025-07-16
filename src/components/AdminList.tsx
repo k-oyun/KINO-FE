@@ -145,6 +145,13 @@ const AdminList = ({
   const [isConfirmModalOk, setIsConfirmModalOk] = useState(false);
   const [users, setUsers] = useState<User[]>([]);
   const [reportDatas, setReportDatas] = useState<Report[]>([]);
+  const [selectedUserForDialog, setSelectedUserForDialog] = useState<User>({
+    id: 0,
+    nickname: "",
+    email: "",
+    role: "",
+    createdAt: "",
+  });
 
   const selectAllUser = () => {
     if (selectedUser.length === users.length) {
@@ -200,21 +207,18 @@ const AdminList = ({
     return res.data;
   };
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const res = await userGet();
-        console.log(res.data);
-        setUsers(res.data);
-      } catch (error) {
-        console.error("사용자 조회 실패:", error);
-      }
-    };
-
-    fetchData();
-  }, []);
-
   const listGet = () => {
+    if (selectedOption === "회원관리") {
+      const fetchData = async () => {
+        try {
+          const res = await userGet();
+          setUsers(res.data);
+        } catch (error) {
+          console.error("사용자 조회 실패:", error);
+        }
+      };
+      fetchData();
+    }
     if (selectedOption === "게시글") {
       const fetchData = async () => {
         try {
@@ -262,6 +266,14 @@ const AdminList = ({
   }, [selectedOption]);
 
   // 12명으로 페이지네이션
+
+  const userActive = async (id: number) => {
+    const res = await axios.post(
+      `http://43.203.218.183:8080/api/admin/active/${id}`
+    );
+    listGet();
+  };
+
   return (
     <>
       {selectedOption === "회원관리" ? (
@@ -348,6 +360,7 @@ const AdminList = ({
                           $ismobile={isMobile}
                           onClick={() => {
                             setIsConfirmModalOpen(true);
+                            // 12명 유저 활성화 해제
                           }}
                         >
                           정지 철회
@@ -401,7 +414,10 @@ const AdminList = ({
                       {user.role == "BAN" && (
                         <ManageBtn
                           $ismobile={isMobile}
-                          onClick={() => setIsConfirmModalOpen(true)}
+                          onClick={() => {
+                            setIsConfirmModalOpen(true);
+                            setSelectedUserForDialog(user);
+                          }}
                         >
                           정지 철회
                         </ManageBtn>
@@ -534,14 +550,15 @@ const AdminList = ({
           </Table>
         </TableContainer>
       )}
-
       <ConfirmDialog
         isOpen={isConfirmModalOpen}
         title="정지 철회"
-        message="OOO님을 철회하시겠습니까?"
+        message={`${selectedUserForDialog.nickname}님을 철회하시겠습니까?`}
         onConfirm={() => {
           setIsConfirmModalOpen(false);
           setIsConfirmModalOk(true);
+          userActive(selectedUserForDialog.id);
+          listGet();
         }}
         onCancel={() => {
           setIsConfirmModalOpen(false);
