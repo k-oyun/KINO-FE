@@ -14,8 +14,10 @@ const AmdinContainer = styled.div<styleProp>`
   align-items: center;
   width: 100%;
   height: 100vh;
-  background-color: ${({ theme }) => theme.backgroundColor};
-  color: ${({ theme }) => theme.textColor};
+  /* background-color: ${({ theme }) => theme.backgroundColor}; */
+  background-color: white;
+  /* color: ${({ theme }) => theme.textColor}; */
+  color: black;
 `;
 
 const Sidebar = styled.div<styleProp>`
@@ -34,7 +36,8 @@ const SidebarBtn = styled.button<{ $selected: boolean; $ismobile: boolean }>`
   height: ${(props) => (props.$ismobile ? " 30px" : "100px")};
   border: none;
   background-color: ${(props) => (props.$selected ? "#FF2E72" : "#fa5a8e")};
-  color: ${({ theme }) => theme.textColor};
+  /* color: ${({ theme }) => theme.textColor}; */
+  color: white;
   font-size: ${(props) => (props.$ismobile ? "14px" : "18px")};
   font-weight: 700;
   cursor: pointer;
@@ -46,6 +49,7 @@ const AdminText = styled.span`
   margin-bottom: 80px;
   font-weight: 700;
   /* color: ${({ theme }) => theme.backgroundColor}; */
+  color: white;
 `;
 
 const ManagementContainer = styled.div<styleProp>`
@@ -55,7 +59,8 @@ const ManagementContainer = styled.div<styleProp>`
   align-items: center;
   width: 88%;
   height: ${(props) => (props.$ismobile ? "auto" : "100%")};
-  background-color: ${({ theme }) => theme.backgroundColor};
+  /* background-color: ${({ theme }) => theme.backgroundColor}; */
+  background-color: white;
 `;
 
 const ManagementInfoContainer = styled.div<styleProp>`

@@ -22,18 +22,22 @@ function HeaderSelector() {
   const location = useLocation();
   const path = location.pathname;
 
-  if (path === "/login") return null;
+  if (path === "/Login" || path === "/login") return null;
   if (path === "/") return null;
+
   return <Header />;
 }
 
 function App() {
   const isDarkMode = usePreferMode();
-  console.log("test");
+
+  const isAdminPage = location.pathname === "/admin";
   return (
     <>
       <BrowserRouter>
-        <ThemeProvider theme={isDarkMode ? darkTheme : lightTheme}>
+        <ThemeProvider
+          theme={isAdminPage ? lightTheme : isDarkMode ? darkTheme : lightTheme}
+        >
           <GlobalStyle />
           <HeaderSelector />
           <Routes>
