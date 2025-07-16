@@ -76,6 +76,8 @@ const Admin = () => {
   const [selectedOption, setSelectedOption] = useState("회원관리");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const sideBarOption = ["회원관리", "게시글", "한줄평", "댓글"];
+  const [selectedReportId, setSelectedReportId] = useState(0);
+  const [isConfirmBtnPrs, setIsConfirmBtnprs] = useState(false);
 
   const handleOptionClick = (option: string) => {
     setSelectedOption(option);
@@ -84,6 +86,19 @@ const Admin = () => {
   //   useEffect(() => {
   //     console.log(selectedOption);
   //   }, [selectedOption]);
+
+  const reportTypeSend = () => {
+    if (selectedOption === "게시글") {
+      return "reviewdetail";
+    }
+    if (selectedOption === "한줄평") {
+      return "shortreviewdetail";
+    }
+    if (selectedOption === "댓글") {
+      return "commentdetail";
+    }
+    return "defaultType";
+  };
 
   return (
     <>
@@ -106,11 +121,21 @@ const Admin = () => {
             <AdminList
               selectedOption={selectedOption}
               setIsModalOpen={setIsModalOpen}
+              setSelectedReportId={setSelectedReportId}
+              setIsConfirmBtnprs={setIsConfirmBtnprs}
+              isConfirmBtnPrs={isConfirmBtnPrs}
             />
           </ManagementInfoContainer>
         </ManagementContainer>
       </AmdinContainer>
-      {isModalOpen && <AdminModal setIsModalOpen={setIsModalOpen} />}
+      {isModalOpen && (
+        <AdminModal
+          setIsConfirmBtnprs={setIsConfirmBtnprs}
+          setIsModalOpen={setIsModalOpen}
+          reportType={reportTypeSend()}
+          reportId={selectedReportId}
+        />
+      )}
     </>
   );
 };

@@ -30,7 +30,6 @@ function HeaderSelector() {
 
 function App() {
   const isDarkMode = usePreferMode();
-
   const isAdminPage = location.pathname === "/admin";
   return (
     <>
