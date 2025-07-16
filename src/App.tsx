@@ -29,7 +29,6 @@ function HeaderSelector() {
 
 function App() {
   const isDarkMode = usePreferMode();
-  const [isModalOpen, setIsModalOpen] = useState(true);
   console.log("test");
   return (
     <>
@@ -37,7 +36,6 @@ function App() {
         <ThemeProvider theme={isDarkMode ? darkTheme : lightTheme}>
           <GlobalStyle />
           <HeaderSelector />
-          <ReportModal setIsModalOpen={setIsModalOpen} />
           <Routes>
             <Route path="/" element={<Main />}></Route>
             <Route path="/login" element={<Login />}></Route>

@@ -161,6 +161,7 @@ const CloseBtn = styled.svg`
   stroke-width: 2;
   stroke: currentColor;
   cursor: pointer;
+  height: 25px;
 `;
 
 const AdminModal = ({ setIsModalOpen }: adminProps) => {
