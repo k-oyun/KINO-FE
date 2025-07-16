@@ -14,26 +14,28 @@ interface reportProp {
 const ModalContainer = styled.div<styleType>`
   width: ${(props) => (props.$ismobile ? "90%" : "50%")};
   height: ${(props) => (props.$ismobile ? "85%" : "90%")};
-  top: 55%;
+  top: 50%;
   left: 50%;
   border-radius: 8px;
   transform: translate(-50%, -50%);
   position: fixed;
-  color: ${({ theme }) => theme.textColor};
+  /* color: ${({ theme }) => theme.textColor}; */
+  color: black;
   z-index: 3100;
 `;
 
 const Modal = styled(motion.div)<styleType>`
   display: flex;
   flex-direction: column;
-  width: 100%;
+  width: ${(props) => (props.$ismobile ? "100%" : "70%")};
   height: ${(props) => (props.$ismobile ? "auto" : "80%")};
-  max-height: ${(props) => (props.$ismobile ? "90%" : "80%")};
+  max-height: ${(props) => (props.$ismobile ? "60%" : "70%")};
   /* min-height: 80%; */
   /* height: auto; */
   justify-content: center;
   align-items: center;
-  background-color: ${({ theme }) => theme.backgroundColor};
+  /* background-color: ${({ theme }) => theme.backgroundColor}; */
+  background-color: white;
   border: 1px solid #d9d9d9;
   border-radius: 15px;
 `;
@@ -41,8 +43,8 @@ const Modal = styled(motion.div)<styleType>`
 const TitleContainer = styled.div<styleType>`
   font-size: ${(props) => (props.$ismobile ? "1rem" : "1.3rem")};
   font-weight: 600;
-  color: ${({ theme }) => theme.textColor};
-
+  /* color: ${({ theme }) => theme.textColor}; */
+  color: black;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -53,23 +55,18 @@ const TitleContainer = styled.div<styleType>`
 
 const SubText = styled.span`
   font-size: 0.8rem;
-  color: ${({ theme }) => theme.textColor};
+  /* color: ${({ theme }) => theme.textColor}; */
+  color: black;
   margin-top: 7px;
   margin-bottom: 7px;
   margin-left: 50px;
 `;
 
-const DateText = styled.span`
-  font-size: 0.6rem;
-  color: ${({ theme }) => theme.textColor};
-  margin-right: 50px;
-`;
-const UriText = styled.a`
-  font-size: 0.6rem;
-  color: ${({ theme }) => theme.textColor};
+const ReportTextarea = styled.textarea`
+  width: 70%;
+  height: 100px;
+  min-height: 5%;
   margin-left: 50px;
-  cursor: pointer;
-  text-decoration: none;
   margin-bottom: 30px;
 `;
 
@@ -219,9 +216,10 @@ const AdminModal = ({ setIsModalOpen }: reportProp) => {
             ))}
           </SelectBox>
         </GreySection>
-        <WhiteSection>
-            <Sub
-        </WhiteSection>
+        <GreySection>
+          <SubText>자세한 신고 사유를 적어주세요.</SubText>
+          <ReportTextarea></ReportTextarea>
+        </GreySection>
 
         <ConfirmBtn
           $ismobile={isMobile}
