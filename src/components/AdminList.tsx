@@ -57,8 +57,9 @@ const Th = styled.th`
 
 const Td = styled.td`
   border-bottom: 1px solid #eee;
-  height: 48px;
+  height: 48.4px;
   text-align: center;
+  /* background-color: blue; */
 `;
 
 const Status = styled.span<{ $status: string; $ismobile: boolean }>`
