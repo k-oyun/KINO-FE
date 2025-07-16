@@ -240,7 +240,7 @@ const AdminList = ({ selectedOption, setIsModalOpen }: adminProps) => {
   );
 
   const userGet = async () => {
-    const res = await axios.get("http://43.203.218.183:8080/admin/user");
+    const res = await axios.get("http://43.203.218.183:8080/api/admin/user");
     return res.data;
   };
 
