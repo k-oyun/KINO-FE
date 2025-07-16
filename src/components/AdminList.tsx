@@ -12,14 +12,20 @@ import ConfirmDialog from "../components/ConfirmDialog";
 import axios from "axios";
 import { useFormatDate } from "../hooks/useFormatDate";
 
-type UserStatus = "정상" | "정지";
-
 interface User {
   id: number;
   nickname: string;
   email: string;
   role: string;
   createdAt: string;
+}
+
+interface Report {
+  reportId: number;
+  reporterEmail: string;
+  reportedEmail: string;
+  reportedRole: string;
+  reportedDate: string;
 }
 
 interface StyleProps {
@@ -30,6 +36,14 @@ interface adminProps {
   selectedOption: string;
   setIsModalOpen: (value: boolean) => void;
 }
+
+const TableContainer = styled.div`
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+`;
 
 const Table = styled.table`
   width: 100%;
@@ -43,12 +57,13 @@ const Th = styled.th`
 
 const Td = styled.td`
   border-bottom: 1px solid #eee;
-  height: 30px;
+  height: 48px;
   text-align: center;
 `;
 
 const Status = styled.span<{ $status: string; $ismobile: boolean }>`
-  color: ${({ $status }) => ($status === "정상" ? "green" : "red")};
+  color: ${({ $status }) =>
+    $status === "정상" ? "green" : $status === "정지" ? "red" : "blue"};
   font-weight: 700;
   font-size: ${(props) => (props.$ismobile ? "12px" : "15px")};
 `;
@@ -119,6 +134,7 @@ const AdminList = ({ selectedOption, setIsModalOpen }: adminProps) => {
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [isConfirmModalOk, setIsConfirmModalOk] = useState(false);
   const [users, setUsers] = useState<User[]>([]);
+  const [reportDatas, setReportDatas] = useState<Report[]>([]);
 
   const selectAllUser = () => {
     if (selectedUser.length === users.length) {
@@ -129,7 +145,7 @@ const AdminList = ({ selectedOption, setIsModalOpen }: adminProps) => {
   };
 
   const selectUser = (userId: number, userStatus: string) => {
-    if (userStatus !== "정지") return;
+    if (userStatus === "BAN" || userStatus === "ADMIN") return;
     setSelectedUser((prev) =>
       prev.includes(userId)
         ? prev.filter((id) => id !== userId)
@@ -159,6 +175,21 @@ const AdminList = ({ selectedOption, setIsModalOpen }: adminProps) => {
     return res.data;
   };
 
+  const reviewReportGet = async () => {
+    const res = await axios.get("http://43.203.218.183:8080/api/admin/review");
+    return res.data;
+  };
+  const shortReviewReportGet = async () => {
+    const res = await axios.get(
+      "http://43.203.218.183:8080/api/admin/shortreview"
+    );
+    return res.data;
+  };
+  const commentReportGet = async () => {
+    const res = await axios.get("http://43.203.218.183:8080/api/admin/comment");
+    return res.data;
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -166,29 +197,227 @@ const AdminList = ({ selectedOption, setIsModalOpen }: adminProps) => {
         console.log(res.data);
         setUsers(res.data);
       } catch (error) {
-        console.error("호출 실패:", error);
+        console.error("사용자 조회 실패:", error);
       }
     };
 
     fetchData();
   }, []);
 
+  useEffect(() => {
+    if (selectedOption === "게시글") {
+      const fetchData = async () => {
+        try {
+          const res = await reviewReportGet();
+          console.log("게시글 신고 내역", res.data);
+          setReportDatas(res.data);
+        } catch (error) {
+          console.log("게시글 신고 실패:", error);
+        }
+      };
+      fetchData();
+    }
+    if (selectedOption === "한줄평") {
+      const fetchData = async () => {
+        try {
+          const res = await shortReviewReportGet();
+          console.log("한줄평 신고 내역", res.data);
+          setReportDatas(res.data);
+        } catch (error) {
+          console.log("한줄평 신고 실패:", error);
+        }
+      };
+      fetchData();
+    }
+    if (selectedOption === "댓글") {
+      const fetchData = async () => {
+        try {
+          const res = await commentReportGet();
+          console.log("댓글 신고 내역", res.data);
+          setReportDatas(res.data);
+        } catch (error) {
+          console.log("댓글 신고 실패:", error);
+        }
+      };
+      fetchData();
+    }
+    console.log(reportDatas);
+  }, [selectedOption]);
+
   // 12명으로 페이지네이션
   return (
     <>
-      {isMobile ? (
+      {selectedOption === "회원관리" ? (
+        isMobile ? (
+          <MobileAdminList>
+            <SwipeableList threshold={0.25} fullSwipe={false}>
+              {users.map((user) => {
+                const showSwipe =
+                  selectedOption === "회원관리" && user.role !== "정지";
+
+                return (
+                  <CustomSwipeableListItem
+                    key={user.id}
+                    trailingActions={
+                      showSwipe ? hiddenDeleteSection(user.id) : false
+                    }
+                  >
+                    <MobileContainer>
+                      <MobileInfoContainer
+                        onClick={() => {
+                          selectedOption !== "회원관리"
+                            ? setIsModalOpen(true)
+                            : null;
+                        }}
+                      >
+                        <div>
+                          <MobileTitleTxt>닉네임 : </MobileTitleTxt>
+                          <MobileContentTxt>{user.nickname}</MobileContentTxt>
+                        </div>
+                        <div>
+                          <MobileTitleTxt>계정 : </MobileTitleTxt>
+                          <MobileContentTxt>{user.email}</MobileContentTxt>
+                        </div>
+                        <div>
+                          <MobileTitleTxt>회원상태 : </MobileTitleTxt>
+
+                          <Status
+                            $ismobile={isMobile}
+                            $status={
+                              user.role === "USER"
+                                ? "정상"
+                                : user.role === "BAN"
+                                ? "정지"
+                                : "관리자"
+                            }
+                          >
+                            {user.role === "USER"
+                              ? "정상"
+                              : user.role === "BAN"
+                              ? "정지"
+                              : "관리자"}
+                          </Status>
+                        </div>
+                        <div>
+                          <MobileTitleTxt>가입일 : </MobileTitleTxt>
+                          <MobileContentTxt>
+                            {useFormatDate(user.createdAt)}
+                          </MobileContentTxt>
+                        </div>
+                      </MobileInfoContainer>
+                    </MobileContainer>
+                  </CustomSwipeableListItem>
+                );
+              })}
+            </SwipeableList>
+          </MobileAdminList>
+        ) : (
+          <TableContainer>
+            <Table>
+              <thead>
+                <tr>
+                  <Th>
+                    <CheckBox type="checkbox" onClick={selectAllUser} />
+                  </Th>
+                  {selectedOption === "회원관리" ? (
+                    <>
+                      <Th>닉네임</Th>
+                      <Th>계정</Th>
+                      <Th>회원상태</Th>
+                      <Th>가입일</Th>
+                      <Th>
+                        <ManageBtn
+                          disabled={selectedUser.length === 0}
+                          $ismobile={isMobile}
+                          onClick={() => {
+                            setIsConfirmModalOpen(true);
+                          }}
+                        >
+                          정지 철회
+                        </ManageBtn>
+                      </Th>
+                    </>
+                  ) : (
+                    <>
+                      <Th>신고자</Th>
+                      <Th>작성자</Th>
+                      <Th>회원상태</Th>
+                      <Th>신고일</Th>
+                      <Th></Th>
+                    </>
+                  )}
+                </tr>
+              </thead>
+              <tbody>
+                {users.map((user) => (
+                  <tr key={user.id}>
+                    <Td>
+                      <CheckBox
+                        type="checkbox"
+                        checked={selectedUser.includes(user.id)}
+                        onChange={() => selectUser(user.id, user.role)}
+                      />
+                    </Td>
+                    <Td>{user.nickname}</Td>
+                    <Td>{user.email}</Td>
+                    <Td>
+                      <Status
+                        $ismobile={isMobile}
+                        $status={
+                          user.role === "USER"
+                            ? "정상"
+                            : user.role === "BAN"
+                            ? "정지"
+                            : "관리자"
+                        }
+                      >
+                        {user.role === "USER"
+                          ? "정상"
+                          : user.role === "BAN"
+                          ? "정지"
+                          : "관리자"}
+                      </Status>
+                    </Td>
+                    <Td>{useFormatDate(user.createdAt)}</Td>
+                    {selectedOption === "회원관리" ? (
+                      <Td>
+                        {user.role == "BAN" && (
+                          <ManageBtn
+                            $ismobile={isMobile}
+                            onClick={() => {
+                              setIsConfirmModalOpen(true);
+                            }}
+                          >
+                            정지 철회
+                          </ManageBtn>
+                        )}
+                      </Td>
+                    ) : (
+                      <Td>
+                        <ManageBtn
+                          $ismobile={isMobile}
+                          onClick={() => setIsModalOpen(true)}
+                        >
+                          상세정보
+                        </ManageBtn>
+                      </Td>
+                    )}
+                  </tr>
+                ))}
+              </tbody>
+            </Table>
+          </TableContainer>
+        )
+      ) : isMobile ? (
         <MobileAdminList>
           <SwipeableList threshold={0.25} fullSwipe={false}>
-            {users.map((user) => {
-              const showSwipe =
-                selectedOption === "회원관리" && user.role !== "정지";
+            {reportDatas.map((data) => {
+              const showSwipe = selectedOption === "회원관리";
 
               return (
                 <CustomSwipeableListItem
-                  key={user.id}
-                  trailingActions={
-                    showSwipe ? hiddenDeleteSection(user.id) : false
-                  }
+                  key={data.reportId}
+                  trailingActions={false}
                 >
                   <MobileContainer>
                     <MobileInfoContainer
@@ -199,24 +428,41 @@ const AdminList = ({ selectedOption, setIsModalOpen }: adminProps) => {
                       }}
                     >
                       <div>
-                        <MobileTitleTxt>닉네임 : </MobileTitleTxt>
-                        <MobileContentTxt>{user.nickname}</MobileContentTxt>
+                        <MobileTitleTxt>신고자 : </MobileTitleTxt>
+                        <MobileContentTxt>
+                          {data.reporterEmail}
+                        </MobileContentTxt>
                       </div>
                       <div>
-                        <MobileTitleTxt>계정 : </MobileTitleTxt>
-                        <MobileContentTxt>{user.email}</MobileContentTxt>
+                        <MobileTitleTxt>작성자 : </MobileTitleTxt>
+                        <MobileContentTxt>
+                          {data.reportedEmail}
+                        </MobileContentTxt>
                       </div>
                       <div>
                         <MobileTitleTxt>회원상태 : </MobileTitleTxt>
-                        {/* 정지 상태인지 어떻게 판별? */}
-                        <Status $ismobile={isMobile} $status={user.role}>
-                          {user.role}
+
+                        <Status
+                          $ismobile={isMobile}
+                          $status={
+                            data.reportedRole === "USER"
+                              ? "정상"
+                              : data.reportedRole === "BAN"
+                              ? "정지"
+                              : "관리자"
+                          }
+                        >
+                          {data.reportedRole === "USER"
+                            ? "정상"
+                            : data.reportedRole === "BAN"
+                            ? "정지"
+                            : "관리자"}
                         </Status>
                       </div>
                       <div>
                         <MobileTitleTxt>가입일 : </MobileTitleTxt>
                         <MobileContentTxt>
-                          {useFormatDate(user.createdAt)}
+                          {useFormatDate(data.reportedDate)}
                         </MobileContentTxt>
                       </div>
                     </MobileInfoContainer>
@@ -227,31 +473,11 @@ const AdminList = ({ selectedOption, setIsModalOpen }: adminProps) => {
           </SwipeableList>
         </MobileAdminList>
       ) : (
-        <Table>
-          <thead>
-            <tr>
-              <Th>
-                <CheckBox type="checkbox" onClick={selectAllUser} />
-              </Th>
-              {selectedOption === "회원관리" ? (
-                <>
-                  <Th>닉네임</Th>
-                  <Th>계정</Th>
-                  <Th>회원상태</Th>
-                  <Th>가입일</Th>
-                  <Th>
-                    <ManageBtn
-                      disabled={selectedUser.length === 0}
-                      $ismobile={isMobile}
-                      onClick={() => {
-                        setIsConfirmModalOpen(true);
-                      }}
-                    >
-                      정지 철회
-                    </ManageBtn>
-                  </Th>
-                </>
-              ) : (
+        <TableContainer>
+          {" "}
+          <Table>
+            <thead>
+              <tr>
                 <>
                   <Th>신고자</Th>
                   <Th>작성자</Th>
@@ -259,41 +485,33 @@ const AdminList = ({ selectedOption, setIsModalOpen }: adminProps) => {
                   <Th>신고일</Th>
                   <Th></Th>
                 </>
-              )}
-            </tr>
-          </thead>
-          <tbody>
-            {users.map((user) => (
-              <tr key={user.id}>
-                <Td>
-                  <CheckBox
-                    type="checkbox"
-                    checked={selectedUser.includes(user.id)}
-                    onChange={() => selectUser(user.id, user.role)}
-                  />
-                </Td>
-                <Td>{user.nickname}</Td>
-                <Td>{user.email}</Td>
-                <Td>
-                  <Status $ismobile={isMobile} $status={user.role}>
-                    {user.role}
-                  </Status>
-                </Td>
-                <Td>{useFormatDate(user.createdAt)}</Td>
-                {selectedOption === "회원관리" ? (
+              </tr>
+            </thead>
+            <tbody>
+              {reportDatas.map((data) => (
+                <tr key={data.reportId}>
+                  <Td>{data.reporterEmail}</Td>
+                  <Td>{data.reportedEmail}</Td>
                   <Td>
-                    {user.role === "정지" && (
-                      <ManageBtn
-                        $ismobile={isMobile}
-                        onClick={() => {
-                          setIsConfirmModalOpen(true);
-                        }}
-                      >
-                        정지 철회
-                      </ManageBtn>
-                    )}
+                    <Status
+                      $ismobile={isMobile}
+                      $status={
+                        data.reportedRole === "USER"
+                          ? "정상"
+                          : data.reportedRole === "BAN"
+                          ? "정지"
+                          : "관리자"
+                      }
+                    >
+                      {data.reportedRole === "USER"
+                        ? "정상"
+                        : data.reportedRole === "BAN"
+                        ? "정지"
+                        : "관리자"}
+                    </Status>
                   </Td>
-                ) : (
+                  <Td>{useFormatDate(data.reportedDate)}</Td>
+
                   <Td>
                     <ManageBtn
                       $ismobile={isMobile}
@@ -302,12 +520,13 @@ const AdminList = ({ selectedOption, setIsModalOpen }: adminProps) => {
                       상세정보
                     </ManageBtn>
                   </Td>
-                )}
-              </tr>
-            ))}
-          </tbody>
-        </Table>
+                </tr>
+              ))}
+            </tbody>
+          </Table>
+        </TableContainer>
       )}
+
       <ConfirmDialog
         isOpen={isConfirmModalOpen}
         title="정지 철회"
