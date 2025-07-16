@@ -14,8 +14,10 @@ const AmdinContainer = styled.div<styleProp>`
   align-items: center;
   width: 100%;
   height: 100vh;
-  background-color: ${({ theme }) => theme.backgroundColor};
-  color: ${({ theme }) => theme.textColor};
+  /* background-color: ${({ theme }) => theme.backgroundColor}; */
+  background-color: white;
+  /* color: ${({ theme }) => theme.textColor}; */
+  color: black;
 `;
 
 const Sidebar = styled.div<styleProp>`
@@ -34,7 +36,8 @@ const SidebarBtn = styled.button<{ $selected: boolean; $ismobile: boolean }>`
   height: ${(props) => (props.$ismobile ? " 30px" : "100px")};
   border: none;
   background-color: ${(props) => (props.$selected ? "#FF2E72" : "#fa5a8e")};
-  color: ${({ theme }) => theme.textColor};
+  /* color: ${({ theme }) => theme.textColor}; */
+  color: white;
   font-size: ${(props) => (props.$ismobile ? "14px" : "18px")};
   font-weight: 700;
   cursor: pointer;
@@ -46,6 +49,7 @@ const AdminText = styled.span`
   margin-bottom: 80px;
   font-weight: 700;
   /* color: ${({ theme }) => theme.backgroundColor}; */
+  color: white;
 `;
 
 const ManagementContainer = styled.div<styleProp>`
@@ -55,7 +59,8 @@ const ManagementContainer = styled.div<styleProp>`
   align-items: center;
   width: 88%;
   height: ${(props) => (props.$ismobile ? "auto" : "100%")};
-  background-color: ${({ theme }) => theme.backgroundColor};
+  /* background-color: ${({ theme }) => theme.backgroundColor}; */
+  background-color: white;
 `;
 
 const ManagementInfoContainer = styled.div<styleProp>`
@@ -70,8 +75,9 @@ const Admin = () => {
   const [adminName, setAdminName] = useState("권오윤");
   const [selectedOption, setSelectedOption] = useState("회원관리");
   const [isModalOpen, setIsModalOpen] = useState(false);
-
   const sideBarOption = ["회원관리", "게시글", "한줄평", "댓글"];
+  const [selectedReportId, setSelectedReportId] = useState(0);
+  const [isConfirmBtnPrs, setIsConfirmBtnprs] = useState(false);
 
   const handleOptionClick = (option: string) => {
     setSelectedOption(option);
@@ -80,6 +86,19 @@ const Admin = () => {
   //   useEffect(() => {
   //     console.log(selectedOption);
   //   }, [selectedOption]);
+
+  const reportTypeSend = () => {
+    if (selectedOption === "게시글") {
+      return "reviewdetail";
+    }
+    if (selectedOption === "한줄평") {
+      return "shortreviewdetail";
+    }
+    if (selectedOption === "댓글") {
+      return "commentdetail";
+    }
+    return "defaultType";
+  };
 
   return (
     <>
@@ -102,11 +121,21 @@ const Admin = () => {
             <AdminList
               selectedOption={selectedOption}
               setIsModalOpen={setIsModalOpen}
+              setSelectedReportId={setSelectedReportId}
+              setIsConfirmBtnprs={setIsConfirmBtnprs}
+              isConfirmBtnPrs={isConfirmBtnPrs}
             />
           </ManagementInfoContainer>
         </ManagementContainer>
       </AmdinContainer>
-      {isModalOpen && <AdminModal setIsModalOpen={setIsModalOpen} />}
+      {isModalOpen && (
+        <AdminModal
+          setIsConfirmBtnprs={setIsConfirmBtnprs}
+          setIsModalOpen={setIsModalOpen}
+          reportType={reportTypeSend()}
+          reportId={selectedReportId}
+        />
+      )}
     </>
   );
 };

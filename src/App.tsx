@@ -16,23 +16,28 @@ import MovieDetail from "./pages/MovieDetail";
 import { usePreferMode } from "./hooks/usePreferMode";
 import GlobalStyle from "./styles/GlobalStyle";
 import Admin from "./pages/Admin";
+import ReportModal from "./components/ReportModal";
+import { useState } from "react";
 
 function HeaderSelector() {
   const location = useLocation();
   const path = location.pathname;
 
-  if (path === "/Login") return null;
+  if (path === "/Login" || path === "/login") return null;
   if (path === "/") return null;
+
   return <Header />;
 }
 
 function App() {
   const isDarkMode = usePreferMode();
-  console.log("test");
+  const isAdminPage = location.pathname === "/admin";
   return (
     <>
       <BrowserRouter>
         <ThemeProvider theme={isDarkMode ? darkTheme : lightTheme}>
+        <ThemeProvider
+          theme={isAdminPage ? lightTheme : isDarkMode ? darkTheme : lightTheme}
           <GlobalStyle />
           <HeaderSelector />
           <Routes>
@@ -40,7 +45,7 @@ function App() {
             <Route path="/login" element={<Login />}></Route>
             <Route path="/movie" element={<Movie />}></Route>
             <Route path="/movie/:id" element={<MovieDetail />}></Route>
-            <Route path="/Admin" element={<Admin />}></Route>
+            <Route path="/admin" element={<Admin />}></Route>
             <Route path="/mypage" element={<MyPageMain />} />
             <Route
               path="/mypage/reviews/short"
