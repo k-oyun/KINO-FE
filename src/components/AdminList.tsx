@@ -10,15 +10,16 @@ import {
 import "react-swipeable-list/dist/styles.css";
 import ConfirmDialog from "../components/ConfirmDialog";
 import axios from "axios";
+import { useFormatDate } from "../hooks/useFormatDate";
 
 type UserStatus = "정상" | "정지";
 
 interface User {
-  id: string;
+  id: number;
   nickname: string;
   email: string;
-  status: UserStatus;
-  joinDate: string;
+  role: string;
+  createdAt: string;
 }
 
 interface StyleProps {
@@ -46,7 +47,7 @@ const Td = styled.td`
   text-align: center;
 `;
 
-const Status = styled.span<{ $status: "정상" | "정지"; $ismobile: boolean }>`
+const Status = styled.span<{ $status: string; $ismobile: boolean }>`
   color: ${({ $status }) => ($status === "정상" ? "green" : "red")};
   font-weight: 700;
   font-size: ${(props) => (props.$ismobile ? "12px" : "15px")};
@@ -113,97 +114,11 @@ const MobileContentTxt = styled.span`
 `;
 
 const AdminList = ({ selectedOption, setIsModalOpen }: adminProps) => {
-  const [selectedUser, setSelectedUser] = useState<string[]>([]);
+  const [selectedUser, setSelectedUser] = useState<number[]>([]);
   const isMobile = useMediaQuery({ query: "(max-width: 767px)" });
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [isConfirmModalOk, setIsConfirmModalOk] = useState(false);
-
-  const users: User[] = [
-    {
-      id: "1",
-      nickname: "박시영",
-      email: "seebaby@gmail.com",
-      status: "정지",
-      joinDate: "2025.04.28",
-    },
-    {
-      id: "2",
-      nickname: "성현주",
-      email: "angrySeong@gmail.com",
-      status: "정상",
-      joinDate: "2025.04.24",
-    },
-    {
-      id: "3",
-      nickname: "이지수",
-      email: "frontGod@gmail.com",
-      status: "정상",
-      joinDate: "2025.04.25",
-    },
-    {
-      id: "4",
-      nickname: "박지원",
-      email: "BackGod@gmail.com",
-      status: "정상",
-      joinDate: "2025.04.25",
-    },
-    {
-      id: "5",
-      nickname: "정상기",
-      email: "BackMaster@gmail.com",
-      status: "정지",
-      joinDate: "2025.04.23",
-    },
-    {
-      id: "6",
-      nickname: "권오윤",
-      email: "chocopie@gmail.com",
-      status: "정상",
-      joinDate: "2025.04.24",
-    },
-    {
-      id: "7",
-      nickname: "초코파이 사육사",
-      email: "chocopieMaster@gmail.com",
-      status: "정지",
-      joinDate: "2025.04.24",
-    },
-    {
-      id: "8",
-      nickname: "드럼통즈",
-      email: "drumTongs@gmail.com",
-      status: "정지",
-      joinDate: "2025.04.24",
-    },
-    {
-      id: "9",
-      nickname: "멕시칸",
-      email: "Mexican@gmail.com",
-      status: "정상",
-      joinDate: "2025.04.24",
-    },
-    {
-      id: "10",
-      nickname: "더푸드",
-      email: "theFood@naver.com",
-      status: "정지",
-      joinDate: "2025.04.24",
-    },
-    {
-      id: "11",
-      nickname: "ms.0",
-      email: "master@gmail.com",
-      status: "정지",
-      joinDate: "2025.04.24",
-    },
-    {
-      id: "12",
-      nickname: "짱구",
-      email: "jjanggu@gmail.com",
-      status: "정상",
-      joinDate: "2025.04.24",
-    },
-  ];
+  const [users, setUsers] = useState<User[]>([]);
 
   const selectAllUser = () => {
     if (selectedUser.length === users.length) {
@@ -213,7 +128,7 @@ const AdminList = ({ selectedOption, setIsModalOpen }: adminProps) => {
     }
   };
 
-  const selectUser = (userId: string, userStatus: string) => {
+  const selectUser = (userId: number, userStatus: string) => {
     if (userStatus !== "정지") return;
     setSelectedUser((prev) =>
       prev.includes(userId)
@@ -223,15 +138,15 @@ const AdminList = ({ selectedOption, setIsModalOpen }: adminProps) => {
   };
 
   //--버릴 코드--
-  const [revokedUsers, setRevokedUsers] = useState<string[]>([]);
-  const handleRevoke = (userId: string) => {
+  const [revokedUsers, setRevokedUsers] = useState<number[]>([]);
+  const handleRevoke = (userId: number) => {
     if (!revokedUsers.includes(userId)) {
       setRevokedUsers((prev) => [...prev, userId]);
     }
   };
   //------------
 
-  const hiddenDeleteSection = (userId: string) => (
+  const hiddenDeleteSection = (userId: number) => (
     <TrailingActions>
       <SwipeAction onClick={() => handleRevoke(userId)} destructive={true}>
         <ManageBtn $ismobile={isMobile}>철회</ManageBtn>
@@ -248,7 +163,8 @@ const AdminList = ({ selectedOption, setIsModalOpen }: adminProps) => {
     const fetchData = async () => {
       try {
         const res = await userGet();
-        console.log(res);
+        console.log(res.data);
+        setUsers(res.data);
       } catch (error) {
         console.error("호출 실패:", error);
       }
@@ -257,6 +173,7 @@ const AdminList = ({ selectedOption, setIsModalOpen }: adminProps) => {
     fetchData();
   }, []);
 
+  // 12명으로 페이지네이션
   return (
     <>
       {isMobile ? (
@@ -264,7 +181,7 @@ const AdminList = ({ selectedOption, setIsModalOpen }: adminProps) => {
           <SwipeableList threshold={0.25} fullSwipe={false}>
             {users.map((user) => {
               const showSwipe =
-                selectedOption === "회원관리" && user.status === "정지";
+                selectedOption === "회원관리" && user.role !== "정지";
 
               return (
                 <CustomSwipeableListItem
@@ -291,13 +208,16 @@ const AdminList = ({ selectedOption, setIsModalOpen }: adminProps) => {
                       </div>
                       <div>
                         <MobileTitleTxt>회원상태 : </MobileTitleTxt>
-                        <Status $ismobile={isMobile} $status={user.status}>
-                          {user.status}
+                        {/* 정지 상태인지 어떻게 판별? */}
+                        <Status $ismobile={isMobile} $status={user.role}>
+                          {user.role}
                         </Status>
                       </div>
                       <div>
                         <MobileTitleTxt>가입일 : </MobileTitleTxt>
-                        <MobileContentTxt>{user.joinDate}</MobileContentTxt>
+                        <MobileContentTxt>
+                          {useFormatDate(user.createdAt)}
+                        </MobileContentTxt>
                       </div>
                     </MobileInfoContainer>
                   </MobileContainer>
@@ -349,20 +269,20 @@ const AdminList = ({ selectedOption, setIsModalOpen }: adminProps) => {
                   <CheckBox
                     type="checkbox"
                     checked={selectedUser.includes(user.id)}
-                    onChange={() => selectUser(user.id, user.status)}
+                    onChange={() => selectUser(user.id, user.role)}
                   />
                 </Td>
                 <Td>{user.nickname}</Td>
                 <Td>{user.email}</Td>
                 <Td>
-                  <Status $ismobile={isMobile} $status={user.status}>
-                    {user.status}
+                  <Status $ismobile={isMobile} $status={user.role}>
+                    {user.role}
                   </Status>
                 </Td>
-                <Td>{user.joinDate}</Td>
+                <Td>{useFormatDate(user.createdAt)}</Td>
                 {selectedOption === "회원관리" ? (
                   <Td>
-                    {user.status === "정지" && (
+                    {user.role === "정지" && (
                       <ManageBtn
                         $ismobile={isMobile}
                         onClick={() => {
