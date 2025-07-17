@@ -18,6 +18,7 @@ import GlobalStyle from "./styles/GlobalStyle";
 import Admin from "./pages/Admin";
 import ReportModal from "./components/ReportModal";
 import { useState } from "react";
+import KakaoCallback from "./components/KakaoCallback";
 
 function HeaderSelector() {
   const location = useLocation();
@@ -43,6 +44,7 @@ function App() {
           <Routes>
             <Route path="/" element={<Main />}></Route>
             <Route path="/login" element={<Login />}></Route>
+            <Route path="/api/auth/oauth/kakao" element={<KakaoCallback />} />
             <Route path="/movie" element={<Movie />}></Route>
             <Route path="/movie/:id" element={<MovieDetail />}></Route>
             <Route path="/admin" element={<Admin />}></Route>

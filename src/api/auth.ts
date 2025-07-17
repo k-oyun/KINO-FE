@@ -5,8 +5,13 @@ export const useAuthApi = () => {
     return await axios.get(`/auth/login/${provider}`);
   };
 
+  const loginWithCode = async (code: string) => {
+    return await axios.get(`auth/oauth/kakao?code=${code}`);
+  };
+
   return {
     login,
+    loginWithCode,
   };
 };
 export default useAuthApi;
