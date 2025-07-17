@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { styled } from "styled-components";
 
 interface DetailReview {
@@ -176,6 +177,44 @@ interface DetailReviewCardProps {
   onClick?: () => void;
 }
 
+const PopMenu = styled.ul<styleType>`
+  position: absolute;
+  right: -2px;
+  top: 22px;
+  background: #fff;
+  /* border: 1px solid #ccc; */
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  border-radius: 6px;
+  padding: 8px 0;
+  z-index: 10;
+  min-width: 90px;
+  list-style: none;
+`;
+
+const MenuItem = styled.li<styleType>`
+  padding: 4px;
+  font-size: ${(props) => (props.$ismobile ? "0.8em" : "1em")};
+  color: #222;
+  cursor: pointer;
+
+  &:hover {
+    background: #f9e5ed;
+    color: #fff;
+  }
+`;
+
+const MenuItemReport = styled.li<styleType>`
+  padding: 4px;
+  font-size: ${(props) => (props.$ismobile ? "0.8em" : "1em")};
+  color: #222;
+  cursor: pointer;
+
+  &:hover {
+    background: #e7e7e7;
+    color: #fd6782;
+  }
+`;
+
 const DetailReviewCard: React.FC<DetailReviewCardProps> = ({
   review,
   isMine,
@@ -184,6 +223,18 @@ const DetailReviewCard: React.FC<DetailReviewCardProps> = ({
   isMobile,
   onClick,
 }) => {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const handleMenuClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setMenuOpen((prev) => !prev);
+  };
+
+  useEffect(() => {
+    const handleClickOutside = () => setMenuOpen(false);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [menuOpen]);
+
   return (
     <DetailReviewCardContainer $ismobile={isMobile} onClick={onClick}>
       <DetailMoviePoster
@@ -223,7 +274,53 @@ const DetailReviewCard: React.FC<DetailReviewCardProps> = ({
           </DetailReviewFooter>
         </DetailReviewContentWrapper>
       </ProfileNReview>
-      <ThreeDotsMenu style={{ alignSelf: "flex-start" }}>...</ThreeDotsMenu>
+      <ThreeDotsMenu
+        style={{ alignSelf: "flex-start", position: "relative" }}
+        onClick={handleMenuClick}
+      >
+        ⋮
+        {menuOpen && (
+          <PopMenu $ismobile={isMobile} onClick={(e) => e.stopPropagation()}>
+            {isMine ? (
+              <>
+                <MenuItem
+                  $ismobile={isMobile}
+                  onClick={() => {
+                    setMenuOpen(false); /* 수정 함수 */
+                  }}
+                >
+                  수정
+                </MenuItem>
+                <MenuItem
+                  $ismobile={isMobile}
+                  onClick={() => {
+                    setMenuOpen(false); /* 삭제 함수 */
+                  }}
+                >
+                  삭제
+                </MenuItem>
+                <MenuItemReport
+                  $ismobile={isMobile}
+                  onClick={() => {
+                    setMenuOpen(false); /* 신고 함수 */
+                  }}
+                >
+                  신고
+                </MenuItemReport>
+              </>
+            ) : (
+              <MenuItemReport
+                $ismobile={isMobile}
+                onClick={() => {
+                  setMenuOpen(false); /* 신고 함수 */
+                }}
+              >
+                신고
+              </MenuItemReport>
+            )}
+          </PopMenu>
+        )}
+      </ThreeDotsMenu>
     </DetailReviewCardContainer>
   );
 };
