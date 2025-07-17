@@ -35,9 +35,9 @@ function App() {
   return (
     <>
       <BrowserRouter>
-        <ThemeProvider theme={isDarkMode ? darkTheme : lightTheme}>
         <ThemeProvider
           theme={isAdminPage ? lightTheme : isDarkMode ? darkTheme : lightTheme}
+        >
           <GlobalStyle />
           <HeaderSelector />
           <Routes>
