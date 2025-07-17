@@ -22,7 +22,7 @@ interface DetailReview {
   views: number;
   comments: number;
   createdAt: string;
-  reviewer?: Reviewer;
+  reviewer: Reviewer;
 }
 
 interface Reviewer {
