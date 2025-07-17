@@ -9,7 +9,7 @@ interface DetailReview {
   views: number;
   comments: number;
   createdAt: string;
-  reviewer: Reviewer;
+  reviewer?: Reviewer;
 }
 
 interface Reviewer {
@@ -198,7 +198,7 @@ const DetailReviewCard: React.FC<DetailReviewCardProps> = ({
       alt="리뷰 첨부 이미지"
     />
     <ProfileNReview $ismobile={isMobile}>
-      {showProfile && (
+      {showProfile && review.reviewer && (
         <UserProfile $ismobile={isMobile}>
           <UserImage
             $ismobile={isMobile}

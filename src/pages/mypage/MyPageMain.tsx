@@ -186,9 +186,16 @@ interface DetailReviewType {
   views: number;
   comments: number;
   createdAt: string;
+  reviewer?: Reviewer;
 }
 
-type ReviewType = ShortReviewType | DetailReviewType;
+interface Reviewer {
+  id: string;
+  nickname: string;
+  image: string;
+}
+
+// type ReviewType = ShortReviewType | DetailReviewType;
 
 interface FavoriteMovieType {
   id: string;
@@ -507,11 +514,7 @@ const MyPageMain: React.FC = () => {
             sortedShortReviews
               .slice(0, 3)
               .map((review: ShortReviewType) => (
-                <ReviewCard
-                  key={review.id}
-                  review={review as ReviewType}
-                  type="short"
-                />
+                <ReviewCard key={review.id} review={review} type="short" />
               ))
           ) : (
             <EmptyState>작성한 한줄평이 없습니다.</EmptyState>
@@ -565,11 +568,7 @@ const MyPageMain: React.FC = () => {
             sortedDetailReviews
               .slice(0, 3)
               .map((review: DetailReviewType) => (
-                <ReviewCard
-                  key={review.id}
-                  review={review as ReviewType}
-                  type="detail"
-                />
+                <ReviewCard key={review.id} review={review} type="detail" />
               ))
           ) : (
             <EmptyState>작성한 상세 리뷰가 없습니다.</EmptyState>
