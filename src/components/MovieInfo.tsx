@@ -55,6 +55,13 @@ interface styleType {
   $ismobile: boolean;
 }
 
+interface Provider {
+  provider_id: number;
+  provider_name: string;
+  logo_path: string;
+  display_priority: number;
+}
+
 const MovieInfoContainer = styled.div<styleType>`
   width: 100%;
 `;
@@ -122,7 +129,7 @@ const TrailerLabel = styled.h2<styleType>`
 `;
 
 const MovieInfo = ({ isMobile, movieId }: MovieInfoProps) => {
-  const [providers, setProviders] = useState<string[]>([]);
+  const [providers, setProviders] = useState<Provider[]>([]);
 
   useEffect(() => {
     // 영화 상세 정보를 가져오는 로직
