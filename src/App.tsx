@@ -34,44 +34,37 @@ const AppContents = () => {
   const isAdminPage = path === "/admin";
 
   return (
-    
-      <BrowserRouter>
-        <ThemeProvider
-          theme={isAdminPage ? lightTheme : isDarkMode ? darkTheme : lightTheme}
-        >
-          <GlobalStyle />
-          <HeaderSelector />
-          <Routes>
-            <Route path="/" element={<Main />}></Route>
-            <Route path="/login" element={<Login />}></Route>
-            <Route path="/api/auth/oauth/kakao" element={<KakaoCallback />} />
-            <Route path="/api/auth/oauth/google" element={<GoogleCallback />} />
-            <Route path="/api/auth/oauth/naver" element={<NaverCallback />} />
-            <Route path="/movie" element={<Movie />}></Route>
-            <Route path="/movie/:id" element={<MovieDetail />}></Route>
-            <Route path="/admin" element={<Admin />}></Route>
-            <Route path="/mypage" element={<MyPageMain />} />
-            <Route
-              path="/mypage/reviews/short"
-              element={<MyReviewsShortPage />}
-            />
-            <Route
-              path="/mypage/reviews/detail"
-              element={<MyReviewsDetailPage />}
-            />
-            <Route
-              path="/mypage/movies/favorite"
-              element={<MyFavoriteMoviesPage />}
-            />
-            <Route path="/mypage/settings" element={<MySettingsPage />} />
-            <Route path="/mypage/tags" element={<MyTagsPage />} />
-            <Route path="/mypage" element={<MyPageMain />} />
-            <Route path="/mypage" element={<MyPageMain />} />
-            <Route path="/mypage" element={<MyPageMain />} />
-          </Routes>
-        </ThemeProvider>
-      </BrowserRouter>
-    
+    <ThemeProvider
+      theme={isAdminPage ? lightTheme : isDarkMode ? darkTheme : lightTheme}
+    >
+      <GlobalStyle />
+      <HeaderSelector path={path} />
+      <Routes>
+        <Route path="/" element={<Main />}></Route>
+        <Route path="/login" element={<Login />}></Route>
+        <Route path="/api/auth/oauth/kakao" element={<KakaoCallback />} />
+        <Route path="/api/auth/oauth/google" element={<GoogleCallback />} />
+        <Route path="/api/auth/oauth/naver" element={<NaverCallback />} />
+        <Route path="/movie" element={<Movie />}></Route>
+        <Route path="/movie/:id" element={<MovieDetail />}></Route>
+        <Route path="/admin" element={<Admin />}></Route>
+        <Route path="/mypage" element={<MyPageMain />} />
+        <Route path="/mypage/reviews/short" element={<MyReviewsShortPage />} />
+        <Route
+          path="/mypage/reviews/detail"
+          element={<MyReviewsDetailPage />}
+        />
+        <Route
+          path="/mypage/movies/favorite"
+          element={<MyFavoriteMoviesPage />}
+        />
+        <Route path="/mypage/settings" element={<MySettingsPage />} />
+        <Route path="/mypage/tags" element={<MyTagsPage />} />
+        <Route path="/mypage" element={<MyPageMain />} />
+        <Route path="/mypage" element={<MyPageMain />} />
+        <Route path="/mypage" element={<MyPageMain />} />
+      </Routes>
+    </ThemeProvider>
   );
 };
 
