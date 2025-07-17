@@ -233,14 +233,11 @@ const AdminList = ({
       const fetchData = async () => {
         try {
           const res = await userGet();
-
           setUsers(res.data.content);
-          console.log("토탈 페이지 ", res.data.totalPages);
-          setPageInfo({
-            currentPage: pageInfo.currentPage,
-            size: 12,
+          setPageInfo((prev) => ({
+            ...prev,
             pageContentAmount: res.data.totalPages,
-          });
+          }));
         } catch (error) {
           console.error("사용자 조회 실패:", error);
         }
@@ -254,11 +251,10 @@ const AdminList = ({
           console.log("게시글 신고 내역", res.data);
           setReportDatas(res.data.content);
           console.log("토탈 페이지 ", res.data.totalPages);
-          setPageInfo({
-            currentPage: pageInfo.currentPage,
-            size: 12,
+          setPageInfo((prev) => ({
+            ...prev,
             pageContentAmount: res.data.totalPages,
-          });
+          }));
         } catch (error) {
           console.log("게시글 신고 실패:", error);
         }
@@ -271,11 +267,10 @@ const AdminList = ({
           const res = await shortReviewReportGet();
           console.log("한줄평 신고 내역", res.data);
           setReportDatas(res.data.content);
-          setPageInfo({
-            currentPage: pageInfo.currentPage,
-            size: 12,
+          setPageInfo((prev) => ({
+            ...prev,
             pageContentAmount: res.data.totalPages,
-          });
+          }));
         } catch (error) {
           console.log("한줄평 신고 실패:", error);
         }
@@ -288,11 +283,10 @@ const AdminList = ({
           const res = await commentReportGet();
           console.log("댓글 신고 내역", res.data);
           setReportDatas(res.data.content);
-          setPageInfo({
-            currentPage: pageInfo.currentPage,
-            size: 12,
+          setPageInfo((prev) => ({
+            ...prev,
             pageContentAmount: res.data.totalPages,
-          });
+          }));
         } catch (error) {
           console.log("댓글 신고 실패:", error);
         }
@@ -402,7 +396,6 @@ const AdminList = ({
     },
     [hasMore, isMobile]
   );
-  //
 
   useEffect(() => {
     if (isMobile) {
@@ -605,6 +598,7 @@ const AdminList = ({
                         selectedOption !== "회원관리"
                           ? setIsModalOpen(true)
                           : null;
+                        setSelectedReportId(data.reportId);
                       }}
                     >
                       <div>

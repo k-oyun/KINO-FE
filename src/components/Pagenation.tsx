@@ -15,6 +15,7 @@ interface PaginationProps {
   pageContentAmount: number;
   setPageInfo: Dispatch<SetStateAction<PageType>>;
   pageInfo: PageType;
+  selectedOption: string;
 }
 
 const PaginationContainer = styled.div`
@@ -51,10 +52,10 @@ const Ellipsis = styled.span`
 `;
 
 const Pagination: React.FC<PaginationProps> = ({
-  size,
   pageContentAmount,
   setPageInfo,
   pageInfo,
+  selectedOption,
 }) => {
   const maxVisible = 5;
 

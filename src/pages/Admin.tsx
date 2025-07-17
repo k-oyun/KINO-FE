@@ -98,10 +98,6 @@ const Admin = () => {
     setSelectedOption(option);
   };
 
-  useEffect(() => {
-    console.log("토탈페이지사이즈", pageInfo.pageContentAmount);
-  }, []);
-
   const reportTypeSend = () => {
     if (selectedOption === "게시글") {
       return "reviewdetail";
@@ -115,13 +111,9 @@ const Admin = () => {
     return "defaultType";
   };
 
-  // const onChangePage = (page: number) => {
-  //   setPageInfo((prevPageInfo) => ({
-  //     ...prevPageInfo,
-  //     page,
-  //   }));
-  // };
-
+  useEffect(() => {
+    setPageInfo((prev) => ({ ...prev, currentPage: 0 }));
+  }, [selectedOption]);
   return (
     <>
       <AmdinContainer $ismobile={isMobile}>
@@ -158,6 +150,7 @@ const Admin = () => {
               currentPage={pageInfo.currentPage}
               setPageInfo={setPageInfo}
               pageInfo={pageInfo}
+              selectedOption={selectedOption}
             />
           )}
         </ManagementContainer>
