@@ -3,10 +3,19 @@ import styled from "styled-components";
 interface GeneralMovieProps {
   isMobile: boolean;
   movieDetail: {
+    movieId: number;
     title: string;
-    release_date: string;
-    backdrop_path: string;
-    vote_average: number;
+    plot: string;
+    backdropUrl: string;
+    releaseDate: string;
+    runningTime: number;
+    ageRating: boolean;
+    genres: string[];
+    director: string;
+    actors: string[];
+    otts: [{ name: string; logoUrl: string; linkUrl: string }];
+    teaserUrl: string;
+    vote_average?: number;
   };
 }
 
@@ -43,12 +52,15 @@ const Star = styled.p<styleType>`
 `;
 
 const GeneralMovieInfo = ({ isMobile, movieDetail }: GeneralMovieProps) => {
-  const imgUrl = `https://image.tmdb.org/t/p/w500${movieDetail.backdrop_path}`;
+  console.log("movieDetail:", movieDetail);
   return (
-    <GeneralMovieInfoContainer $ismobile={isMobile} $imgurl={imgUrl}>
+    <GeneralMovieInfoContainer
+      $ismobile={isMobile}
+      $imgurl={movieDetail.backdropUrl}
+    >
       <Title $ismobile={isMobile}>{movieDetail.title}</Title>
-      <ReleaseDate $ismobile={isMobile}>{movieDetail.release_date}</ReleaseDate>
-      <Star $ismobile={isMobile}>★ {movieDetail.vote_average}</Star>
+      <ReleaseDate $ismobile={isMobile}>{movieDetail.releaseDate}</ReleaseDate>
+      <Star $ismobile={isMobile}>★ {movieDetail.vote_average || "-1"}</Star>
     </GeneralMovieInfoContainer>
   );
 };

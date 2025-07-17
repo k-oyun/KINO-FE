@@ -12,12 +12,15 @@ interface styleType {
 }
 
 interface Review {
-  userId: string;
-  nickname: string;
-  image: string;
+  shortReviewId: number;
+  userId: number;
+  userNickname: string;
+  userProfile: string;
   content: string;
-  likes: number;
   createdAt: string;
+  mine: boolean;
+  likeCount: number;
+  liked: boolean;
 }
 
 const ReviewContainer = styled.div<{ $ismobile: boolean }>`
@@ -150,57 +153,26 @@ const ShortReview = ({ isMobile, movieId }: ShortReviewProps) => {
   const [rating, setRating] = useState<number>(0);
   const [review, setReview] = useState<string>("");
   const [reviews, setReviews] = useState<Review[]>([]);
+  const BASE_URL = import.meta.env.VITE_BASE_URL;
 
   const handleRatingChange = (newRating: number) => {
     setRating(newRating);
   };
 
   useEffect(() => {
-    // Fetch short reviews for the movie
-    const fetchedReviews: Review[] = [
-      {
-        userId: "user_001",
-        nickname: "Emily Kim",
-        image: "https://randomuser.me/api/portraits/women/65.jpg",
-        content: "Great movie with stunning visuals!",
-        likes: 18,
-        createdAt: "2025-07-13T16:23:00+09:00",
-      },
-      {
-        userId: "user_002",
-        nickname: "Jinwoo Park",
-        image: "https://randomuser.me/api/portraits/men/24.jpg",
-        content: "A heartwarming story that resonates.",
-        likes: 27,
-        createdAt: "2025-07-13T16:23:00+09:00",
-      },
-      {
-        userId: "user_003",
-        nickname: "Sophie Lee",
-        image: "https://randomuser.me/api/portraits/women/45.jpg",
-        content: "The acting was top-notch, especially the lead.",
-        likes: 14,
-        createdAt: "2025-07-13T16:23:00+09:00",
-      },
-      {
-        userId: "user_004",
-        nickname: "Minjae Choi",
-        image: "https://randomuser.me/api/portraits/men/37.jpg",
-        content: "An emotional rollercoaster from start to finish.",
-        likes: 33,
-        createdAt: "2025-07-13T16:23:00+09:00",
-      },
-      {
-        userId: "user_005",
-        nickname: "Eunji Cho",
-        image: "https://randomuser.me/api/portraits/women/21.jpg",
-        content: "Loved the cinematography and soundtrack!",
-        likes: 21,
-        createdAt: "2025-07-13T16:23:00+09:00",
-      },
-    ];
+    const fetchShortReviews = async () => {
+      fetch(`${BASE_URL}/api/${movieId}/short-reviews`)
+        .then((response) => response.json())
+        .then((data) => {
+          console.log("Fetched short reviews:", data);
+          setReviews(data.data.content);
+        })
+        .catch((error) => {
+          console.error("Error fetching short reviews:", error.message);
+        });
+    };
 
-    setReviews(fetchedReviews);
+    fetchShortReviews();
   }, []);
 
   return (
@@ -232,11 +204,11 @@ const ShortReview = ({ isMobile, movieId }: ShortReviewProps) => {
             <UserProfile $ismobile={isMobile}>
               <UserImage
                 $ismobile={isMobile}
-                src={review.image}
-                alt={review.nickname}
+                src={review.userProfile}
+                alt={review.userNickname}
               />
               <UserText $ismobile={isMobile}>
-                <UserNickname $ismobile={isMobile} /> {review.nickname}
+                <UserNickname $ismobile={isMobile} /> {review.userNickname}
                 <UserCreatedAt $ismobile={isMobile}>
                   {review.createdAt}
                 </UserCreatedAt>
@@ -245,7 +217,7 @@ const ShortReview = ({ isMobile, movieId }: ShortReviewProps) => {
             <ReviewText $ismobile={isMobile}>{review.content}</ReviewText>
             <UnderBar $ismobile={isMobile}>
               <ReviewLike $ismobile={isMobile}>
-                <Btn $ismobile={isMobile}>♥</Btn> {review.likes}
+                <Btn $ismobile={isMobile}>♥</Btn> {review.likeCount}
               </ReviewLike>
               <UserCreatedAt
                 $ismobile={isMobile}
@@ -253,9 +225,13 @@ const ShortReview = ({ isMobile, movieId }: ShortReviewProps) => {
               >
                 {review.createdAt}
               </UserCreatedAt>
-              <Btn $ismobile={isMobile}>신고 |</Btn>
-              <Btn $ismobile={isMobile}> 수정 |</Btn>
-              <Btn $ismobile={isMobile}> 삭제</Btn>
+              <Btn $ismobile={isMobile}>신고 </Btn>
+              {review.mine && (
+                <>
+                  <Btn $ismobile={isMobile}> | 수정</Btn>
+                  <Btn $ismobile={isMobile}> | 삭제</Btn>
+                </>
+              )}
             </UnderBar>
           </ReviewItem>
         ))}

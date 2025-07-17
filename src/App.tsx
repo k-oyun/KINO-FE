@@ -61,9 +61,6 @@ function App() {
             />
             <Route path="/mypage/settings" element={<MySettingsPage />} />
             <Route path="/mypage/tags" element={<MyTagsPage />} />
-            <Route path="/mypage" element={<MyPageMain />} />
-            <Route path="/mypage" element={<MyPageMain />} />
-            <Route path="/mypage" element={<MyPageMain />} />
           </Routes>
         </ThemeProvider>
       </BrowserRouter>

@@ -1,4 +1,5 @@
 import styled from "styled-components";
+import { useNavigate } from "react-router-dom";
 
 interface Movie {
   id: number;
@@ -48,10 +49,18 @@ const MoviePosters = styled.img<styleType>`
 `;
 
 const MovieList = ({ isMobile, movies }: MovieListProps) => {
+  const navigate = useNavigate();
+  const handleMovieClick = (movieId: number) => {
+    navigate(`/movies/${movieId}`);
+  };
   return (
     <MovieListContainer $ismobile={isMobile}>
       {movies.map((movie) => (
-        <MovieItem $ismobile={isMobile} key={movie.id}>
+        <MovieItem
+          $ismobile={isMobile}
+          key={movie.id}
+          onClick={() => handleMovieClick(movie.id)}
+        >
           <MoviePosters
             $ismobile={isMobile}
             src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}

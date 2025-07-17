@@ -1,21 +1,15 @@
 import { styled } from "styled-components";
 
 interface DetailReview {
-  id: string;
+  reviewId: string;
+  userProfile: string;
+  userNickname: string;
   title: string;
-  image: string;
   content: string;
-  likes: number;
-  views: number;
-  comments: number;
+  likeCount: number;
+  totalViews: number;
+  commentCount: number;
   createdAt: string;
-  reviewer?: Reviewer;
-}
-
-interface Reviewer {
-  id: string;
-  nickname: string;
-  image: string;
 }
 
 // --- 공통 스타일드 컴포넌트 ---
@@ -189,47 +183,49 @@ const DetailReviewCard: React.FC<DetailReviewCardProps> = ({
   movieTitle,
   isMobile,
   onClick,
-}) => (
-  <DetailReviewCardContainer $ismobile={isMobile} onClick={onClick}>
-    <DetailMoviePoster
-      $ismobile={isMobile}
-      $showProfile={showProfile}
-      src={review.image}
-      alt="리뷰 첨부 이미지"
-    />
-    <ProfileNReview $ismobile={isMobile}>
-      {showProfile && review.reviewer && (
-        <UserProfile $ismobile={isMobile}>
-          <UserImage
-            $ismobile={isMobile}
-            src={review.reviewer.image}
-            alt={review.reviewer.nickname}
-          />
-          <UserText $ismobile={isMobile}>
-            <UserNickname $ismobile={isMobile} /> {review.reviewer.nickname}x
-          </UserText>
-        </UserProfile>
-      )}
-      <DetailReviewContentWrapper>
-        <DetailReviewTitleText $ismobile={isMobile}>
-          {review.title}
-        </DetailReviewTitleText>
-        {movieTitle && (
-          <DetailReviewMovieTitleText>
-            영화: {movieTitle}
-          </DetailReviewMovieTitleText>
+}) => {
+  return (
+    <DetailReviewCardContainer $ismobile={isMobile} onClick={onClick}>
+      <DetailMoviePoster
+        $ismobile={isMobile}
+        $showProfile={showProfile}
+        src={review.userProfile}
+        alt="리뷰 첨부 이미지"
+      />
+      <ProfileNReview $ismobile={isMobile}>
+        {showProfile && (
+          <UserProfile $ismobile={isMobile}>
+            <UserImage
+              $ismobile={isMobile}
+              src={review.userProfile}
+              alt={review.userNickname}
+            />
+            <UserText $ismobile={isMobile}>
+              <UserNickname $ismobile={isMobile} /> {review.userNickname}x
+            </UserText>
+          </UserProfile>
         )}
-        <ReviewText $ismobile={isMobile}>{review.content}</ReviewText>
-        <DetailReviewFooter $ismobile={isMobile}>
-          <MetaInfo>
-            <LikesDisplay>👍 {review.likes}</LikesDisplay>
-          </MetaInfo>
-          <MetaInfo>{review.createdAt}</MetaInfo>
-        </DetailReviewFooter>
-      </DetailReviewContentWrapper>
-    </ProfileNReview>
-    <ThreeDotsMenu style={{ alignSelf: "flex-start" }}>...</ThreeDotsMenu>
-  </DetailReviewCardContainer>
-);
+        <DetailReviewContentWrapper>
+          <DetailReviewTitleText $ismobile={isMobile}>
+            {review.title}
+          </DetailReviewTitleText>
+          {movieTitle && (
+            <DetailReviewMovieTitleText>
+              영화: {movieTitle}
+            </DetailReviewMovieTitleText>
+          )}
+          <ReviewText $ismobile={isMobile}>{review.content}</ReviewText>
+          <DetailReviewFooter $ismobile={isMobile}>
+            <MetaInfo>
+              <LikesDisplay>♥ {review.likeCount}</LikesDisplay>
+            </MetaInfo>
+            <MetaInfo>{review.createdAt}</MetaInfo>
+          </DetailReviewFooter>
+        </DetailReviewContentWrapper>
+      </ProfileNReview>
+      <ThreeDotsMenu style={{ alignSelf: "flex-start" }}>...</ThreeDotsMenu>
+    </DetailReviewCardContainer>
+  );
+};
 
 export default DetailReviewCard;

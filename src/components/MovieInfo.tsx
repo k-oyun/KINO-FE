@@ -1,65 +1,26 @@
-import { useEffect, useState } from "react";
 import styled from "styled-components";
-
-const movieDetail = {
-  id: 603692,
-  title: "Inside Out 2",
-  original_title: "Inside Out 2",
-  overview:
-    "조이와 친구들이 돌아왔다! 라일리의 머릿속 감정 컨트롤 본부에 새로운 감정들이 등장하면서 벌어지는 유쾌한 모험.",
-  release_date: "2024-06-12",
-  runtime: 98,
-  genres: [
-    { id: 16, name: "Animation" },
-    { id: 35, name: "Comedy" },
-    { id: 10751, name: "Family" },
-  ],
-  poster_path: "/t5zCBSB5xMDKcDqe91qahCOUYVV.jpg",
-  backdrop_path: "/u3YQJctMzFN2wAvnkmXy41bXhFv.jpg",
-  vote_average: 7.8,
-  vote_count: 1234,
-  adult: false,
-  status: "Released",
-  tagline: "새로운 감정, 새로운 모험!",
-  spoken_languages: [
-    { iso_639_1: "en", name: "English" },
-    { iso_639_1: "ko", name: "Korean" },
-  ],
-  production_countries: [
-    { iso_3166_1: "US", name: "United States of America" },
-  ],
-  production_companies: [
-    {
-      id: 3,
-      name: "Pixar",
-      logo_path: "/1TjvGVDMYsj6JBxOAkUHpPEwLf7.png",
-      origin_country: "US",
-    },
-    {
-      id: 2,
-      name: "Walt Disney Pictures",
-      logo_path: "/wdrCwmRnLFJhEoH8GSfymY85KHT.png",
-      origin_country: "US",
-    },
-  ],
-  homepage: "https://movies.disney.com/inside-out-2",
-  imdb_id: "tt1234567",
-};
 
 interface MovieInfoProps {
   isMobile: boolean;
-  movieId: number;
+  movieDetail: {
+    movieId: number;
+    title: string;
+    plot: string;
+    backdropUrl: string;
+    releaseDate: string;
+    runningTime: number;
+    ageRating: boolean;
+    genres: string[];
+    director: string;
+    actors: string[];
+    otts: [{ name: string; logoUrl: string; linkUrl: string }];
+    teaserUrl: string;
+    vote_average?: number;
+  };
 }
 
 interface styleType {
   $ismobile: boolean;
-}
-
-interface Provider {
-  provider_id: number;
-  provider_name: string;
-  logo_path: string;
-  display_priority: number;
 }
 
 const MovieInfoContainer = styled.div<styleType>`
@@ -98,7 +59,7 @@ const MovieActors = styled.div<styleType>`
 `;
 const ActorLabel = styled.h2<styleType>`
   font-size: ${(props) => (props.$ismobile ? "18px" : "24px")};
-  /* margin-bottom: ${(props) => (props.$ismobile ? "10px" : "20px")}; */
+  margin-bottom: ${(props) => (props.$ismobile ? "10px" : "15px")};
 `;
 const ActorList = styled.ul<styleType>``;
 
@@ -107,7 +68,7 @@ const MovieWhereToWatch = styled.div<styleType>`
 `;
 const OttLabel = styled.h2<styleType>`
   font-size: ${(props) => (props.$ismobile ? "18px" : "24px")};
-  /* margin-bottom: ${(props) => (props.$ismobile ? "10px" : "20px")}; */
+  margin-bottom: ${(props) => (props.$ismobile ? "10px" : "15px")};
 `;
 const OttList = styled.ul<styleType>`
   background-color: #f9f9f9;
@@ -126,48 +87,50 @@ const MovieTrailer = styled.div<styleType>`
 `;
 const TrailerLabel = styled.h2<styleType>`
   font-size: ${(props) => (props.$ismobile ? "18px" : "24px")};
+  margin-bottom: ${(props) => (props.$ismobile ? "10px" : "15px")};
 `;
 
-const MovieInfo = ({ isMobile, movieId }: MovieInfoProps) => {
-  const [providers, setProviders] = useState<Provider[]>([]);
+const TrailerStyle = styled.iframe<styleType>`
+  width: 100%;
+  height: ${(props) => (props.$ismobile ? "300px" : "500px")};
+  border: none;
+  border-radius: 8px;
+`;
 
-  useEffect(() => {
-    // 영화 상세 정보를 가져오는 로직
-    console.log(`Fetching details for movie ID: ${movieId}`);
-    // 볼 수 있는 곳
-    fetch(
-      "https://api.themoviedb.org/3/movie/729854/watch/providers?api_key=83ea6f477712d1b2a2d27b67c0b679fe"
-    )
-      .then((response) => response.json())
-      .then((data) => {
-        setProviders(data.results?.KR?.flatrate || []);
-        console.log("Watch providers:", data.results?.KR?.flatrate || []);
-      });
-  }, []);
+function getYouTubeVideoId(url: string) {
+  const regExp = /^.*(?:youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=)([^#&?]*).*/;
+  const match = url.match(regExp);
+  return match && match[1].length === 11 ? match[1] : null;
+}
+
+const MovieInfo = ({ isMobile, movieDetail }: MovieInfoProps) => {
+  const videoId = getYouTubeVideoId(movieDetail.teaserUrl);
 
   return (
     <MovieInfoContainer $ismobile={isMobile}>
-      <MovieOverview $ismobile={isMobile}>{movieDetail.overview}</MovieOverview>
+      <MovieOverview $ismobile={isMobile}>{movieDetail.plot}</MovieOverview>
       <InfoGrid $ismobile={isMobile}>
         <InfoItem $ismobile={isMobile}>
           <InfoLabel>장르</InfoLabel>
           <InfoValue>
-            {movieDetail.genres.map((genre) => genre.name).join(", ")}
+            {movieDetail.genres.map((genre) => genre).join(", ")}
           </InfoValue>
         </InfoItem>
         <InfoItem $ismobile={isMobile}>
           <InfoLabel>개봉일</InfoLabel>
-          <InfoValue>{movieDetail.release_date}</InfoValue>
+          <InfoValue>{movieDetail.releaseDate}</InfoValue>
         </InfoItem>
         <InfoItem $ismobile={isMobile}>
           <InfoLabel>연령 등급</InfoLabel>
           <InfoValue>
-            {movieDetail.adult ? "19세 미만 관람 불가" : "흠..adult만 주나?"}
+            {movieDetail.ageRating
+              ? "19세 미만 관람 불가"
+              : "흠..adult만 주나?"}
           </InfoValue>
         </InfoItem>
         <InfoItem $ismobile={isMobile}>
           <InfoLabel>러닝 타임</InfoLabel>
-          <InfoValue>{movieDetail.runtime} 분</InfoValue>
+          <InfoValue>{movieDetail.runningTime} 분</InfoValue>
         </InfoItem>
       </InfoGrid>
       <MovieActors $ismobile={isMobile}>
@@ -177,11 +140,12 @@ const MovieInfo = ({ isMobile, movieId }: MovieInfoProps) => {
       <MovieWhereToWatch $ismobile={isMobile}>
         <OttLabel $ismobile={isMobile}>볼 수 있는 곳</OttLabel>
         <OttList $ismobile={isMobile}>
-          {providers.map((provider) => (
+          {movieDetail.otts.map((ott) => (
             <OttLogo
-              key={provider.provider_id}
-              src={`https://image.tmdb.org/t/p/w45${provider.logo_path}`}
-              alt={provider.provider_name}
+              key={ott.name}
+              src={`https://image.tmdb.org/t/p/w45${ott.logoUrl}`}
+              onClick={() => window.open(ott.linkUrl, "_blank")}
+              alt={ott.name}
               $ismobile={isMobile}
             ></OttLogo>
           ))}
@@ -189,6 +153,13 @@ const MovieInfo = ({ isMobile, movieId }: MovieInfoProps) => {
       </MovieWhereToWatch>
       <MovieTrailer $ismobile={isMobile}>
         <TrailerLabel $ismobile={isMobile}>영상</TrailerLabel>
+        <TrailerStyle
+          $ismobile={isMobile}
+          src={`https://www.youtube.com/embed/${videoId}`}
+          title={`${movieDetail.title} teaser video`}
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+        ></TrailerStyle>
       </MovieTrailer>
     </MovieInfoContainer>
   );
