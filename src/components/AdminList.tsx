@@ -172,7 +172,7 @@ const AdminList = ({
   };
 
   const selectUser = (userId: number, userStatus: string) => {
-    if (userStatus === "BAN" || userStatus === "ADMIN") return;
+    if (userStatus === "USER" || userStatus === "ADMIN") return;
     setSelectedUser((prev) =>
       prev.includes(userId)
         ? prev.filter((id) => id !== userId)

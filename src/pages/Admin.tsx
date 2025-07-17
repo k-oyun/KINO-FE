@@ -75,6 +75,8 @@ const ManagementInfoContainer = styled.div<styleProp>`
   width: ${(props) => (props.$ismobile ? "auto" : "80%")};
   height: ${(props) => (props.$ismobile ? "auto" : "80%")};
   border: ${(props) => (props.$ismobile ? "none" : "1.5px solid #d9d9d9")};
+  margin-top: 40px;
+
   border-radius: 1px;
 `;
 const Admin = () => {
@@ -148,14 +150,16 @@ const Admin = () => {
               setPageInfo={setPageInfo}
             />
           </ManagementInfoContainer>
-          <Pagenation
-            size={pageInfo.size}
-            itemsPerPage={5}
-            pageContentAmount={pageInfo.pageContentAmount}
-            currentPage={pageInfo.currentPage}
-            setPageInfo={setPageInfo}
-            pageInfo={pageInfo}
-          />
+          {!isMobile && (
+            <Pagenation
+              size={pageInfo.size}
+              itemsPerPage={5}
+              pageContentAmount={pageInfo.pageContentAmount}
+              currentPage={pageInfo.currentPage}
+              setPageInfo={setPageInfo}
+              pageInfo={pageInfo}
+            />
+          )}
         </ManagementContainer>
       </AmdinContainer>
       {isModalOpen && (
