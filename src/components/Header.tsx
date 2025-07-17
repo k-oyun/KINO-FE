@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { useMediaQuery } from "react-responsive";
 import profileIcon from "../assets/img/profileIcon.png";
 import logoText from "../assets/img/LogoTxt.png";
+import { useNavigate } from "react-router-dom";
 
 interface styleType {
   $ismobile: boolean;
@@ -169,22 +170,27 @@ const Header = () => {
   const menuItems = [
     { label: "홈", path: "/" },
     { label: "커뮤니티", path: "/comnmuniy" },
-    { label: "영화", path: "/movies" },
+    { label: "영화", path: "/movie" },
     { label: "내가 찜한 리스트", path: "/wish" },
   ];
+  const navigate = useNavigate();
 
   const handlePopup = () => {
     setIsPopupOpen((prev) => !prev);
     setIsMenuPopupOpen(false);
   };
 
-  const handleMenuPopup = () => {
+  const handleMenuPopup = (path: string) => {
     setIsMenuPopupOpen((prev) => !prev);
     setIsPopupOpen(false);
+    console.log("dasdsad");
+    navigate(`${path}`);
   };
 
   const onClickMypage = () => {
     setIsPopupOpen(false);
+    console.log("딸깍");
+    navigate("/mypage");
   };
 
   useEffect(() => {
@@ -217,11 +223,21 @@ const Header = () => {
   return (
     <>
       <HeaderContainer $ismobile={isMobile}>
-        <Logo $ismobile={isMobile} src={logoText} alt="로고 이미지" />
+        <Logo
+          $ismobile={isMobile}
+          src={logoText}
+          alt="로고 이미지"
+          onClick={() => navigate("/")}
+        />
         <HeaderMenuContainer $ismobile={isMobile}>
           {isMobile ? (
             <>
-              <HeaderMenuBtn $ismobile={isMobile} onClick={handleMenuPopup}>
+              <HeaderMenuBtn
+                $ismobile={isMobile}
+                onClick={() => {
+                  setIsMenuPopupOpen(true);
+                }}
+              >
                 메뉴
                 <MenuPopupText $ismenupopupopen={isMenuPopupOpen}>
                   ▼
@@ -240,7 +256,9 @@ const Header = () => {
                       key={path}
                       $ismobile={isMobile}
                       style={{ width: "100%" }}
-                      onClick={handleMenuPopup}
+                      onClick={() => {
+                        handleMenuPopup(path);
+                      }}
                     >
                       {label}
                     </HeaderMenuBtn>
@@ -251,7 +269,11 @@ const Header = () => {
           ) : (
             <>
               {menuItems.map(({ label, path }) => (
-                <HeaderMenuBtn key={path} $ismobile={isMobile}>
+                <HeaderMenuBtn
+                  key={path}
+                  $ismobile={isMobile}
+                  onClick={() => handleMenuPopup(path)}
+                >
                   {label}
                 </HeaderMenuBtn>
               ))}
