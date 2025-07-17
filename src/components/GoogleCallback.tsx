@@ -2,13 +2,13 @@ import { useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import useAuthApi from "../api/auth";
 
-function KakaoCallback() {
+function GoogleCallback() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { loginWithKakao } = useAuthApi();
+  const { loginWithGoogle } = useAuthApi();
   const handleLogin = async (code: string) => {
     try {
-      const res = await loginWithKakao(code);
+      const res = await loginWithGoogle(code);
       console.log("로그인", res);
 
       localStorage.setItem("accessToken", res.data.data.accessToken);
@@ -26,7 +26,7 @@ function KakaoCallback() {
     }
   }, [searchParams, navigate]);
 
-  return <div>카카오 로그인 처리 중...</div>;
+  return <div>구글 로그인 처리 중...</div>;
 }
 
-export default KakaoCallback;
+export default GoogleCallback;
