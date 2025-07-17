@@ -402,6 +402,7 @@ const AdminList = ({
     },
     [hasMore, isMobile]
   );
+  //
 
   useEffect(() => {
     if (isMobile) {
