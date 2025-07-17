@@ -2,6 +2,7 @@ import styled from "styled-components";
 import { useEffect, useState } from "react";
 import DetailReviewCard from "./mypage/DetailReviewCard";
 import { useNavigate } from "react-router-dom";
+import useMovieDetailApi from "../api/details";
 
 interface ReviewProps {
   isMobile: boolean;
@@ -60,19 +61,19 @@ const WriteBtn = styled.button<StyleType>`
 
 const Review = ({ isMobile, movieId }: ReviewProps) => {
   const [reviews, setReviews] = useState<Review[]>([]);
-  const BASE_URL = import.meta.env.VITE_BASE_URL;
   const navigate = useNavigate();
+  const { getReviews } = useMovieDetailApi();
 
   useEffect(() => {
-    fetch(`${BASE_URL}/api/${movieId}/reviews`)
-      .then((response) => response.json())
-      .then((data) => {
-        console.log("Fetched reviews:", data);
+    try {
+      const res = getReviews(movieId);
+      res.then((data) => {
+        console.log("Fetched reviews:", data.data.content);
         setReviews(data.data.content);
-      })
-      .catch((error) => {
-        console.error("Error fetching reviews:", error.message);
       });
+    } catch (error: any) {
+      console.error("Error fetching reviews:", error.message);
+    }
   }, []);
 
   return (

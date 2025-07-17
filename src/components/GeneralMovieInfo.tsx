@@ -52,7 +52,6 @@ const Star = styled.p<styleType>`
 `;
 
 const GeneralMovieInfo = ({ isMobile, movieDetail }: GeneralMovieProps) => {
-  console.log("movieDetail:", movieDetail);
   return (
     <GeneralMovieInfoContainer
       $ismobile={isMobile}

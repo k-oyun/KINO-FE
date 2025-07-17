@@ -7,6 +7,7 @@ import MovieInfo from "../components/MovieInfo";
 import ShortReview from "../components/ShortReview";
 import Review from "../components/Review";
 import { useParams } from "react-router-dom";
+import useMovieDetailApi from "../api/details";
 
 // const movieDetail = {
 //   id: 603692,
@@ -89,28 +90,20 @@ const MovieDetail = () => {
   const isMobile = useMediaQuery({ query: "(max-width: 768px)" });
   const [selectedTab, setSelectedTab] = useState<Tabs>("info");
   const { id: movieId } = useParams<{ id: string }>();
-  // const BASE_URL = process.env.REACT_APP_BASE_URL;
-  const BASE_URL = import.meta.env.VITE_BASE_URL;
   const [movieDetail, setMovieDetail] = useState<MovieDetail | null>(null);
+  const { getMovieDetail } = useMovieDetailApi();
 
   useEffect(() => {
     // 초기 정보 불러오기
-    console.log(`Movie ID from params: ${movieId}`);
-    const fetchMovieDetail = async () => {
-      fetch(`${BASE_URL}/api/${movieId}/info`)
-        .then((response) => response.json())
-        .then((data) => {
-          console.log("Fetched movie detail:", data);
-          setMovieDetail(data.data);
-        })
-        .catch((error) => {
-          console.error("Error fetching movie detail:", error.message);
-        });
-    };
-
-    fetchMovieDetail().catch((error) => {
+    try {
+      const res = getMovieDetail(Number(movieId));
+      res.then((data) => {
+        console.log("Fetched movie detail:", data.data.data);
+        setMovieDetail(data.data.data);
+      });
+    } catch (error: any) {
       console.error("Error fetching movie detail:", error);
-    });
+    }
   }, []);
 
   return !movieDetail ? (

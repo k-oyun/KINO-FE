@@ -2,6 +2,7 @@ import styled from "styled-components";
 import StarRatings from "react-star-ratings";
 import { useEffect, useState } from "react";
 import ReportModal from "./ReportModal";
+import useMovieDetailApi from "../api/details";
 
 interface ShortReviewProps {
   isMobile: boolean;
@@ -138,6 +139,23 @@ const ReviewLike = styled.div<styleType>`
   margin-right: auto;
 `;
 
+const Heart = styled.button<{ $heartUrl: string }>`
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+  background-image: url(${(props) => props.$heartUrl});
+  background-color: transparent;
+  background-position: center;
+  background-repeat: no-repeat;
+
+  background-size: 24px 24px;
+  border: none;
+  transition: transform 0.2s ease-in-out;
+  &:hover {
+    transform: scale(1.1);
+  }
+`;
+
 const Btn = styled.button<styleType>`
   background-color: transparent;
   border: none;
@@ -154,11 +172,19 @@ const ShortReview = ({ isMobile, movieId }: ShortReviewProps) => {
   const [rating, setRating] = useState<number>(0);
   const [review, setReview] = useState<string>("");
   const [reviews, setReviews] = useState<Review[]>([]);
+  const [liked, setLiked] = useState(false);
+
   const [isReportOpen, setIsReportOpen] = useState<boolean>(false);
   const [editReviewId, setEditReviewId] = useState<number>(0);
   const [editText, setEditText] = useState<string>("");
-
-  const BASE_URL = import.meta.env.VITE_BASE_URL;
+  const {
+    postShortReview,
+    updateShortReview,
+    deleteShortReview,
+    getShortReviews,
+    likeShortReview,
+    unlikeShortReview,
+  } = useMovieDetailApi();
 
   const handleRatingChange = (newRating: number) => {
     setRating(newRating);
@@ -168,30 +194,29 @@ const ShortReview = ({ isMobile, movieId }: ShortReviewProps) => {
       // alert("한줄평을 입력해주세요.");
       return;
     }
-    fetch(`${BASE_URL}/api/${movieId}/short-reviews`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ content: review }),
-    })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("Failed to write review");
-        }
-        return response.json();
-      })
-      .then((data) => {
+    try {
+      const res = postShortReview(movieId, review);
+      res.then((data: { data: Review }) => {
         console.log("Review written successfully:", data);
         setReviews((prevReviews) => [
           ...prevReviews,
           { ...data.data, mine: true },
         ]);
         setReview("");
-      })
-      .catch((error) => {
-        console.error("Error writing review:", error.message);
       });
+    } catch (error: any) {
+      console.error("Error writing review:", error);
+      // alert("리뷰 작성에 실패했습니다.");
+    }
+  };
+  const handleLikeClick = (reviewId: number) => {
+    console.log("Like button clicked: ");
+    setLiked(!liked);
+    if (!liked) {
+      likeShortReview(reviewId);
+    } else {
+      unlikeShortReview(reviewId);
+    }
   };
   const handleReportClick = () => {
     setIsReportOpen(true);
@@ -201,20 +226,13 @@ const ShortReview = ({ isMobile, movieId }: ShortReviewProps) => {
     setEditText(oldContent);
   };
   const handleReviewUpdate = () => {
-    fetch(`${BASE_URL}/api/${movieId}/short-reviews/${editReviewId}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ content: editText }),
-    })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("Failed to update review");
-        }
-        return response.json();
-      })
-      .then((data) => {
+    if (editText.trim() === "") {
+      // alert("한줄평을 입력해주세요.");
+      return;
+    }
+    try {
+      const res = updateShortReview(movieId, editReviewId, editText);
+      res.then((data) => {
         console.log("Review updated successfully:", data);
         setReviews((prevReviews) =>
           prevReviews.map((review) =>
@@ -225,53 +243,42 @@ const ShortReview = ({ isMobile, movieId }: ShortReviewProps) => {
         );
         setEditReviewId(0);
         setEditText("");
-      })
-      .catch((error) => {
-        console.error("Error updating review:", error.message);
       });
+    } catch (error: any) {
+      console.error("Error updating review:", error);
+      // alert("리뷰 수정에 실패했습니다.");
+    }
   };
+
   const handleEditCancel = () => {
     setEditReviewId(0);
     setEditText("");
   };
   const handleReviewDelete = (reviewId: number) => {
-    fetch(`${BASE_URL}/api/${movieId}/short-reviews/${reviewId}`, {
-      method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("Failed to delete review");
-        }
-        return response.json();
-      })
-      .then((data) => {
-        console.log("Review deleted successfully:", data);
+    try {
+      const res = deleteShortReview(movieId, reviewId);
+      res.then(() => {
+        console.log("Review deleted successfully");
         setReviews((prevReviews) =>
           prevReviews.filter((review) => review.shortReviewId !== reviewId)
         );
-      })
-      .catch((error) => {
-        console.error("Error deleting review:", error.message);
       });
+    } catch (error: any) {
+      console.error("Error deleting review:", error);
+      // alert("리뷰 삭제에 실패했습니다.");
+    }
   };
 
   useEffect(() => {
-    const fetchShortReviews = async () => {
-      fetch(`${BASE_URL}/api/${movieId}/short-reviews`)
-        .then((response) => response.json())
-        .then((data) => {
-          console.log("Fetched short reviews:", data);
-          setReviews(data.data.content);
-        })
-        .catch((error) => {
-          console.error("Error fetching short reviews:", error.message);
-        });
-    };
-
-    fetchShortReviews();
+    try {
+      const res = getShortReviews(movieId);
+      res.then((data) => {
+        console.log("Fetched short reviews:", data.data.content);
+        setReviews(data.data.content);
+      });
+    } catch (error: any) {
+      console.error("Error fetching short reviews:", error.message);
+    }
   }, []);
 
   return (
@@ -344,7 +351,15 @@ const ShortReview = ({ isMobile, movieId }: ShortReviewProps) => {
               )}
               <UnderBar $ismobile={isMobile}>
                 <ReviewLike $ismobile={isMobile}>
-                  <Btn $ismobile={isMobile}>♥</Btn> {review.likeCount}
+                  <Heart
+                    $heartUrl={
+                      liked
+                        ? "https://img.icons8.com/?size=100&id=V4c6yYlvXtzy&format=png&color=000000"
+                        : "https://img.icons8.com/?size=100&id=12306&format=png&color=000000"
+                    }
+                    onClick={() => handleLikeClick(review.shortReviewId)}
+                  ></Heart>
+                  {review.likeCount}
                 </ReviewLike>
                 <UserCreatedAt
                   $ismobile={isMobile}

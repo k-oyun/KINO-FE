@@ -69,6 +69,14 @@ const LikesDisplay = styled.span`
   color: #000;
 `;
 
+const CommentDisplay = styled.span`
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  color: #000;
+  background-image: url("https://img.icons8.com/?size=100&id=61f1pL4hEqO1&format=png&color=000000");
+`;
+
 const ThreeDotsMenu = styled.button`
   background: none;
   margin-left: auto;
@@ -277,6 +285,7 @@ const DetailReviewCard: React.FC<DetailReviewCardProps> = ({
             <DetailReviewFooter $ismobile={isMobile}>
               <MetaInfo>
                 <LikesDisplay>♥ {review.likeCount}</LikesDisplay>
+                <CommentDisplay>{review.commentCount}</CommentDisplay>
               </MetaInfo>
               <MetaInfo>{review.createdAt}</MetaInfo>
             </DetailReviewFooter>
