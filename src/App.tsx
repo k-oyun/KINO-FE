@@ -20,21 +20,21 @@ import KakaoCallback from "./components/KakaoCallback";
 import GoogleCallback from "./components/GoogleCallback";
 import NaverCallback from "./components/NaverCallback";
 
-function HeaderSelector() {
-  const location = useLocation();
-  const path = location.pathname;
-
+const HeaderSelector = ({ path }: { path: string }) => {
   if (path === "/Login" || path === "/login") return null;
   if (path === "/") return null;
 
   return <Header />;
-}
+};
 
-function App() {
+const AppContents = () => {
   const isDarkMode = usePreferMode();
-  const isAdminPage = location.pathname === "/admin";
+  const location = useLocation();
+  const path = location.pathname;
+  const isAdminPage = path === "/admin";
+
   return (
-    <>
+    
       <BrowserRouter>
         <ThemeProvider
           theme={isAdminPage ? lightTheme : isDarkMode ? darkTheme : lightTheme}
@@ -71,7 +71,15 @@ function App() {
           </Routes>
         </ThemeProvider>
       </BrowserRouter>
-    </>
+    
+  );
+};
+
+function App() {
+  return (
+    <BrowserRouter>
+      <AppContents />
+    </BrowserRouter>
   );
 }
 
