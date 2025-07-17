@@ -1,3 +1,5 @@
+// App.tsx
+
 import "./App.css";
 import Header from "./components/Header";
 import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom";
@@ -15,6 +17,10 @@ import { usePreferMode } from "./hooks/usePreferMode";
 import GlobalStyle from "./styles/GlobalStyle";
 import Movie from "./pages/Movie";
 import Admin from "./pages/Admin";
+import CommunityListPage from "./pages/community/CommunityListPage";
+import CommunityCreatePage from "./pages/community/CommunityCreatePage";
+import CommunityDetailPage from "./pages/community/CommunityDetailPage";
+
 
 function HeaderSelector() {
   const location = useLocation();
@@ -44,9 +50,9 @@ function App() {
             <Route path ="/mypage/movies/favorite" element={<MyFavoriteMoviesPage />} />
             <Route path ="/mypage/settings" element={<MySettingsPage />} />
             <Route path ="/mypage/tags" element={<MyTagsPage />} />
-            <Route path ="/mypage" element={<MyPageMain />} />
-            <Route path ="/mypage" element={<MyPageMain />} />
-            <Route path ="/mypage" element={<MyPageMain />} />  
+            <Route path="/community" element={<CommunityListPage />} />
+            <Route path="/community/new" element={<CommunityCreatePage />} />
+            <Route path="/community/posts/:id" element={<CommunityDetailPage />} />
           </Routes>
         </ThemeProvider>
       </BrowserRouter>
