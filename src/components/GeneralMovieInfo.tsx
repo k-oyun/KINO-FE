@@ -10,12 +10,12 @@ interface GeneralMovieProps {
     releaseDate: string;
     runningTime: number;
     ageRating: boolean;
+    avgRating: number;
     genres: string[];
     director: string;
-    actors: string[];
+    actors: [{ name: string; profileUrl: string }];
     otts: [{ name: string; logoUrl: string; linkUrl: string }];
     teaserUrl: string;
-    vote_average?: number;
   };
 }
 
@@ -27,7 +27,7 @@ const GeneralMovieInfoContainer = styled.div<{ $imgurl: string } & styleType>`
   height: 50vh;
   background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)),
     url(${(props) => props.$imgurl});
-  background-size: contain;
+  background-size: cover;
   display: flex;
   flex-direction: column;
   align-items: start;
@@ -60,7 +60,7 @@ const GeneralMovieInfo = ({ isMobile, movieDetail }: GeneralMovieProps) => {
     >
       <Title $ismobile={isMobile}>{movieDetail.title}</Title>
       <ReleaseDate $ismobile={isMobile}>{movieDetail.releaseDate}</ReleaseDate>
-      <Star $ismobile={isMobile}>★ {movieDetail.vote_average || "-1"}</Star>
+      <Star $ismobile={isMobile}>★ {movieDetail.avgRating}</Star>
     </GeneralMovieInfoContainer>
   );
 };

@@ -10,12 +10,12 @@ interface MovieInfoProps {
     releaseDate: string;
     runningTime: number;
     ageRating: boolean;
+    avgRating: number;
     genres: string[];
     director: string;
-    actors: string[];
+    actors: [{ name: string; profileUrl: string }];
     otts: [{ name: string; logoUrl: string; linkUrl: string }];
     teaserUrl: string;
-    vote_average?: number;
   };
 }
 
@@ -61,7 +61,28 @@ const ActorLabel = styled.h2<styleType>`
   font-size: ${(props) => (props.$ismobile ? "18px" : "24px")};
   margin-bottom: ${(props) => (props.$ismobile ? "10px" : "15px")};
 `;
-const ActorList = styled.ul<styleType>``;
+const ActorList = styled.ul<styleType>`
+  display: flex;
+  overflow-x: auto;
+  height: 150px;
+  padding: ${(props) => (props.$ismobile ? "5px" : "10px")};
+`;
+const ActorItem = styled.li<styleType>`
+  width: 70px;
+  height: 70px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  word-break: keep-all;
+  margin-right: ${(props) => (props.$ismobile ? "15px" : "40px")};
+`;
+const ActorImg = styled.img<styleType>`
+  width: ${(props) => (props.$ismobile ? "55px" : "90px")};
+  height: ${(props) => (props.$ismobile ? "55px" : "90px")};
+  margin-bottom: 8px;
+  border-radius: 50%;
+`;
 
 const MovieWhereToWatch = styled.div<styleType>`
   margin: ${(props) => (props.$ismobile ? "20px 10px" : "30px")};
@@ -71,7 +92,7 @@ const OttLabel = styled.h2<styleType>`
   margin-bottom: ${(props) => (props.$ismobile ? "10px" : "15px")};
 `;
 const OttList = styled.ul<styleType>`
-  background-color: #f9f9f9;
+  /* background-color: #f9f9f9; */
   border-radius: 8px;
   padding: ${(props) => (props.$ismobile ? "5px" : "10px")};
 `;
@@ -80,6 +101,11 @@ const OttLogo = styled.img<{ $ismobile: boolean }>`
   height: ${(props) => (props.$ismobile ? "45px" : "60px")};
   margin-right: 10px;
   border-radius: 8px;
+  cursor: pointer;
+  &:hover {
+    transform: scale(1.05);
+    transition: transform 0.2s;
+  }
 `;
 
 const MovieTrailer = styled.div<styleType>`
@@ -135,20 +161,33 @@ const MovieInfo = ({ isMobile, movieDetail }: MovieInfoProps) => {
       </InfoGrid>
       <MovieActors $ismobile={isMobile}>
         <ActorLabel $ismobile={isMobile}>출연진/제작진</ActorLabel>
-        <ActorList $ismobile={isMobile}></ActorList>
+        <ActorList $ismobile={isMobile}>
+          {movieDetail.actors.map((actor) => (
+            <ActorItem key={actor.name} $ismobile={isMobile}>
+              <ActorImg
+                $ismobile={isMobile}
+                src={`https://image.tmdb.org/t/p/w45${actor.profileUrl}`}
+                alt={actor.name}
+              />
+              {actor.name}
+            </ActorItem>
+          ))}
+        </ActorList>
       </MovieActors>
       <MovieWhereToWatch $ismobile={isMobile}>
         <OttLabel $ismobile={isMobile}>볼 수 있는 곳</OttLabel>
         <OttList $ismobile={isMobile}>
-          {movieDetail.otts.map((ott) => (
-            <OttLogo
-              key={ott.name}
-              src={`https://image.tmdb.org/t/p/w45${ott.logoUrl}`}
-              onClick={() => window.open(ott.linkUrl, "_blank")}
-              alt={ott.name}
-              $ismobile={isMobile}
-            ></OttLogo>
-          ))}
+          {movieDetail.otts.length > 0
+            ? movieDetail.otts.map((ott) => (
+                <OttLogo
+                  key={ott.name}
+                  src={ott.logoUrl}
+                  onClick={() => window.open(ott.linkUrl, "_blank")}
+                  alt={ott.name}
+                  $ismobile={isMobile}
+                ></OttLogo>
+              ))
+            : "볼 수 있는 곳이 없어요. 따흐흑..."}
         </OttList>
       </MovieWhereToWatch>
       <MovieTrailer $ismobile={isMobile}>

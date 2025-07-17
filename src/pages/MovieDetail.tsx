@@ -61,12 +61,12 @@ interface MovieDetail {
   releaseDate: string;
   runningTime: number;
   ageRating: boolean;
+  avgRating: number;
   genres: string[];
   director: string;
-  actors: string[];
+  actors: [{ name: string; profileUrl: string }];
   otts: [{ name: string; logoUrl: string; linkUrl: string }];
   teaserUrl: string;
-  vote_average?: number;
 }
 
 const MovieDetailContainer = styled.div`
