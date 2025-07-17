@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import type { Dispatch, SetStateAction } from "react";
 import { useMediaQuery } from "react-responsive";
 import styled from "styled-components";
@@ -320,16 +320,127 @@ const AdminList = ({
     listGet();
   }, [pageInfo.currentPage]);
 
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  const [mobilePage, setMobilePage] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
+
+  const mobileListGet = useCallback(async () => {
+    try {
+      if (selectedOption === "회원관리") {
+        const res = await axios.get(
+          `http://43.203.218.183:8080/api/admin/user?page=${mobilePage}&size=12`
+        );
+        setUsers((prev) => {
+          const ids = new Set(prev.map((u) => u.id));
+          const newItems = res.data.data.content.filter(
+            (u: User) => !ids.has(u.id)
+          );
+          return [...prev, ...newItems];
+        });
+        const totalPages = res.data.data.totalPages;
+        setHasMore(mobilePage + 1 < totalPages);
+      }
+      if (selectedOption === "게시글") {
+        const res = await axios.get(
+          `http://43.203.218.183:8080/api/admin/review?page=${mobilePage}&size=12`
+        );
+        setReportDatas((prev) => {
+          const ids = new Set(prev.map((d) => d.reportId));
+          const newItems = res.data.data.content.filter(
+            (d: Report) => !ids.has(d.reportId)
+          );
+          return [...prev, ...newItems];
+        });
+        const totalPages = res.data.data.totalPages;
+        setHasMore(mobilePage + 1 < totalPages);
+      }
+      if (selectedOption === "한줄평") {
+        const res = await axios.get(
+          `http://43.203.218.183:8080/api/admin/shortreview?page=${mobilePage}&size=12`
+        );
+        setReportDatas((prev) => {
+          const ids = new Set(prev.map((d) => d.reportId));
+          const newItems = res.data.data.content.filter(
+            (d: Report) => !ids.has(d.reportId)
+          );
+          return [...prev, ...newItems];
+        });
+        const totalPages = res.data.data.totalPages;
+        setHasMore(mobilePage + 1 < totalPages);
+      }
+      if (selectedOption === "댓글") {
+        const res = await axios.get(
+          `http://43.203.218.183:8080/api/admin/comment?page=${mobilePage}&size=12`
+        );
+        setReportDatas((prev) => {
+          const ids = new Set(prev.map((d) => d.reportId));
+          const newItems = res.data.data.content.filter(
+            (d: Report) => !ids.has(d.reportId)
+          );
+          return [...prev, ...newItems];
+        });
+        const totalPages = res.data.data.totalPages;
+        setHasMore(mobilePage + 1 < totalPages);
+      }
+    } catch (err) {
+      console.error("모바일 infinite load 실패:", err);
+    }
+  }, [selectedOption, mobilePage]);
+
+  const lastElementRef = useCallback(
+    (node: HTMLElement | null) => {
+      if (!isMobile) return; // 모바일 아닐 때 무시
+      if (observerRef.current) observerRef.current.disconnect();
+
+      observerRef.current = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting && hasMore) {
+          setMobilePage((prev) => prev + 1);
+        }
+      });
+
+      if (node) observerRef.current.observe(node);
+    },
+    [hasMore, isMobile]
+  );
+
+  useEffect(() => {
+    if (isMobile) {
+      mobileListGet();
+    }
+  }, [mobilePage]);
+
+  useEffect(() => {
+    if (!isMobile) {
+      listGet();
+    } else {
+      mobileListGet;
+    }
+  }, [selectedOption]);
+
+  useEffect(() => {
+    if (!isMobile) {
+      setUsers([]);
+      setReportDatas([]);
+      listGet();
+    }
+    if (isMobile) {
+      setUsers([]);
+      setMobilePage(0);
+      setReportDatas([]);
+      mobileListGet();
+    }
+  }, [isMobile]);
+
   return (
     <>
       {selectedOption === "회원관리" ? (
         isMobile ? (
           <MobileAdminList>
             <SwipeableList threshold={0.25} fullSwipe={false}>
-              {users.map((user) => {
+              {users.map((user, idx) => {
                 const showSwipe =
                   selectedOption === "회원관리" && user.role === "BAN";
-
+                const isLast = idx === users.length - 1;
                 return (
                   <CustomSwipeableListItem
                     key={user.id}
@@ -337,50 +448,52 @@ const AdminList = ({
                       showSwipe ? hiddenDeleteSection(user.id) : false
                     }
                   >
-                    <MobileContainer>
-                      <MobileInfoContainer
-                        onClick={() => {
-                          selectedOption !== "회원관리"
-                            ? setIsModalOpen(true)
-                            : null;
-                        }}
-                      >
-                        <div>
-                          <MobileTitleTxt>닉네임 : </MobileTitleTxt>
-                          <MobileContentTxt>{user.nickname}</MobileContentTxt>
-                        </div>
-                        <div>
-                          <MobileTitleTxt>계정 : </MobileTitleTxt>
-                          <MobileContentTxt>{user.email}</MobileContentTxt>
-                        </div>
-                        <div>
-                          <MobileTitleTxt>회원상태 : </MobileTitleTxt>
+                    <div>
+                      <MobileContainer ref={isLast ? lastElementRef : null}>
+                        <MobileInfoContainer
+                          onClick={() => {
+                            selectedOption !== "회원관리"
+                              ? setIsModalOpen(true)
+                              : null;
+                          }}
+                        >
+                          <div>
+                            <MobileTitleTxt>닉네임 : </MobileTitleTxt>
+                            <MobileContentTxt>{user.nickname}</MobileContentTxt>
+                          </div>
+                          <div>
+                            <MobileTitleTxt>계정 : </MobileTitleTxt>
+                            <MobileContentTxt>{user.email}</MobileContentTxt>
+                          </div>
+                          <div>
+                            <MobileTitleTxt>회원상태 : </MobileTitleTxt>
 
-                          <Status
-                            $ismobile={isMobile}
-                            $status={
-                              user.role === "USER"
+                            <Status
+                              $ismobile={isMobile}
+                              $status={
+                                user.role === "USER"
+                                  ? "정상"
+                                  : user.role === "BAN"
+                                  ? "정지"
+                                  : "관리자"
+                              }
+                            >
+                              {user.role === "USER"
                                 ? "정상"
                                 : user.role === "BAN"
                                 ? "정지"
-                                : "관리자"
-                            }
-                          >
-                            {user.role === "USER"
-                              ? "정상"
-                              : user.role === "BAN"
-                              ? "정지"
-                              : "관리자"}
-                          </Status>
-                        </div>
-                        <div>
-                          <MobileTitleTxt>가입일 : </MobileTitleTxt>
-                          <MobileContentTxt>
-                            {useFormatDate(user.createdAt)}
-                          </MobileContentTxt>
-                        </div>
-                      </MobileInfoContainer>
-                    </MobileContainer>
+                                : "관리자"}
+                            </Status>
+                          </div>
+                          <div>
+                            <MobileTitleTxt>가입일 : </MobileTitleTxt>
+                            <MobileContentTxt>
+                              {useFormatDate(user.createdAt)}
+                            </MobileContentTxt>
+                          </div>
+                        </MobileInfoContainer>
+                      </MobileContainer>
+                    </div>
                   </CustomSwipeableListItem>
                 );
               })}
@@ -478,15 +591,14 @@ const AdminList = ({
       ) : isMobile ? (
         <MobileAdminList>
           <SwipeableList threshold={0.25} fullSwipe={false}>
-            {reportDatas.map((data) => {
-              const showSwipe = selectedOption === "회원관리";
-
+            {reportDatas.map((data, idx) => {
+              const isLast = idx === reportDatas.length - 1;
               return (
                 <CustomSwipeableListItem
                   key={data.reportId}
                   trailingActions={false}
                 >
-                  <MobileContainer>
+                  <MobileContainer ref={isLast ? lastElementRef : null}>
                     <MobileInfoContainer
                       onClick={() => {
                         selectedOption !== "회원관리"
