@@ -3,9 +3,16 @@ import { useMediaQuery } from "react-responsive";
 import styled from "styled-components";
 import AdminList from "../components/AdminList";
 import AdminModal from "../components/AdminModal";
+import Pagenation from "../components/Pagenation";
 
 interface styleProp {
   $ismobile: boolean;
+}
+
+interface PageType {
+  currentPage: number;
+  size: number;
+  pageContentAmount: number;
 }
 
 const AmdinContainer = styled.div<styleProp>`
@@ -79,13 +86,19 @@ const Admin = () => {
   const [selectedReportId, setSelectedReportId] = useState(0);
   const [isConfirmBtnPrs, setIsConfirmBtnprs] = useState(false);
 
+  const [pageInfo, setPageInfo] = useState<PageType>({
+    currentPage: 0,
+    size: 12,
+    pageContentAmount: 0,
+  });
+
   const handleOptionClick = (option: string) => {
     setSelectedOption(option);
   };
 
-  //   useEffect(() => {
-  //     console.log(selectedOption);
-  //   }, [selectedOption]);
+  useEffect(() => {
+    console.log("토탈페이지사이즈", pageInfo.pageContentAmount);
+  }, []);
 
   const reportTypeSend = () => {
     if (selectedOption === "게시글") {
@@ -99,6 +112,13 @@ const Admin = () => {
     }
     return "defaultType";
   };
+
+  // const onChangePage = (page: number) => {
+  //   setPageInfo((prevPageInfo) => ({
+  //     ...prevPageInfo,
+  //     page,
+  //   }));
+  // };
 
   return (
     <>
@@ -124,8 +144,18 @@ const Admin = () => {
               setSelectedReportId={setSelectedReportId}
               setIsConfirmBtnprs={setIsConfirmBtnprs}
               isConfirmBtnPrs={isConfirmBtnPrs}
+              pageInfo={pageInfo}
+              setPageInfo={setPageInfo}
             />
           </ManagementInfoContainer>
+          <Pagenation
+            size={pageInfo.size}
+            itemsPerPage={5}
+            pageContentAmount={pageInfo.pageContentAmount}
+            currentPage={pageInfo.currentPage}
+            setPageInfo={setPageInfo}
+            pageInfo={pageInfo}
+          />
         </ManagementContainer>
       </AmdinContainer>
       {isModalOpen && (

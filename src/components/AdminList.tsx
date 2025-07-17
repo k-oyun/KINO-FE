@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import type { Dispatch, SetStateAction } from "react";
 import { useMediaQuery } from "react-responsive";
 import styled from "styled-components";
 import {
@@ -11,7 +12,6 @@ import "react-swipeable-list/dist/styles.css";
 import axios from "axios";
 import { useFormatDate } from "../hooks/useFormatDate";
 import AdminConfirmDialog from "../components/AdminConfirmDialog";
-
 
 interface User {
   id: number;
@@ -32,13 +32,19 @@ interface Report {
 interface StyleProps {
   $ismobile: boolean;
 }
-
+interface PageType {
+  currentPage: number;
+  size: number;
+  pageContentAmount: number;
+}
 interface adminProps {
   selectedOption: string;
   isConfirmBtnPrs: boolean;
   setIsModalOpen: (value: boolean) => void;
   setIsConfirmBtnprs: (value: boolean) => void;
   setSelectedReportId: (value: number) => void;
+  setPageInfo: Dispatch<SetStateAction<PageType>>;
+  pageInfo: PageType;
 }
 
 const TableContainer = styled.div`
@@ -140,6 +146,8 @@ const AdminList = ({
   setSelectedReportId,
   isConfirmBtnPrs,
   setIsConfirmBtnprs,
+  pageInfo,
+  setPageInfo,
 }: adminProps) => {
   const [selectedUser, setSelectedUser] = useState<number[]>([]);
   const isMobile = useMediaQuery({ query: "(max-width: 767px)" });
@@ -172,14 +180,12 @@ const AdminList = ({
     );
   };
 
-  //--버릴 코드--
   const [revokedUsers, setRevokedUsers] = useState<number[]>([]);
   const handleRevoke = (userId: number) => {
     if (!revokedUsers.includes(userId)) {
       setRevokedUsers((prev) => [...prev, userId]);
     }
   };
-  //------------
 
   const hiddenDeleteSection = (userId: number) => (
     <TrailingActions>
@@ -196,22 +202,29 @@ const AdminList = ({
   );
 
   const userGet = async () => {
-    const res = await axios.get("http://43.203.218.183:8080/api/admin/user");
+    const res = await axios.get(
+      `http://43.203.218.183:8080/api/admin/user?page=${pageInfo.currentPage}&size=${pageInfo.size}`
+    );
+
     return res.data;
   };
 
   const reviewReportGet = async () => {
-    const res = await axios.get("http://43.203.218.183:8080/api/admin/review");
+    const res = await axios.get(
+      `http://43.203.218.183:8080/api/admin/review?page=${pageInfo.currentPage}&size=${pageInfo.size}`
+    );
     return res.data;
   };
   const shortReviewReportGet = async () => {
     const res = await axios.get(
-      "http://43.203.218.183:8080/api/admin/shortreview"
+      `http://43.203.218.183:8080/api/admin/shortreview?page=${pageInfo.currentPage}&size=${pageInfo.size}`
     );
     return res.data;
   };
   const commentReportGet = async () => {
-    const res = await axios.get("http://43.203.218.183:8080/api/admin/comment");
+    const res = await axios.get(
+      `http://43.203.218.183:8080/api/admin/comment?page=${pageInfo.currentPage}&size=${pageInfo.size}`
+    );
     return res.data;
   };
 
@@ -220,7 +233,14 @@ const AdminList = ({
       const fetchData = async () => {
         try {
           const res = await userGet();
-          setUsers(res.data);
+
+          setUsers(res.data.content);
+          console.log("토탈 페이지 ", res.data.totalPages);
+          setPageInfo({
+            currentPage: pageInfo.currentPage,
+            size: 12,
+            pageContentAmount: res.data.totalPages,
+          });
         } catch (error) {
           console.error("사용자 조회 실패:", error);
         }
@@ -232,7 +252,13 @@ const AdminList = ({
         try {
           const res = await reviewReportGet();
           console.log("게시글 신고 내역", res.data);
-          setReportDatas(res.data);
+          setReportDatas(res.data.content);
+          console.log("토탈 페이지 ", res.data.totalPages);
+          setPageInfo({
+            currentPage: pageInfo.currentPage,
+            size: 12,
+            pageContentAmount: res.data.totalPages,
+          });
         } catch (error) {
           console.log("게시글 신고 실패:", error);
         }
@@ -244,7 +270,12 @@ const AdminList = ({
         try {
           const res = await shortReviewReportGet();
           console.log("한줄평 신고 내역", res.data);
-          setReportDatas(res.data);
+          setReportDatas(res.data.content);
+          setPageInfo({
+            currentPage: pageInfo.currentPage,
+            size: 12,
+            pageContentAmount: res.data.totalPages,
+          });
         } catch (error) {
           console.log("한줄평 신고 실패:", error);
         }
@@ -256,7 +287,12 @@ const AdminList = ({
         try {
           const res = await commentReportGet();
           console.log("댓글 신고 내역", res.data);
-          setReportDatas(res.data);
+          setReportDatas(res.data.content);
+          setPageInfo({
+            currentPage: pageInfo.currentPage,
+            size: 12,
+            pageContentAmount: res.data.totalPages,
+          });
         } catch (error) {
           console.log("댓글 신고 실패:", error);
         }
@@ -265,6 +301,12 @@ const AdminList = ({
     }
   };
 
+  const userActive = async (id: number) => {
+    const res = await axios.post(
+      `http://43.203.218.183:8080/api/admin/active/${id}`
+    );
+    listGet();
+  };
   useEffect(() => {
     listGet();
   }, [isConfirmBtnPrs]);
@@ -273,15 +315,10 @@ const AdminList = ({
     listGet();
   }, [selectedOption]);
 
-  const userActive = async (id: number) => {
-    const res = await axios.post(
-      `http://43.203.218.183:8080/api/admin/active/${id}`
-    );
-    console.log(res);
-    listGet();
-  };
-
   // 12명으로 페이지네이션
+  useEffect(() => {
+    listGet();
+  }, [pageInfo.currentPage]);
 
   return (
     <>
