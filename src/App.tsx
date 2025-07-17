@@ -16,65 +16,63 @@ import MovieDetail from "./pages/MovieDetail";
 import { usePreferMode } from "./hooks/usePreferMode";
 import GlobalStyle from "./styles/GlobalStyle";
 import Admin from "./pages/Admin";
+import KakaoCallback from "./components/KakaoCallback";
+import GoogleCallback from "./components/GoogleCallback";
+import NaverCallback from "./components/NaverCallback";
 import CommunityCreatePage from "./pages/community/CommunityCreatePage";
 import CommunityDetailPage from "./pages/community/CommunityDetailPage";
 import CommunityListPage from "./pages/community/CommunityListPage";
 
-function HeaderSelector() {
-  const location = useLocation();
-  const path = location.pathname;
-
+const HeaderSelector = ({ path }: { path: string }) => {
   if (path === "/Login" || path === "/login") return null;
   if (path === "/") return null;
 
   return <Header />;
-}
+};
+
+const AppContents = () => {
+  const isDarkMode = usePreferMode();
+  const location = useLocation();
+  const path = location.pathname;
+  const isAdminPage = path === "/admin";
+
+  return (
+    <ThemeProvider
+      theme={isAdminPage ? lightTheme : isDarkMode ? darkTheme : lightTheme}
+    >
+      <GlobalStyle />
+      <HeaderSelector />
+      <Routes>
+        <Route path="/" element={<Main />}></Route>
+        <Route path="/login" element={<Login />}></Route>
+        <Route path="/api/auth/oauth/kakao" element={<KakaoCallback />} />
+        <Route path="/api/auth/oauth/google" element={<GoogleCallback />} />
+        <Route path="/api/auth/oauth/naver" element={<NaverCallback />} />
+        <Route path="/movie" element={<Movie />}></Route>
+        <Route path="/movie/:id" element={<MovieDetail />}></Route>
+        <Route path="/admin" element={<Admin />}></Route>
+        <Route path="/mypage" element={<MyPageMain />} />
+        <Route path="/mypage/reviews/short" element={<MyReviewsShortPage />} />
+        <Route
+          path="/mypage/reviews/detail"
+          element={<MyReviewsDetailPage />}
+        />
+        <Route
+          path="/mypage/movies/favorite"
+          element={<MyFavoriteMoviesPage />}
+        />
+        <Route path="/mypage/settings" element={<MySettingsPage />} />
+        <Route path="/mypage/tags" element={<MyTagsPage />} />
+      </Routes>
+    </ThemeProvider>
+  );
+};
 
 function App() {
-  const isDarkMode = usePreferMode();
-  const isAdminPage = location.pathname === "/admin";
   return (
-    <>
-      <BrowserRouter>
-        <ThemeProvider
-          theme={isAdminPage ? lightTheme : isDarkMode ? darkTheme : lightTheme}
-        >
-          <GlobalStyle />
-          <HeaderSelector />
-          <Routes>
-            <Route path="/" element={<Main />}></Route>
-            <Route path="/login" element={<Login />}></Route>
-            <Route path="/movie" element={<Movie />}></Route>
-            <Route path="/movie/:id" element={<MovieDetail />}></Route>
-            <Route path="/admin" element={<Admin />}></Route>
-            <Route path="/mypage" element={<MyPageMain />} />
-            <Route
-              path="/mypage/reviews/short"
-              element={<MyReviewsShortPage />}
-            />
-            <Route
-              path="/mypage/reviews/detail"
-              element={<MyReviewsDetailPage />}
-            />
-            <Route
-              path="/mypage/movies/favorite"
-              element={<MyFavoriteMoviesPage />}
-            />
-            <Route path="/mypage/settings" element={<MySettingsPage />} />
-            <Route path="/mypage/tags" element={<MyTagsPage />} />
-            <Route
-              path="/community/new"
-              element={<CommunityCreatePage />}
-            />
-            <Route
-              path="/community/posts/:id"
-              element={<CommunityDetailPage />}
-            />
-            <Route path="/community" element={<CommunityListPage />} />
-          </Routes>
-        </ThemeProvider>
-      </BrowserRouter>
-    </>
+    <BrowserRouter>
+      <AppContents />
+    </BrowserRouter>
   );
 }
 

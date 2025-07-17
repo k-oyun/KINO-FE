@@ -222,10 +222,6 @@ const AdminModal = ({
     reportContent: "",
   });
 
-  useEffect(() => {
-    console.log(reportProcessType);
-  }, [reportProcessType]);
-
   const processType: ProcessType = {
     "선택하세요.": -1,
     "처리 안함": 0,

@@ -1,21 +1,17 @@
+import { useEffect, useState } from "react";
 import { styled } from "styled-components";
+import ReportModal from "../ReportModal";
 
 interface DetailReview {
-  id: string;
+  reviewId: string;
+  userProfile: string;
+  userNickname: string;
   title: string;
-  image: string;
   content: string;
-  likes: number;
-  views: number;
-  comments: number;
+  likeCount: number;
+  totalViews: number;
+  commentCount: number;
   createdAt: string;
-  reviewer?: Reviewer;
-}
-
-interface Reviewer {
-  id: string;
-  nickname: string;
-  image: string;
 }
 
 // --- 공통 스타일드 컴포넌트 ---
@@ -71,6 +67,14 @@ const LikesDisplay = styled.span`
   align-items: center;
   gap: 3px;
   color: #000;
+`;
+
+const CommentDisplay = styled.span`
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  color: #000;
+  background-image: url("https://img.icons8.com/?size=100&id=61f1pL4hEqO1&format=png&color=000000");
 `;
 
 const ThreeDotsMenu = styled.button`
@@ -182,6 +186,44 @@ interface DetailReviewCardProps {
   onClick?: () => void;
 }
 
+const PopMenu = styled.ul<styleType>`
+  position: absolute;
+  right: -2px;
+  top: 22px;
+  background: #fff;
+  /* border: 1px solid #ccc; */
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  border-radius: 6px;
+  padding: 8px 0;
+  z-index: 10;
+  min-width: 90px;
+  list-style: none;
+`;
+
+const MenuItem = styled.li<styleType>`
+  padding: 4px;
+  font-size: ${(props) => (props.$ismobile ? "0.8em" : "1em")};
+  color: #222;
+  cursor: pointer;
+
+  &:hover {
+    background: #f9e5ed;
+    color: #fff;
+  }
+`;
+
+const MenuItemReport = styled.li<styleType>`
+  padding: 4px;
+  font-size: ${(props) => (props.$ismobile ? "0.8em" : "1em")};
+  color: #222;
+  cursor: pointer;
+
+  &:hover {
+    background: #e7e7e7;
+    color: #fd6782;
+  }
+`;
+
 const DetailReviewCard: React.FC<DetailReviewCardProps> = ({
   review,
   isMine,
@@ -189,47 +231,119 @@ const DetailReviewCard: React.FC<DetailReviewCardProps> = ({
   movieTitle,
   isMobile,
   onClick,
-}) => (
-  <DetailReviewCardContainer $ismobile={isMobile} onClick={onClick}>
-    <DetailMoviePoster
-      $ismobile={isMobile}
-      $showProfile={showProfile}
-      src={review.image}
-      alt="리뷰 첨부 이미지"
-    />
-    <ProfileNReview $ismobile={isMobile}>
-      {showProfile && review.reviewer && (
-        <UserProfile $ismobile={isMobile}>
-          <UserImage
-            $ismobile={isMobile}
-            src={review.reviewer.image}
-            alt={review.reviewer.nickname}
-          />
-          <UserText $ismobile={isMobile}>
-            <UserNickname $ismobile={isMobile} /> {review.reviewer.nickname}x
-          </UserText>
-        </UserProfile>
+}) => {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const handleMenuClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setMenuOpen((prev) => !prev);
+  };
+
+  const [isReportOpen, setIsReportOpen] = useState(false);
+  const handleReportClick = () => {
+    setIsReportOpen(true);
+    setMenuOpen(false);
+  };
+
+  useEffect(() => {
+    const handleClickOutside = () => setMenuOpen(false);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [menuOpen]);
+
+  return (
+    <>
+      <DetailReviewCardContainer $ismobile={isMobile} onClick={onClick}>
+        <DetailMoviePoster
+          $ismobile={isMobile}
+          $showProfile={showProfile}
+          src={review.userProfile}
+          alt="리뷰 첨부 이미지"
+        />
+        <ProfileNReview $ismobile={isMobile}>
+          {showProfile && (
+            <UserProfile $ismobile={isMobile}>
+              <UserImage
+                $ismobile={isMobile}
+                src={review.userProfile}
+                alt={review.userNickname}
+              />
+              <UserText $ismobile={isMobile}>
+                <UserNickname $ismobile={isMobile} /> {review.userNickname}x
+              </UserText>
+            </UserProfile>
+          )}
+          <DetailReviewContentWrapper>
+            <DetailReviewTitleText $ismobile={isMobile}>
+              {review.title}
+            </DetailReviewTitleText>
+            {movieTitle && (
+              <DetailReviewMovieTitleText>
+                영화: {movieTitle}
+              </DetailReviewMovieTitleText>
+            )}
+            <ReviewText $ismobile={isMobile}>{review.content}</ReviewText>
+            <DetailReviewFooter $ismobile={isMobile}>
+              <MetaInfo>
+                <LikesDisplay>♥ {review.likeCount}</LikesDisplay>
+                <CommentDisplay>{review.commentCount}</CommentDisplay>
+              </MetaInfo>
+              <MetaInfo>{review.createdAt}</MetaInfo>
+            </DetailReviewFooter>
+          </DetailReviewContentWrapper>
+        </ProfileNReview>
+        <ThreeDotsMenu
+          style={{ alignSelf: "flex-start", position: "relative" }}
+          onClick={handleMenuClick}
+        >
+          ⋮
+          {menuOpen && (
+            <PopMenu $ismobile={isMobile} onClick={(e) => e.stopPropagation()}>
+              {isMine ? (
+                <>
+                  <MenuItem
+                    $ismobile={isMobile}
+                    onClick={() => {
+                      setMenuOpen(false); /* 수정 함수 */
+                    }}
+                  >
+                    수정
+                  </MenuItem>
+                  <MenuItem
+                    $ismobile={isMobile}
+                    onClick={() => {
+                      setMenuOpen(false); /* 삭제 함수 */
+                    }}
+                  >
+                    삭제
+                  </MenuItem>
+                  <MenuItemReport
+                    $ismobile={isMobile}
+                    onClick={() => {
+                      handleReportClick(); /* 신고 함수 */
+                    }}
+                  >
+                    신고
+                  </MenuItemReport>
+                </>
+              ) : (
+                <MenuItemReport
+                  $ismobile={isMobile}
+                  onClick={() => {
+                    handleReportClick(); /* 신고 함수 */
+                  }}
+                >
+                  신고
+                </MenuItemReport>
+              )}
+            </PopMenu>
+          )}
+        </ThreeDotsMenu>
+      </DetailReviewCardContainer>
+      {isReportOpen && (
+        <ReportModal setIsModalOpen={setIsReportOpen}></ReportModal>
       )}
-      <DetailReviewContentWrapper>
-        <DetailReviewTitleText $ismobile={isMobile}>
-          {review.title}
-        </DetailReviewTitleText>
-        {movieTitle && (
-          <DetailReviewMovieTitleText>
-            영화: {movieTitle}
-          </DetailReviewMovieTitleText>
-        )}
-        <ReviewText $ismobile={isMobile}>{review.content}</ReviewText>
-        <DetailReviewFooter $ismobile={isMobile}>
-          <MetaInfo>
-            <LikesDisplay>👍 {review.likes}</LikesDisplay>
-          </MetaInfo>
-          <MetaInfo>{review.createdAt}</MetaInfo>
-        </DetailReviewFooter>
-      </DetailReviewContentWrapper>
-    </ProfileNReview>
-    <ThreeDotsMenu style={{ alignSelf: "flex-start" }}>...</ThreeDotsMenu>
-  </DetailReviewCardContainer>
-);
+    </>
+  );
+};
 
 export default DetailReviewCard;

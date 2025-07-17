@@ -5,6 +5,7 @@ import kakao from "../assets/img/kakaoBtn.png";
 import naver from "../assets/img/naverBtn.png";
 import google from "../assets/img/googleBtn.png";
 import { useMediaQuery } from "react-responsive";
+import useAuthApi from "../api/auth";
 
 interface styleProp {
   $ismobile: boolean;
@@ -47,10 +48,25 @@ const LoginBtn = styled.img<styleProp>`
 const Login = () => {
   const isMobile = useMediaQuery({ query: "(max-width: 767px)" });
   const loginButtons = [
-    { src: naver, alt: "naver" },
-    { src: kakao, alt: "kakao" },
-    { src: google, alt: "google" },
+    { src: naver, alt: "naver", value: "naver" },
+    { src: kakao, alt: "kakao", value: "kakao" },
+    { src: google, alt: "google", value: "google" },
   ];
+  const { login } = useAuthApi();
+  const handleLogin = async (provider: string) => {
+    try {
+      const res = await login(provider);
+      console.log("로그인", res);
+    } catch (error: any) {
+      const redirectUri =
+        error?.response?.data?.redirectUri || error?.response?.data?.data;
+      if (redirectUri) {
+        window.location.href = redirectUri;
+      } else {
+        console.error("로그인", error);
+      }
+    }
+  };
   return (
     <>
       <LoginContainer>
@@ -61,6 +77,7 @@ const Login = () => {
             src={btn.src}
             alt={`${btn.alt}`}
             $ismobile={isMobile}
+            onClick={() => handleLogin(btn.value)}
           />
         ))}
       </LoginContainer>

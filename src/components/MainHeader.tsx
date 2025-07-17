@@ -5,6 +5,7 @@ import { useMediaQuery } from "react-responsive";
 import profileIcon from "../assets/img/profileIcon.png";
 import logoText from "../assets/img/LogoTxt.png";
 import { SearchBar } from "./SearchBar";
+import { useNavigate } from "react-router-dom";
 
 interface styleType {
   $ismobile: boolean;
@@ -174,7 +175,7 @@ const MainHeader = ({ keyword, setKeyword }: SearchBarProps) => {
   const menuItems = [
     { label: "홈", path: "/" },
     { label: "커뮤니티", path: "/comnmuniy" },
-    { label: "영화", path: "/movies" },
+    { label: "영화", path: "/movie" },
     { label: "내가 찜한 리스트", path: "/wish" },
   ];
 
@@ -183,14 +184,18 @@ const MainHeader = ({ keyword, setKeyword }: SearchBarProps) => {
     setIsMenuPopupOpen(false);
   };
 
-  const handleMenuPopup = () => {
+  const handleMenuPopup = (path: string) => {
     setIsMenuPopupOpen((prev) => !prev);
     setIsPopupOpen(false);
+    console.log("dasdsad");
+    navigate(`${path}`);
   };
 
   const onClickMypage = () => {
     setIsPopupOpen(false);
+    navigate("/mypage");
   };
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (!isPopupOpen && !isMenuPopupOpen) return;
@@ -215,11 +220,21 @@ const MainHeader = ({ keyword, setKeyword }: SearchBarProps) => {
   return (
     <>
       <HeaderContainer $ismobile={isMobile}>
-        <Logo $ismobile={isMobile} src={logoText} alt="로고 이미지" />
+        <Logo
+          $ismobile={isMobile}
+          src={logoText}
+          alt="로고 이미지"
+          onClick={() => navigate("/")}
+        />
         <HeaderMenuContainer $ismobile={isMobile}>
           {isMobile ? (
             <>
-              <HeaderMenuBtn $ismobile={isMobile} onClick={handleMenuPopup}>
+              <HeaderMenuBtn
+                $ismobile={isMobile}
+                onClick={() => {
+                  setIsMenuPopupOpen(true);
+                }}
+              >
                 메뉴
                 <MenuPopupText $ismenupopupopen={isMenuPopupOpen}>
                   ▼
@@ -238,7 +253,7 @@ const MainHeader = ({ keyword, setKeyword }: SearchBarProps) => {
                       key={path}
                       $ismobile={isMobile}
                       style={{ width: "100%" }}
-                      onClick={handleMenuPopup}
+                      onClick={() => handleMenuPopup(path)}
                     >
                       {label}
                     </HeaderMenuBtn>
@@ -249,7 +264,11 @@ const MainHeader = ({ keyword, setKeyword }: SearchBarProps) => {
           ) : (
             <>
               {menuItems.map(({ label, path }) => (
-                <HeaderMenuBtn key={path} $ismobile={isMobile}>
+                <HeaderMenuBtn
+                  key={path}
+                  $ismobile={isMobile}
+                  onClick={() => handleMenuPopup(path)}
+                >
                   {label}
                 </HeaderMenuBtn>
               ))}
