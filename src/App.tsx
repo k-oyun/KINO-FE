@@ -16,6 +16,9 @@ import MovieDetail from "./pages/MovieDetail";
 import { usePreferMode } from "./hooks/usePreferMode";
 import GlobalStyle from "./styles/GlobalStyle";
 import Admin from "./pages/Admin";
+import CommunityCreatePage from "./pages/community/CommunityCreatePage";
+import CommunityDetailPage from "./pages/community/CommunityDetailPage";
+import CommunityListPage from "./pages/community/CommunityListPage";
 
 function HeaderSelector() {
   const location = useLocation();
@@ -59,9 +62,15 @@ function App() {
             />
             <Route path="/mypage/settings" element={<MySettingsPage />} />
             <Route path="/mypage/tags" element={<MyTagsPage />} />
-            <Route path="/mypage" element={<MyPageMain />} />
-            <Route path="/mypage" element={<MyPageMain />} />
-            <Route path="/mypage" element={<MyPageMain />} />
+            <Route
+              path="/community/new"
+              element={<CommunityCreatePage />}
+            />
+            <Route
+              path="/community/posts/:id"
+              element={<CommunityDetailPage />}
+            />
+            <Route path="/community" element={<CommunityListPage />} />
           </Routes>
         </ThemeProvider>
       </BrowserRouter>
