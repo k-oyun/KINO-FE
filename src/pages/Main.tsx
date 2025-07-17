@@ -2,8 +2,9 @@ import styled from "styled-components";
 import MainHeader from "../components/MainHeader";
 import { useEffect, useState } from "react";
 import SurveyModal from "../components/SurveyModal";
-import teaser from "../assets/video/teaser.mp4";
+import teaservideo from "../assets/video/teaser.mp4";
 import useHomeApi from "../api/home";
+import Review from "../components/Review";
 
 const MainContainer = styled.div`
   display: flex;
@@ -21,6 +22,7 @@ const VideoContainer = styled.div`
   align-items: center;
   position: relative;
   scroll-snap-align: start;
+  /* position: fixed; */
 `;
 
 const Video = styled.iframe`
@@ -45,7 +47,7 @@ const ListContainer = styled.div`
 
 const MovieContainer = styled.div`
   width: 100%;
-  height: 200px;
+  height: 300px;
   position: relative;
   margin-top: 20px;
   margin-left: 40px;
@@ -63,12 +65,13 @@ const MoviesSlider = styled.div`
 
 const Movies = styled.div`
   display: inline-block;
-  width: 200px;
-  height: 120px;
+  width: 100px;
+  height: 150px;
   margin-right: 8px;
   background-color: #ddd;
   text-align: center;
   line-height: 120px;
+  position: relative;
 `;
 
 const PreviousSlideBtn = styled.button`
@@ -177,16 +180,17 @@ const Main = () => {
     console.log("검색 결과", searchedMovieList);
   }, [keyword]);
 
-  const sliderData = [
-    { prefix: "사용자 좋아요", highlight: "TOP 10 리뷰" },
+  const reviewData = [{ prefix: "사용자 좋아요", highlight: "TOP 10 리뷰" }];
+  const movieData = [
     { prefix: "사용자 좋아요", highlight: "TOP 10 영화" },
     { prefix: "현재 상영작 박스 오피스", highlight: "TOP 10 영화" },
     { prefix: "일별 조회수", highlight: "TOP 10 영화" },
     { prefix: "월별 조회수", highlight: "TOP 10 영화" },
     { prefix: "추천 TOP 10 영화", highlight: "" },
   ];
+
+  const reviewLists = [topLikeReviewList];
   const movieLists = [
-    topLikeReviewList, // 사용자 좋아요 TOP 10 리뷰
     topPickMovieList, // 사용자 좋아요 TOP 10 영화
     boxOfficeMovieList, // 박스 오피스 TOP 10 영화
     dailyTopMovieList, // 일별 조회수 TOP 10 영화
@@ -222,32 +226,72 @@ const Main = () => {
             title="YouTube video player"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
             allowFullScreen
+            // src={teaservideo}
+            // autoPlay
+            // muted
+            // loop
+            // playsInline
+            // controls={false}
           />
         </VideoContainer>
-        <ListContainer>
-          {sliderData.map(({ prefix, highlight }, idx) => (
-            <MovieContainer key={idx}>
-              <SliderTypeTxt>
-                {prefix} <strong>{highlight}</strong>
-              </SliderTypeTxt>
-              <MoviesSlider>
-                {movieLists[idx] && movieLists[idx].length > 0 ? (
-                  movieLists[idx].map((movie, movieIdx) => (
-                    <Movies key={movie.movie_id}>
-                      <img
-                        src={movie.poster_url}
-                        alt={movie.title}
-                        style={{ width: "220px" }}
-                      />
-                    </Movies>
-                  ))
-                ) : (
-                  <div>영화 없음</div>
-                )}
-              </MoviesSlider>
-            </MovieContainer>
-          ))}
-        </ListContainer>
+        {keyword !== "" ? (
+          <></>
+        ) : (
+          <ListContainer>
+            {reviewData.map(({ prefix, highlight }, idx) => (
+              <MovieContainer key={idx}>
+                <SliderTypeTxt>
+                  {prefix} <strong>{highlight}</strong>
+                </SliderTypeTxt>
+                <MoviesSlider>
+                  {reviewLists[idx] && reviewLists[idx].length > 0 ? (
+                    reviewLists[idx].map((review, reviewIdx) => (
+                      <Movies key={review.movieId}>
+                        {/* <img
+                          src={movie.poster_url}
+                          alt={movie.title}
+                          style={{
+                            position: "relative",
+                            width: "100%",
+                            height: "100%",
+                          }}
+                        /> */}
+                      </Movies>
+                    ))
+                  ) : (
+                    <div>영화 없음</div>
+                  )}
+                </MoviesSlider>
+              </MovieContainer>
+            ))}
+            {movieData.map(({ prefix, highlight }, idx) => (
+              <MovieContainer key={idx}>
+                <SliderTypeTxt>
+                  {prefix} <strong>{highlight}</strong>
+                </SliderTypeTxt>
+                <MoviesSlider>
+                  {movieLists[idx] && movieLists[idx].length > 0 ? (
+                    movieLists[idx].map((movie, movieIdx) => (
+                      <Movies key={movie.movie_id}>
+                        <img
+                          src={movie.poster_url}
+                          alt={movie.title}
+                          style={{
+                            position: "relative",
+                            width: "100%",
+                            height: "100%",
+                          }}
+                        />
+                      </Movies>
+                    ))
+                  ) : (
+                    <div>영화 없음</div>
+                  )}
+                </MoviesSlider>
+              </MovieContainer>
+            ))}
+          </ListContainer>
+        )}
       </MainContainer>
     </>
   );

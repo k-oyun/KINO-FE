@@ -195,6 +195,12 @@ const MainHeader = ({ keyword, setKeyword }: SearchBarProps) => {
     setIsPopupOpen(false);
     navigate("/mypage");
   };
+
+  const onClickLogout = () => {
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
+    navigate("/login");
+  };
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -306,7 +312,7 @@ const MainHeader = ({ keyword, setKeyword }: SearchBarProps) => {
           transition={{ duration: 0.3 }}
         >
           <PopupBtn onClick={onClickMypage}>마이페이지</PopupBtn>
-          <PopupBtn>로그아웃</PopupBtn>
+          <PopupBtn onClick={onClickLogout}>로그아웃</PopupBtn>
         </Popup>
       )}
     </>
