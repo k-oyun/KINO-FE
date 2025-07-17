@@ -1,6 +1,7 @@
-import React from 'react';
-import styled from 'styled-components';
-import { useNavigate } from 'react-router-dom';
+import React from "react";
+import styled from "styled-components";
+import { useNavigate } from "react-router-dom";
+import DetailReviewCard from "./DetailReviewCard";
 
 interface ShortReview {
   id: string;
@@ -9,17 +10,25 @@ interface ShortReview {
   rating: number;
   likeCount: number;
   createdAt: string;
+  reviewer?: Reviewer;
 }
 
 interface DetailReview {
   id: string;
-  movieTitle: string;
-  moviePosterUrl: string;
   title: string;
+  image: string;
   content: string;
-  rating: number;
-  likeCount: number;
+  likes: number;
+  views: number;
+  comments: number;
   createdAt: string;
+  reviewer?: Reviewer;
+}
+
+interface Reviewer {
+  id: string;
+  nickname: string;
+  image: string;
 }
 
 // --- 공통 스타일드 컴포넌트 ---
@@ -125,7 +134,10 @@ interface ShortReviewCardProps {
   onClick: () => void;
 }
 
-const ShortReviewCard: React.FC<ShortReviewCardProps> = ({ review, onClick }) => (
+const ShortReviewCard: React.FC<ShortReviewCardProps> = ({
+  review,
+  onClick,
+}) => (
   <ShortReviewCardContainer onClick={onClick}>
     <ShortReviewHeader>
       <ShortReviewMovieInfo>
@@ -144,95 +156,46 @@ const ShortReviewCard: React.FC<ShortReviewCardProps> = ({ review, onClick }) =>
   </ShortReviewCardContainer>
 );
 
-// --- DetailReviewCard 컴포넌트 ---
-const DetailReviewCardContainer = styled(CardBase)`
-  flex-direction: row;
-  align-items: flex-start;
-  gap: 15px;
-`;
-
-const DetailMoviePoster = styled.img`
-  width: 80px;
-  height: 120px;
-  object-fit: cover;
-  border-radius: 4px;
-  flex-shrink: 0;
-`;
-
-const DetailReviewContentWrapper = styled.div`
-  display: flex;
-  flex-direction: column;
-  flex-grow: 1;
-`;
-
-const DetailReviewTitleText = styled.h4`
-  font-weight: bold;
-  color: #f0f0f0;
-  font-size: 1.15em;
-  margin: 0 0 5px;
-`;
-
-const DetailReviewMovieTitleText = styled.p`
-  color: #bbb;
-  font-size: 0.9em;
-  margin: 0 0 8px;
-`;
-
-const DetailReviewFooter = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 10px;
-`;
-
-interface DetailReviewCardProps {
-  review: DetailReview;
-  onClick: () => void;
-}
-
-const DetailReviewCard: React.FC<DetailReviewCardProps> = ({ review, onClick }) => (
-  <DetailReviewCardContainer onClick={onClick}>
-    {review.moviePosterUrl && <DetailMoviePoster src={review.moviePosterUrl} alt="영화 포스터" />}
-    <DetailReviewContentWrapper>
-      <DetailReviewTitleText>{review.title}</DetailReviewTitleText>
-      <DetailReviewMovieTitleText>영화: {review.movieTitle}</DetailReviewMovieTitleText>
-      <ReviewText>{review.content}</ReviewText>
-      <DetailReviewFooter>
-        <MetaInfo>
-          <RatingDisplay>⭐ {review.rating}</RatingDisplay>
-          <LikesDisplay>👍 {review.likeCount}</LikesDisplay>
-        </MetaInfo>
-        <MetaInfo>{review.createdAt}</MetaInfo>
-      </DetailReviewFooter>
-    </DetailReviewContentWrapper>
-    <ThreeDotsMenu style={{ alignSelf: 'flex-start' }}>...</ThreeDotsMenu>
-  </DetailReviewCardContainer>
-);
-
 // --- ReviewCard (메인 진입점) ---
 interface ReviewCardProps {
   review: ShortReview | DetailReview;
-  type: 'short' | 'detail';
+  type: "short" | "detail";
 }
 
 const ReviewCard: React.FC<ReviewCardProps> = ({ review, type }) => {
   const navigate = useNavigate();
 
   const handleCardClick = () => {
-    if (type === 'short') {
+    if (type === "short") {
       navigate(`/reviews/short/${review.id}`);
     } else {
       navigate(`/reviews/detail/${review.id}`);
     }
   };
 
+  const reviewer = {
+    id: "reviewer_001",
+    nickname: "시영",
+    image:
+      "https://img.danawa.com/prod_img/500000/981/068/img/63068981_1.jpg?_v=20250413191900&shrink=360:360",
+  };
+  review.reviewer = reviewer; // 임시로 reviewer 추가
+
   return (
     <>
-      {type === 'short' && (
-        <ShortReviewCard review={review as ShortReview} onClick={handleCardClick} />
+      {type === "short" && (
+        <ShortReviewCard
+          review={review as ShortReview}
+          onClick={handleCardClick}
+        />
       )}
-      {type === 'detail' && (
-        <DetailReviewCard review={review as DetailReview} onClick={handleCardClick} />
+      {type === "detail" && (
+        <DetailReviewCard
+          review={review as DetailReview}
+          isMine={true}
+          showProfile={false}
+          onClick={handleCardClick}
+        />
       )}
     </>
   );

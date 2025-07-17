@@ -1,5 +1,3 @@
-// App.tsx
-
 import "./App.css";
 import Header from "./components/Header";
 import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom";
@@ -13,46 +11,57 @@ import MySettingsPage from "./pages/mypage/MySettingsPage";
 import MyTagsPage from "./pages/mypage/MyTagsPage";
 import Login from "./pages/Login";
 import Main from "./pages/Main";
+import Movie from "./pages/Movie";
+import MovieDetail from "./pages/MovieDetail";
 import { usePreferMode } from "./hooks/usePreferMode";
 import GlobalStyle from "./styles/GlobalStyle";
-import Movie from "./pages/Movie";
 import Admin from "./pages/Admin";
-import CommunityListPage from "./pages/community/CommunityListPage";
-import CommunityCreatePage from "./pages/community/CommunityCreatePage";
-import CommunityDetailPage from "./pages/community/CommunityDetailPage";
-
 
 function HeaderSelector() {
   const location = useLocation();
   const path = location.pathname;
 
-  if (path === "/Login") return null;
+  if (path === "/Login" || path === "/login") return null;
   if (path === "/") return null;
+
   return <Header />;
 }
 
 function App() {
   const isDarkMode = usePreferMode();
+  const isAdminPage = location.pathname === "/admin";
   return (
     <>
-    <BrowserRouter>
-      <ThemeProvider theme={isDarkMode ? darkTheme : lightTheme}>
-        <GlobalStyle />
+      <BrowserRouter>
+        <ThemeProvider
+          theme={isAdminPage ? lightTheme : isDarkMode ? darkTheme : lightTheme}
+        >
+          <GlobalStyle />
           <HeaderSelector />
           <Routes>
             <Route path="/" element={<Main />}></Route>
-            <Route path="/Login" element={<Login />}></Route>
-            <Route path="/Movie" element={<Movie />}></Route>
-            <Route path="/Admin" element={<Admin />}></Route>
-            <Route path ="/mypage" element={<MyPageMain />} />
-            <Route path ="/mypage/reviews/short" element={<MyReviewsShortPage />} />
-            <Route path ="/mypage/reviews/detail" element={<MyReviewsDetailPage />} />
-            <Route path ="/mypage/movies/favorite" element={<MyFavoriteMoviesPage />} />
-            <Route path ="/mypage/settings" element={<MySettingsPage />} />
-            <Route path ="/mypage/tags" element={<MyTagsPage />} />
-            <Route path="/community" element={<CommunityListPage />} />
-            <Route path="/community/new" element={<CommunityCreatePage />} />
-            <Route path="/community/posts/:id" element={<CommunityDetailPage />} />
+            <Route path="/login" element={<Login />}></Route>
+            <Route path="/movie" element={<Movie />}></Route>
+            <Route path="/movie/:id" element={<MovieDetail />}></Route>
+            <Route path="/admin" element={<Admin />}></Route>
+            <Route path="/mypage" element={<MyPageMain />} />
+            <Route
+              path="/mypage/reviews/short"
+              element={<MyReviewsShortPage />}
+            />
+            <Route
+              path="/mypage/reviews/detail"
+              element={<MyReviewsDetailPage />}
+            />
+            <Route
+              path="/mypage/movies/favorite"
+              element={<MyFavoriteMoviesPage />}
+            />
+            <Route path="/mypage/settings" element={<MySettingsPage />} />
+            <Route path="/mypage/tags" element={<MyTagsPage />} />
+            <Route path="/mypage" element={<MyPageMain />} />
+            <Route path="/mypage" element={<MyPageMain />} />
+            <Route path="/mypage" element={<MyPageMain />} />
           </Routes>
         </ThemeProvider>
       </BrowserRouter>
