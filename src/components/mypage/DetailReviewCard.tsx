@@ -184,7 +184,7 @@ interface DetailReviewCardProps {
 
 const DetailReviewCard: React.FC<DetailReviewCardProps> = ({
   review,
-  isMine,
+  // isMine,
   showProfile,
   movieTitle,
   isMobile,
