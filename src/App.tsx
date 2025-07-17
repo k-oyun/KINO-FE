@@ -16,24 +16,25 @@ import MovieDetail from "./pages/MovieDetail";
 import { usePreferMode } from "./hooks/usePreferMode";
 import GlobalStyle from "./styles/GlobalStyle";
 import Admin from "./pages/Admin";
-import ReportModal from "./components/ReportModal";
-import { useState } from "react";
+import KakaoCallback from "./components/KakaoCallback";
+import GoogleCallback from "./components/GoogleCallback";
+import NaverCallback from "./components/NaverCallback";
 
-function HeaderSelector() {
-  const location = useLocation();
-  const path = location.pathname;
-
+const HeaderSelector = ({ path }: { path: string }) => {
   if (path === "/Login" || path === "/login") return null;
   if (path === "/") return null;
 
   return <Header />;
-}
+};
 
-function App() {
+const AppContents = () => {
   const isDarkMode = usePreferMode();
-  const isAdminPage = location.pathname === "/admin";
+  const location = useLocation();
+  const path = location.pathname;
+  const isAdminPage = path === "/admin";
+
   return (
-    <>
+    
       <BrowserRouter>
         <ThemeProvider
           theme={isAdminPage ? lightTheme : isDarkMode ? darkTheme : lightTheme}
@@ -43,6 +44,9 @@ function App() {
           <Routes>
             <Route path="/" element={<Main />}></Route>
             <Route path="/login" element={<Login />}></Route>
+            <Route path="/api/auth/oauth/kakao" element={<KakaoCallback />} />
+            <Route path="/api/auth/oauth/google" element={<GoogleCallback />} />
+            <Route path="/api/auth/oauth/naver" element={<NaverCallback />} />
             <Route path="/movie" element={<Movie />}></Route>
             <Route path="/movie/:id" element={<MovieDetail />}></Route>
             <Route path="/admin" element={<Admin />}></Route>
@@ -64,7 +68,15 @@ function App() {
           </Routes>
         </ThemeProvider>
       </BrowserRouter>
-    </>
+    
+  );
+};
+
+function App() {
+  return (
+    <BrowserRouter>
+      <AppContents />
+    </BrowserRouter>
   );
 }
 
