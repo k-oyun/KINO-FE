@@ -20,12 +20,12 @@ interface ShortReview {
 
 interface DetailReview {
   id: string;
-  title?: string;
+  title: string;
   image: string;
   content: string;
-  likes?: number;
-  views?: number;
-  comments?: number;
+  likes: number;
+  views: number;
+  comments: number;
   createdAt: string;
   reviewer?: Reviewer;
 }
