@@ -19,6 +19,9 @@ import Admin from "./pages/Admin";
 import CommunityCreatePage from "./pages/community/CommunityCreatePage";
 import CommunityDetailPage from "./pages/community/CommunityDetailPage";
 import CommunityListPage from "./pages/community/CommunityListPage";
+import MyFollowersPage from "./pages/mypage/MyFollowersPage";
+import MyFollowingPage from "./pages/mypage/MyFollowingPage";
+import GlobalBackgroundLayer from "./components/GlobalBackgroundLayer";
 
 function HeaderSelector() {
   const location = useLocation();
@@ -36,6 +39,7 @@ function App() {
   return (
     <>
       <BrowserRouter>
+      <GlobalBackgroundLayer /> {/* ⭐ 여기에 추가 */}
         <ThemeProvider
           theme={isAdminPage ? lightTheme : isDarkMode ? darkTheme : lightTheme}
         >
@@ -71,6 +75,8 @@ function App() {
               element={<CommunityDetailPage />}
             />
             <Route path="/community" element={<CommunityListPage />} />
+            <Route path="/mypage/followers" element={<MyFollowersPage />} />
+            <Route path="/mypage/following" element={<MyFollowingPage />} />
           </Routes>
         </ThemeProvider>
       </BrowserRouter>

@@ -2,31 +2,32 @@ import React from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import MovieCard from '../../components/mypage/MovieCard';
+import VideoBackground from '../../components/VideoBackground';
 
 interface FavoriteMovieType {
   id: string;
-  title: string;
+  movieTitle: string;
   director: string;
   releaseDate: string;
   posterUrl: string;
 }
 
 const DUMMY_FAVORITE_MOVIES: FavoriteMovieType[] = [
-  { id: 'fm1', title: '인터스텔라', director: '크리스토퍼 놀란', releaseDate: '2014', posterUrl: 'https://via.placeholder.com/200x300/3498db/ffffff?text=Interstellar' },
-  { id: 'fm2', title: '아바타: 물의 길', director: '제임스 카메론', releaseDate: '2022', posterUrl: 'https://via.placeholder.com/200x300/9b59b6/ffffff?text=Avatar2' },
-  { id: 'fm3', title: '스파이더맨: 노 웨이 홈', director: '존 왓츠', releaseDate: '2021', posterUrl: 'https://via.placeholder.com/200x300/e67e22/ffffff?text=Spiderman' },
-  { id: 'fm4', title: '기생충', director: '봉준호', releaseDate: '2019', posterUrl: 'https://via.placeholder.com/200x300/27ae60/ffffff?text=Parasite' },
-  { id: 'fm5', title: '범죄도시 3', director: '이상용', releaseDate: '2023', posterUrl: 'https://via.placeholder.com/200x300/c0392b/ffffff?text=The+Outlaws3' },
-  { id: 'fm6', title: '명량', director: '김한민', releaseDate: '2014', posterUrl: 'https://via.placeholder.com/200x300/f39c12/ffffff?text=Myeongnyang' },
-  { id: 'fm7', title: '극한직업', director: '이병헌', releaseDate: '2019', posterUrl: 'https://via.placeholder.com/200x300/1abc9c/ffffff?text=Extreme+Job' },
-  { id: 'fm8', title: '겨울왕국 2', director: '크리스 벅, 제니퍼 리', releaseDate: '2019', posterUrl: 'https://via.placeholder.com/200x300/95a5a6/ffffff?text=Frozen2' },
-  { id: 'fm9', title: '테넷', director: '크리스토퍼 놀란', releaseDate: '2020', posterUrl: 'https://via.placeholder.com/200x300/7f8c8d/ffffff?text=Tenet' },
-  { id: 'fm10', title: '어벤져스: 인피니티 워', director: '안소니 루소, 조 루소', releaseDate: '2018', posterUrl: 'https://via.placeholder.com/200x300/c0392b/ffffff?text=Infinity+War' },
-  { id: 'fm11', title: '소울', director: '피트 닥터', releaseDate: '2020', posterUrl: 'https://via.placeholder.com/200x300/2980b9/ffffff?text=Soul' },
-  { id: 'fm12', title: '토이 스토리 4', director: '조시 쿨리', releaseDate: '2019', posterUrl: 'https://via.placeholder.com/200x300/e74c3c/ffffff?text=Toy+Story4' },
-  { id: 'fm13', title: '토이 스토리 4', director: '조시 쿨리', releaseDate: '2019', posterUrl: 'https://via.placeholder.com/200x300/e74c3c/ffffff?text=Toy+Story4' },
-  { id: 'fm14', title: '토이 스토리 4', director: '조시 쿨리', releaseDate: '2019', posterUrl: 'https://via.placeholder.com/200x300/e74c3c/ffffff?text=Toy+Story4' },
-  { id: 'fm15', title: '토이 스토리 4', director: '조시 쿨리', releaseDate: '2019', posterUrl: 'https://via.placeholder.com/200x300/e74c3c/ffffff?text=Toy+Story4' },
+  { id: 'fm1', movieTitle: '인터스텔라', director: '크리스토퍼 놀란', releaseDate: '2014', posterUrl: 'https://via.placeholder.com/200x300/3498db/ffffff?text=Interstellar' },
+  { id: 'fm2', movieTitle: '아바타: 물의 길', director: '제임스 카메론', releaseDate: '2022', posterUrl: 'https://via.placeholder.com/200x300/9b59b6/ffffff?text=Avatar2' },
+  { id: 'fm3', movieTitle: '스파이더맨: 노 웨이 홈', director: '존 왓츠', releaseDate: '2021', posterUrl: 'https://via.placeholder.com/200x300/e67e22/ffffff?text=Spiderman' },
+  { id: 'fm4', movieTitle: '기생충', director: '봉준호', releaseDate: '2019', posterUrl: 'https://via.placeholder.com/200x300/27ae60/ffffff?text=Parasite' },
+  { id: 'fm5', movieTitle: '범죄도시 3', director: '이상용', releaseDate: '2023', posterUrl: 'https://via.placeholder.com/200x300/c0392b/ffffff?text=The+Outlaws3' },
+  { id: 'fm6', movieTitle: '명량', director: '김한민', releaseDate: '2014', posterUrl: 'https://via.placeholder.com/200x300/f39c12/ffffff?text=Myeongnyang' },
+  { id: 'fm7', movieTitle: '극한직업', director: '이병헌', releaseDate: '2019', posterUrl: 'https://via.placeholder.com/200x300/1abc9c/ffffff?text=Extreme+Job' },
+  { id: 'fm8', movieTitle: '겨울왕국 2', director: '크리스 벅, 제니퍼 리', releaseDate: '2019', posterUrl: 'https://via.placeholder.com/200x300/95a5a6/ffffff?text=Frozen2' },
+  { id: 'fm9', movieTitle: '테넷', director: '크리스토퍼 놀란', releaseDate: '2020', posterUrl: 'https://via.placeholder.com/200x300/7f8c8d/ffffff?text=Tenet' },
+  { id: 'fm10', movieTitle: '어벤져스: 인피니티 워', director: '안소니 루소, 조 루소', releaseDate: '2018', posterUrl: 'https://via.placeholder.com/200x300/c0392b/ffffff?text=Infinity+War' },
+  { id: 'fm11', movieTitle: '소울', director: '피트 닥터', releaseDate: '2020', posterUrl: 'https://via.placeholder.com/200x300/2980b9/ffffff?text=Soul' },
+  { id: 'fm12', movieTitle: '토이 스토리 4', director: '조시 쿨리', releaseDate: '2019', posterUrl: 'https://via.placeholder.com/200x300/e74c3c/ffffff?text=Toy+Story4' },
+  { id: 'fm13', movieTitle: '토이 스토리 4', director: '조시 쿨리', releaseDate: '2019', posterUrl: 'https://via.placeholder.com/200x300/e74c3c/ffffff?text=Toy+Story4' },
+  { id: 'fm14', movieTitle: '토이 스토리 4', director: '조시 쿨리', releaseDate: '2019', posterUrl: 'https://via.placeholder.com/200x300/e74c3c/ffffff?text=Toy+Story4' },
+  { id: 'fm15', movieTitle: '토이 스토리 4', director: '조시 쿨리', releaseDate: '2019', posterUrl: 'https://via.placeholder.com/200x300/e74c3c/ffffff?text=Toy+Story4' },
 ];
 
 const PageContainer = styled.div`
@@ -48,7 +49,7 @@ const PageContainer = styled.div`
 `;
 
 const SectionWrapper = styled.div`
-  background-color: #000000;
+  background-color: rgba(0, 0, 0, 0.7);
   padding: 25px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 
@@ -114,7 +115,7 @@ const SortOptions = styled.div`
   gap: 10px;
   font-size: 0.9em;
   margin-bottom: 20px;
-  justify-content: flex-end; /* 오른쪽 정렬 */
+  justify-content: flex-end;
 
   @media (max-width: 767px) {
     font-size: 0.8em;
@@ -184,6 +185,7 @@ const MyFavoriteMoviesPage: React.FC = () => {
 
   return (
     <PageContainer>
+      <VideoBackground /> 
       <SectionWrapper>
         <PageHeader>
           <BackButton onClick={() => navigate('/mypage')}>

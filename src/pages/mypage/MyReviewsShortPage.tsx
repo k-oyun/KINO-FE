@@ -2,15 +2,15 @@ import React, { useState } from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import ReviewCard from '../../components/mypage/ReviewCard';
+import VideoBackground from '../../components/VideoBackground';
 
 interface ShortReviewType {
   id: string;
   movieTitle: string;
   content: string;
   rating: number;
-  likeCount: number;
+  likes: number;
   createdAt: string;
-  viewCount?: number;
 }
 
 type ReviewType = ShortReviewType | {
@@ -20,22 +20,22 @@ type ReviewType = ShortReviewType | {
   title: string;
   content: string;
   rating: number;
-  likeCount: number;
+  likes: number;
   createdAt: string;
-  viewCount?: number;
+  // viewCount?: number;
 };
 
 const DUMMY_SHORT_REVIEWS: ShortReviewType[] = [
-  { id: 'sr1', movieTitle: '노이즈', content: '무서워요 무서워요무서워요무서워요무서워요무서워요', rating: 4.5, likeCount: 7, createdAt: '2023.08.15 11:00', viewCount: 150 },
-  { id: 'sr2', movieTitle: '타이타닉', content: '잭과 로즈의 아름다운 사랑 이야기. OST가 정말 좋아요!', rating: 5.0, likeCount: 25, createdAt: '2023.07.20 14:30', viewCount: 300 },
-  { id: 'sr3', movieTitle: '아바타', content: '아바타 진짜 재밌어요 너무 재밌어요 또 보러갈 거예요', rating: 4.0, likeCount: 10, createdAt: '2024.01.10 10:00', viewCount: 200 },
-  { id: 'sr4', movieTitle: '범죄도시4', content: '마석도 형사님 최고! 액션 시원시원해요!', rating: 4.2, likeCount: 18, createdAt: '2024.04.01 18:00', viewCount: 400 },
-  { id: 'sr5', movieTitle: '듄: 파트2', content: '압도적인 스케일과 영상미. 스토리는 좀 어렵지만 볼만해요.', rating: 4.7, likeCount: 22, createdAt: '2024.03.15 10:00', viewCount: 600 },
-  { id: 'sr6', movieTitle: '탑건: 매버릭', content: '하늘을 나는 짜릿함! 톰 크루즈는 역시 최고입니다.', rating: 4.9, likeCount: 30, createdAt: '2023.06.01 12:00', viewCount: 700 },
-  { id: 'sr7', movieTitle: '기생충', content: '생각할 거리를 많이 던져주는 수작. 봉테일의 힘!', rating: 4.6, likeCount: 35, createdAt: '2022.01.25 14:00', viewCount: 900 },
-  { id: 'sr8', movieTitle: '극한직업', content: '진짜 많이 웃었어요! 치킨 먹고 싶어지는 영화.', rating: 4.0, likeCount: 20, createdAt: '2023.02.10 16:00', viewCount: 550 },
-  { id: 'sr9', movieTitle: '헤어질 결심', content: '섬세한 감정선과 미장센이 돋보이는 박찬욱 감독의 영화.', rating: 4.3, likeCount: 28, createdAt: '2022.07.07 11:00', viewCount: 650 },
-  { id: 'sr10', movieTitle: '겨울왕국 2', content: '엘사와 안나의 성장 스토리. OST가 또 한번 대박!', rating: 4.1, likeCount: 15, createdAt: '2021.11.01 09:00', viewCount: 480 },
+  { id: 'sr1', movieTitle: '노이즈', content: '무서워요 무서워요무서워요무서워요무서워요무서워요', rating: 4.5, likes: 7, createdAt: '2023.08.15 11:00'},
+  { id: 'sr2', movieTitle: '타이타닉', content: '잭과 로즈의 아름다운 사랑 이야기. OST가 정말 좋아요!', rating: 5.0, likes: 25, createdAt: '2023.07.20 14:30'},
+  { id: 'sr3', movieTitle: '아바타', content: '아바타 진짜 재밌어요 너무 재밌어요 또 보러갈 거예요', rating: 4.0, likes: 10, createdAt: '2024.01.10 10:00'},
+  { id: 'sr4', movieTitle: '범죄도시4', content: '마석도 형사님 최고! 액션 시원시원해요!', rating: 4.2, likes: 18, createdAt: '2024.04.01 18:00'},
+  { id: 'sr5', movieTitle: '듄: 파트2', content: '압도적인 스케일과 영상미. 스토리는 좀 어렵지만 볼만해요.', rating: 4.7, likes: 22, createdAt: '2024.03.15 10:00'},
+  { id: 'sr6', movieTitle: '탑건: 매버릭', content: '하늘을 나는 짜릿함! 톰 크루즈는 역시 최고입니다.', rating: 4.9, likes: 30, createdAt: '2023.06.01 12:00'},
+  { id: 'sr7', movieTitle: '기생충', content: '생각할 거리를 많이 던져주는 수작. 봉테일의 힘!', rating: 4.6, likes: 35, createdAt: '2022.01.25 14:00'},
+  { id: 'sr8', movieTitle: '극한직업', content: '진짜 많이 웃었어요! 치킨 먹고 싶어지는 영화.', rating: 4.0, likes: 20, createdAt: '2023.02.10 16:00'},
+  { id: 'sr9', movieTitle: '헤어질 결심', content: '섬세한 감정선과 미장센이 돋보이는 박찬욱 감독의 영화.', rating: 4.3, likes: 28, createdAt: '2022.07.07 11:00'},
+  { id: 'sr10', movieTitle: '겨울왕국 2', content: '엘사와 안나의 성장 스토리. OST가 또 한번 대박!', rating: 4.1, likes: 15, createdAt: '2021.11.01 09:00'},
 ];
 
 const PageContainer = styled.div`
@@ -56,7 +56,7 @@ const PageContainer = styled.div`
 `;
 
 const SectionWrapper = styled.div`
-  background-color: #000000;
+  background-color: rgba(0, 0, 0, 0.7);
   padding: 25px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 
@@ -182,17 +182,15 @@ const EmptyState = styled.div`
 
 const MyReviewsShortPage: React.FC = () => {
   const navigate = useNavigate();
-  const [sortOrder, setSortOrder] = useState<'latest' | 'views' | 'likes' | 'rating'>('latest');
+  const [sortOrder, setSortOrder] = useState<'latest' | 'likes' | 'rating'>('latest');
 
   const shortReviews = DUMMY_SHORT_REVIEWS;
 
   const sortedReviews = [...shortReviews].sort((a, b) => {
     if (sortOrder === 'latest') {
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-    } else if (sortOrder === 'views') {
-      return (b.viewCount || 0) - (a.viewCount || 0);
-    } else if (sortOrder === 'likes') {
-      return b.likeCount - a.likeCount;
+    }  else if (sortOrder === 'likes') {
+      return b.likes - a.likes;
     } else if (sortOrder === 'rating') {
       return (b.rating || 0) - (a.rating || 0);
     }
@@ -201,6 +199,7 @@ const MyReviewsShortPage: React.FC = () => {
 
   return (
     <PageContainer>
+      <VideoBackground />
       <SectionWrapper>
         <PageHeader>
           <BackButton onClick={() => navigate('/mypage')}>
@@ -212,7 +211,6 @@ const MyReviewsShortPage: React.FC = () => {
         </PageHeader>
         <SortOptions>
           <SortButton isActive={sortOrder === 'latest'} onClick={() => setSortOrder('latest')}>최신순</SortButton>
-          <SortButton isActive={sortOrder === 'views'} onClick={() => setSortOrder('views')}>조회순</SortButton>
           <SortButton isActive={sortOrder === 'likes'} onClick={() => setSortOrder('likes')}>좋아요순</SortButton>
           <SortButton isActive={sortOrder === 'rating'} onClick={() => setSortOrder('rating')}>별점순</SortButton>
         </SortOptions>

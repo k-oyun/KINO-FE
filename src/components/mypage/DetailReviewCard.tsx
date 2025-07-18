@@ -3,13 +3,14 @@ import { styled } from "styled-components";
 interface DetailReview {
   id: string;
   title: string;
-  image: string;
+  image?: string;
   content: string;
   likes: number;
   views: number;
   comments: number;
   createdAt: string;
   reviewer?: Reviewer;
+  movieTitle?: string; // MyPageMain에서 받은 영화 제목을 여기로 전달할 경우
 }
 
 interface Reviewer {
@@ -49,7 +50,6 @@ const ReviewText = styled.p<styleType>`
   overflow: hidden;
   text-overflow: ellipsis;
   padding: 0 10px;
-  // 3줄까지만 보이도록 설정
   display: -webkit-box;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
@@ -72,6 +72,14 @@ const LikesDisplay = styled.span`
   gap: 3px;
   color: #000;
 `;
+
+const ViewsDisplay = styled.span`
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  color: #000;
+`;
+
 
 const ThreeDotsMenu = styled.button`
   background: none;
@@ -173,6 +181,12 @@ const DetailReviewFooter = styled.div<styleType>`
   padding-top: 10px;
 `;
 
+const DetailReviewMetaInfoWrapper = styled.div`
+  display: flex;
+  gap: 15px; /* 좋아요, 조회수, 댓글수 사이 간격 */
+  align-items: center;
+`;
+
 interface DetailReviewCardProps {
   review: DetailReview;
   isMine?: boolean;
@@ -206,7 +220,9 @@ const DetailReviewCard: React.FC<DetailReviewCardProps> = ({
             alt={review.reviewer.nickname}
           />
           <UserText $ismobile={isMobile}>
-            <UserNickname $ismobile={isMobile} /> {review.reviewer.nickname}x
+            <UserNickname $ismobile={isMobile}>
+              {review.reviewer.nickname}
+            </UserNickname>
           </UserText>
         </UserProfile>
       )}
@@ -221,9 +237,11 @@ const DetailReviewCard: React.FC<DetailReviewCardProps> = ({
         )}
         <ReviewText $ismobile={isMobile}>{review.content}</ReviewText>
         <DetailReviewFooter $ismobile={isMobile}>
-          <MetaInfo>
+          <DetailReviewMetaInfoWrapper>
             <LikesDisplay>👍 {review.likes}</LikesDisplay>
-          </MetaInfo>
+            <MetaInfo>💬 {review.comments}</MetaInfo>
+            <ViewsDisplay>👁️ {review.views}</ViewsDisplay>
+          </DetailReviewMetaInfoWrapper>
           <MetaInfo>{review.createdAt}</MetaInfo>
         </DetailReviewFooter>
       </DetailReviewContentWrapper>

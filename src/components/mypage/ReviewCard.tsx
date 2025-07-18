@@ -3,33 +3,42 @@ import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
 import DetailReviewCard from "./DetailReviewCard";
 
+// MyPageMain에서 매핑된 ShortReviewType과 동일하게 정의
 interface ShortReview {
   id: string;
   movieTitle: string;
   content: string;
   rating: number;
-  likeCount: number;
+  likes: number;
   createdAt: string;
-  reviewer?: Reviewer;
+  // reviewer 필드는 MyPageMain의 API 응답에 없으므로, 필요하다면 ShortReviewCard에서 직접 처리하거나 없애야 합니다.
+  // ShortReviewCard가 reviewer를 직접 사용하지 않는다면 제거해도 됩니다.
+  // 현재 ShortReviewCard는 reviewer를 직접 사용하지 않으므로 여기서 제거합니다.
 }
 
+// MyPageMain에서 매핑된 DetailReviewType과 동일하게 정의
 interface DetailReview {
   id: string;
   title: string;
-  image: string;
+  // image: string; // MyPageMain API 응답에 image 필드 없음. 필요하다면 DetailReviewCard에서 처리 방식 결정.
   content: string;
   likes: number;
-  views: number;
+  views: number; // totalViews -> views (MyPageMain에서 매핑됨)
   comments: number;
   createdAt: string;
-  reviewer?: Reviewer;
+  reviewer?: { // MyPageMain에서 임시로 추가했으므로, DetailReviewCard가 이 필드를 꼭 필요로 한다면 API에 추가 요청
+    id: string;
+    nickname: string;
+    image: string;
+  };
 }
 
-interface Reviewer {
-  id: string;
-  nickname: string;
-  image: string;
-}
+// Reviewer 인터페이스는 MyPageMain에서 더미로 추가했으므로, 실제 필요 여부 확인 후 유지/제거
+// interface Reviewer {
+//   id: string;
+//   nickname: string;
+//   image: string;
+// }
 
 // --- 공통 스타일드 컴포넌트 ---
 const CardBase = styled.div`
@@ -149,7 +158,7 @@ const ShortReviewCard: React.FC<ShortReviewCardProps> = ({
     <ShortReviewMeta>
       <MetaInfo>
         <RatingDisplay>⭐ {review.rating}</RatingDisplay>
-        <LikesDisplay>👍 {review.likeCount}</LikesDisplay>
+        <LikesDisplay>👍 {review.likes}</LikesDisplay>
       </MetaInfo>
       <MetaInfo>{review.createdAt}</MetaInfo>
     </ShortReviewMeta>
@@ -173,13 +182,13 @@ const ReviewCard: React.FC<ReviewCardProps> = ({ review, type }) => {
     }
   };
 
-  const reviewer = {
-    id: "reviewer_001",
-    nickname: "시영",
-    image:
-      "https://img.danawa.com/prod_img/500000/981/068/img/63068981_1.jpg?_v=20250413191900&shrink=360:360",
-  };
-  review.reviewer = reviewer; // 임시로 reviewer 추가
+  // const reviewer = {
+  //   id: "reviewer_001",
+  //   nickname: "시영",
+  //   image:
+  //     "https://img.danawa.com/prod_img/500000/981/068/img/63068981_1.jpg?_v=20250413191900&shrink=360:360",
+  // };
+  // review.reviewer = reviewer; // 임시로 reviewer 추가
 
   return (
     <>

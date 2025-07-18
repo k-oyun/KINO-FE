@@ -2,6 +2,7 @@ import React from 'react';
 import styled from 'styled-components';
 import TagSelectionForm from '../../components/mypage/TagSelectionForm';
 import UserProfileSection from '../../components/mypage/UserProfileSection';
+import VideoBackground from '../../components/VideoBackground';
 
 interface UserProfileType {
   nickname: string;
@@ -22,8 +23,8 @@ const PageContainer = styled.div`
   margin: 0 auto;
   padding-top: 300px;
   background-color: transparent;
-  // min-height: calc(100vh - 60px);
-  max-height: 100vh;
+  min-height: calc(100vh - 60px);
+  // max-height: 100vh;
   color: #f0f0f0;
 
   display: flex;
@@ -36,7 +37,7 @@ const PageContainer = styled.div`
 `;
 
 const SectionWrapper = styled.section`
-  background-color: #000000;
+  background-color: rgba(0, 0, 0, 0.7);
   padding: 25px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
   margin-bottom: 30px;
@@ -55,6 +56,7 @@ const MyTagsPage: React.FC = () => {
 
   return (
     <PageContainer>
+      <VideoBackground />
       <UserProfileSection userProfile={userProfile} />
       <SectionWrapper>
         <TagSelectionForm username={userProfile.nickname} /> 
