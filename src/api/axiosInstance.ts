@@ -1,35 +1,27 @@
-// src/api/axiosInstance.ts
-import axios from 'axios';
+import axios from "axios";
 
-const API_BASE_URL = "http://43.203.218.183:8080/api/data";
-
-const axiosInstance = axios.create({
-  baseURL: API_BASE_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-  withCredentials: true, 
+const AxiosInstance = axios.create({
+  baseURL: "http://43.203.218.183:8080/api",
+  //withCredentials: true,
 });
 
-axiosInstance.interceptors.request.use(
-  (config) => {
-    const accessToken = "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiI1OSIsInR5cGUiOiJSRUZSRVNIIiwiYXV0aCI6IlJPTEVfVVNFUiIsImlhdCI6MTc1MjgxMDc5MSwiZXhwIjoxNzUzNDE1NTkxfQ.it4glL5HY8JwbpM4h8m0-Z68tUYqwVTiudjKKyJGtXfv-af9mTGR_ReH9zIP6g289dJiNdNRNCHW0al61yC0XQ"; 
-    
-    if (accessToken) {
-      config.headers.Authorization = `Bearer ${accessToken}`;
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
+AxiosInstance.interceptors.request.use((config) => {
+  const token = localStorage.getItem("accessToken");
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
   }
-);
+  return config;
+});
 
-axiosInstance.interceptors.response.use(
+AxiosInstance.interceptors.response.use(
   (response) => response,
-  async (error) => {
+  (error) => {
+    if (error.response?.status === 401) {
+      console.log(error.response);
+      // alert("서버에러"); // SPA 방식으로 이동
+    }
     return Promise.reject(error);
   }
 );
 
-export default axiosInstance;
+export default AxiosInstance;

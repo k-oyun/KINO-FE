@@ -1,79 +1,44 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
+import axios from 'axios';
+
+// useMyPageApi에서 'DetailReviewListApiResponse'를 임포트하지 않습니다.
+// 대신, 이 파일 자체에서 'DetailReviewListApiResponse'를 정의합니다.
+import useMyPageApi from '../../api/useMyPageApi';
 import ReviewCard from "../../components/mypage/ReviewCard";
 import VideoBackground from '../../components/VideoBackground';
 
+// ✨✨✨ 여기에 DetailReviewListApiResponse 인터페이스를 정의하고 export 합니다. ✨✨✨
+export interface DetailReviewListApiResponse {
+  status: number;
+  success: boolean;
+  message: string;
+  data: {
+    reviews: Array<{
+      reviewId: number;
+      title: string;
+      content: string;
+      movieTitle: string;
+      totalViews: number;
+      createdAt: string;
+      likes: number;
+      comments: number;
+    }>;
+  };
+}
 
+// DetailReviewType은 UI 컴포넌트에 필요한 형태로 그대로 유지합니다.
 interface DetailReviewType {
-  id: string;
+  id: string; // reviewId를 매핑하여 사용
   title: string;
-  // image: string;
   content: string;
+  movieTitle: string;
   likes: number;
-  views: number;
+  views: number; // API 응답의 totalViews를 매핑
   comments: number;
   createdAt: string;
 }
-
-type ReviewType =
-  | DetailReviewType
-  | {
-      id: string;
-      movieTitle: string;
-      content: string;
-      rating: number;
-      likeCount: number;
-      createdAt: string;
-      viewCount?: number;
-    };
-
-const DUMMY_DETAIL_REVIEWS: DetailReviewType[] = [
-  {
-    id: "dr1",
-
-    title: "엘리오 내용 평가 4.0",
-    // image: "https://sitem.ssgcdn.com/72/10/00/item/1000569001072_i1_750.jpg",
-    content:
-      "엘리오는 영화 (콜 미 바이 유어 네임) 속에서 섬세하고 감성적인 소년으로 그려진다. 그는 이탈리아의 한적한 시골 마을에서 가족과 함께 지내며 지적이고 조용한 삶을 살고 있지만, 여름 방학 동안 올리버를 만나면서 그의 일상은 서서히 변화하기 시작한다. 처음에는 올리버에게 낯섦과 경계심을 느끼지만, 시간이 흐를수록 그들은 서로에게 깊은 감정을 느끼게 된다. 그 감정은 삶에 대한 새로운 통찰과 함께 서로에게 변화를 가져다준다. 시간이 흐를수록 그는 모든 것을 올리버에게 걸게 된다.",
-    likes: 15,
-    createdAt: "14시간 전",
-    views: 217,
-    comments: 3,
-  },
-  {
-    id: "dr2",
-
-    title: "2025년 7/10 박스오피스",
-    // image: "https://via.placeholder.com/200x300/9b59b6/ffffff?text=BoxOffice",
-    content: "매트릭스를 보고, 나라면 빨간약과 파란약 중에... (중략)",
-    likes: 10,
-    createdAt: "2023.09.01 10:00",
-    views: 500,
-    comments: 2,
-  },
-  {
-    id: "dr3",
-
-    title: "2025년 7/10 박스오피스",
-    // image: "https://via.placeholder.com/200x300/9b59b6/ffffff?text=BoxOffice",
-    content: "매트릭스를 보고, 나라면 빨간약과 파란약 중에... (중략)",
-    likes: 10,
-    createdAt: "2023.09.01 10:00",
-    views: 500,
-    comments: 21,
-  },
-  {
-    id: "dr4",
-    title: "2025년 7/10 박스오피스",
-    // image: "https://via.placeholder.com/200x300/9b59b6/ffffff?text=BoxOffice",
-    content: "매트릭스를 보고, 나라면 빨간약과 파란약 중에... (중략)",
-    likes: 10,
-    createdAt: "2023.09.01 10:00",
-    views: 500,
-    comments: 12,
-  },
-];
 
 const PageContainer = styled.div`
   max-width: 1200px;
@@ -167,11 +132,11 @@ const SortOptions = styled.div`
   }
 `;
 
-const SortButton = styled.button<{ isActive: boolean }>`
+const SortButton = styled.button<{ $isActive: boolean }>`
   background: none;
   border: none;
-  color: ${(props) => (props.isActive ? "#e0e0e0" : "#888")};
-  font-weight: ${(props) => (props.isActive ? "bold" : "normal")};
+  color: ${(props) => (props.$isActive ? "#e0e0e0" : "#888")};
+  font-weight: ${(props) => (props.$isActive ? "bold" : "normal")};
   cursor: pointer;
   padding: 5px 0;
   position: relative;
@@ -181,7 +146,7 @@ const SortButton = styled.button<{ isActive: boolean }>`
   }
 
   ${(props) =>
-    props.isActive &&
+    props.$isActive &&
     `
     &::after {
       content: '';
@@ -219,10 +184,54 @@ const EmptyState = styled.div`
 
 const MyReviewsDetailPage: React.FC = () => {
   const navigate = useNavigate();
+  const { fetchMyDetailReviews } = useMyPageApi();
+
+  const [detailReviews, setDetailReviews] = useState<DetailReviewType[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
   const [sortOrder, setSortOrder] = useState<"latest" | "views" | "likes">(
     "latest"
   );
-  const detailReviews = DUMMY_DETAIL_REVIEWS;
+
+  useEffect(() => {
+    const loadReviews = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        // ✨ 이 페이지에 정의된 DetailReviewListApiResponse 타입을 사용합니다.
+        const data: DetailReviewListApiResponse["data"]["reviews"] | null = await fetchMyDetailReviews();
+        if (data) {
+          const mappedReviews: DetailReviewType[] = data.map(dr => ({
+            id: String(dr.reviewId),
+            title: dr.title,
+            content: dr.content,
+            movieTitle: dr.movieTitle,
+            likes: dr.likes,
+            views: dr.totalViews,
+            comments: dr.comments,
+            createdAt: dr.createdAt,
+          }));
+          setDetailReviews(mappedReviews);
+        } else {
+          setDetailReviews([]);
+        }
+      } catch (err: any) {
+        console.error("상세 리뷰 데이터 불러오기 실패:", err);
+        if (axios.isAxiosError(err) && err.response?.status === 401) {
+          console.log("401 Unauthorized: Access token invalid or expired. Redirecting to login.");
+          localStorage.removeItem("accessToken");
+          navigate("/login");
+          return;
+        } else {
+          setError("상세 리뷰 데이터를 불러오는 데 실패했습니다.");
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadReviews();
+  }, [fetchMyDetailReviews, navigate]);
 
   const sortedReviews = [...detailReviews].sort((a, b) => {
     if (sortOrder === "latest") {
@@ -235,9 +244,27 @@ const MyReviewsDetailPage: React.FC = () => {
     return 0;
   });
 
+  if (loading) {
+    return (
+      <PageContainer>
+        <VideoBackground />
+        <EmptyState>상세 리뷰 데이터를 불러오는 중입니다...</EmptyState>
+      </PageContainer>
+    );
+  }
+
+  if (error) {
+    return (
+      <PageContainer>
+        <VideoBackground />
+        <EmptyState>{error}</EmptyState>
+      </PageContainer>
+    );
+  }
+
   return (
     <PageContainer>
-      <VideoBackground /> 
+      <VideoBackground />
       <SectionWrapper>
         <PageHeader>
           <BackButton onClick={() => navigate("/mypage")}>
@@ -261,19 +288,19 @@ const MyReviewsDetailPage: React.FC = () => {
         </PageHeader>
         <SortOptions>
           <SortButton
-            isActive={sortOrder === "latest"}
+            $isActive={sortOrder === "latest"}
             onClick={() => setSortOrder("latest")}
           >
             최신순
           </SortButton>
           <SortButton
-            isActive={sortOrder === "likes"}
+            $isActive={sortOrder === "likes"}
             onClick={() => setSortOrder("likes")}
           >
             좋아요순
           </SortButton>
           <SortButton
-            isActive={sortOrder === "views"}
+            $isActive={sortOrder === "views"}
             onClick={() => setSortOrder("views")}
           >
             조회순
@@ -281,10 +308,10 @@ const MyReviewsDetailPage: React.FC = () => {
         </SortOptions>
         {sortedReviews && sortedReviews.length > 0 ? (
           <ReviewList>
-            {sortedReviews.map((review: DetailReviewType) => (
+            {sortedReviews.map((review) => (
               <ReviewCard
                 key={review.id}
-                review={review as ReviewType}
+                review={review}
                 type="detail"
               />
             ))}

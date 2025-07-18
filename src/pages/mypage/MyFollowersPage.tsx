@@ -1,9 +1,32 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios'; // axios.isAxiosError를 사용하기 위해 추가
+
 import UserListItem from '../../components/mypage/UserListItem';
 import VideoBackground from '../../components/VideoBackground';
+import useMyPageApi from '../../api/useMyPageApi'; // useMyPageApi와 FollowerApiResponse 임포트
 
+
+export interface FollowerApiResponse {
+  status: number;
+  success: boolean;
+  message: string;
+  data: Array<{
+    userId: number;
+    nickname: string;
+    follow: boolean; // 내가 이 팔로워를 팔로우하고 있는지 여부
+    profileImageUrl?: string; // API 명세에는 없지만, 프론트엔드에서 필요할 경우를 대비하여 선택적 속성으로 추가
+  }>;
+}
+
+// 컴포넌트 내부에서 사용할 FollowerType 인터페이스
+interface FollowerType {
+  id: string; // userId를 매핑하여 사용
+  nickname: string;
+  profileImageUrl: string;
+  isFollowing: boolean; // follow를 매핑하여 사용
+}
 
 const PageContainer = styled.div`
   max-width: 1200px;
@@ -26,6 +49,8 @@ const SectionWrapper = styled.div`
   background-color: rgba(0, 0, 0, 0.7);
   padding: 25px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  flex-grow: 1; /* 콘텐츠가 적어도 배경이 채워지도록 */
+  overflow-y: auto; /* 스크롤 가능하게 */
 
   @media (max-width: 767px) {
     padding: 20px;
@@ -61,7 +86,9 @@ const BackButton = styled.button`
   svg {
     width: 24px;
     height: 24px;
-    vertical-align: middle;
+    viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M15 5L9 12L15 19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
   }
 
   @media (max-width: 767px) {
@@ -106,93 +133,81 @@ const EmptyState = styled.div`
   }
 `;
 
-interface FollowerType {
-  id: string;
-  nickname: string;
-  profileImageUrl: string;
-  isFollowing: boolean;
-}
-
-const DUMMY_FOLLOWERS: FollowerType[] = [
-  {
-    id: 'user1', nickname: '영화광_김씨', profileImageUrl: 'https://via.placeholder.com/50/FF69B4/FFFFFF?text=김씨',
-    isFollowing: false
-  },
-  {
-    id: 'user2', nickname: '무비매니아_이', profileImageUrl: 'https://via.placeholder.com/50/3498DB/FFFFFF?text=이씨',
-    isFollowing: false
-  },
-
-  { id: 'user3', isFollowing: false, nickname: '리뷰어_박', profileImageUrl: 'https://via.placeholder.com/50/2ECC71/FFFFFF?text=박씨' },
-  { id: 'user4', isFollowing: false, nickname: '시네필_최', profileImageUrl: 'https://via.placeholder.com/50/E74C3C/FFFFFF?text=최씨' },
-  { id: 'user5',isFollowing: false, nickname: '영화친구_정', profileImageUrl: 'https://via.placeholder.com/50/9B59B6/FFFFFF?text=정씨' },
-  { id: 'user3',isFollowing: false, nickname: '리뷰어_박', profileImageUrl: 'https://via.placeholder.com/50/2ECC71/FFFFFF?text=박씨' },
-  { id: 'user4',isFollowing: false, nickname: '시네필_최', profileImageUrl: 'https://via.placeholder.com/50/E74C3C/FFFFFF?text=최씨' },
-  { id: 'user5',isFollowing: false, nickname: '영화친구_정', profileImageUrl: 'https://via.placeholder.com/50/9B59B6/FFFFFF?text=정씨' },
-  { id: 'user6',isFollowing: false, nickname: '봉준호감독님팬', profileImageUrl: 'https://via.placeholder.com/50/FFC0CB/FFFFFF?text=봉팬' },
-  { id: 'user7',isFollowing: false, nickname: '영화사랑_홍', profileImageUrl: 'https://via.placeholder.com/50/F1C40F/FFFFFF?text=홍씨' },
-  { id: 'user8',isFollowing: false, nickname: '무비러버_김', profileImageUrl: 'https://via.placeholder.com/50/1ABC9C/FFFFFF?text=김씨' },
-  { id: 'user9',isFollowing: false, nickname: '영화토크_이', profileImageUrl: 'https://via.placeholder.com/50/34495E/FFFFFF?text=이씨' },
-  { id: 'user10',isFollowing: false, nickname: '시네마틱_박', profileImageUrl: 'https://via.placeholder.com/50/8E44AD/FFFFFF?text=박씨' },
-  { id: 'user11',isFollowing: false, nickname: '영화덕후_수지', profileImageUrl: 'https://via.placeholder.com/50/ADD8E6/FFFFFF?text=수지' },
-  { id: 'user12',isFollowing: false, nickname: '영화리뷰어_지수', profileImageUrl: 'https://via.placeholder.com/50/90EE90/FFFFFF?text=지수' },
-  { id: 'user13',isFollowing: false, nickname: '영화사랑_민수', profileImageUrl: 'https://via.placeholder.com/50/FFB6C1/FFFFFF?text=민수' },
-  { id: 'user14',isFollowing: false, nickname: '영화평론가_준호', profileImageUrl: 'https://via.placeholder.com/50/FF6347/FFFFFF?text=준호' },
-  { id: 'user15',isFollowing: false, nickname: '영화감상_하늘', profileImageUrl: 'https://via.placeholder.com/50/FF4500/FFFFFF?text=하늘' },
-  { id: 'user16',isFollowing: false, nickname: '영화광_지민', profileImageUrl: 'https://via.placeholder.com/50/FFD700/FFFFFF?text=지민' },
-  { id: 'user17',isFollowing: false, nickname: '영화팬_서연', profileImageUrl: 'https://via.placeholder.com/50/FF69B4/FFFFFF?text=서연' },
-];
-
 
 const MyFollowersPage: React.FC = () => {
   const navigate = useNavigate();
+  // useMyPageApi에서 필요한 모든 함수를 구조 분해 할당
+  const { fetchMyFollowers, followUser, unfollowUser } = useMyPageApi(); 
+
   const [followers, setFollowers] = useState<FollowerType[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
+  // 현재 로그인한 사용자의 ID를 localStorage 등에서 가져오거나, 다른 Context API를 통해 가져와야 합니다.
+  // 이 userId는 팔로워 API 호출 시 {targetId}에 들어갈 값입니다.
+  // ⭐ 실제 사용자 ID로 대체해야 합니다. 예: localStorage.getItem('userId') || 'defaultUserId';
+  const myUserId = "1"; 
+  // const myUserId = "someLoggedInUserId"; 
+
   useEffect(() => {
-    const fetchFollowers = async () => {
+    const loadFollowers = async () => {
       setLoading(true);
       setError(null);
       try {
-        // ⭐ 실제 API 호출 로직을 여기에 작성하세요.
-        // 예시:
-        // const response = await fetch('/api/mypage/followers', {
-        //   headers: {
-        //     'Authorization': `Bearer ${localStorage.getItem('token')}` // 인증 토큰이 필요하다면
-        //   }
-        // });
-        // if (!response.ok) {
-        //   throw new Error('팔로워 목록을 불러오는데 실패했습니다.');
-        // }
-        // const data = await response.json();
-        // setFollowers(data.followers); // 실제 응답 구조에 맞게 수정
-
-        // 더미 데이터 사용 (API 연동 전 테스트용)
-        await new Promise(resolve => setTimeout(resolve, 500)); // 로딩 효과를 위한 딜레이
-        setFollowers(DUMMY_FOLLOWERS);
+        // ⭐ 더미 데이터 대신 실제 API 호출
+        const data: FollowerApiResponse["data"] | null = await fetchMyFollowers(myUserId); 
+        
+        if (data) {
+          const mappedFollowers: FollowerType[] = data.map(follower => ({
+            id: String(follower.userId), 
+            nickname: follower.nickname,
+            // API 명세에 profileImageUrl이 없으므로, 더미 이미지 또는 닉네임 첫 글자로 대체
+            profileImageUrl: follower.profileImageUrl || `https://via.placeholder.com/50/CCCCCC/FFFFFF?text=${follower.nickname.substring(0,1)}`, 
+            isFollowing: follower.follow, 
+          }));
+          setFollowers(mappedFollowers);
+        } else {
+          setFollowers([]);
+        }
       } catch (err: any) {
-        console.error("Failed to fetch followers:", err);
-        setError(err.message || "팔로워 목록을 불러오는 중 오류가 발생했습니다.");
+        console.error("팔로워 데이터 불러오기 실패:", err);
+        if (axios.isAxiosError(err) && err.response?.status === 401) {
+          console.log("401 Unauthorized: Access token invalid or expired. Redirecting to login.");
+          localStorage.removeItem("accessToken");
+          navigate("/login");
+          return;
+        } else {
+          setError("팔로워 목록을 불러오는 데 실패했습니다.");
+        }
       } finally {
         setLoading(false);
       }
     };
 
-    fetchFollowers();
-  }, []); // 빈 배열은 컴포넌트 마운트 시 한 번만 실행됨
+    loadFollowers();
+  }, [fetchMyFollowers, myUserId, navigate]); 
 
-  // 이 함수는 각 UserListItem의 팔로우 버튼 클릭 시 호출됩니다.
-  // 실제 백엔드 연동 시 여기에 팔로우/언팔로우 API 호출 로직을 구현합니다.
-  const handleFollowToggle = (userId: string, isCurrentlyFollowing: boolean) => {
-    console.log(`User ${userId}를 ${isCurrentlyFollowing ? '언팔로우' : '팔로우'} 합니다.`);
-    // ⭐ 여기에 팔로우/언팔로우 API 호출 로직 추가 (예: axios.post(`/api/users/${userId}/follow`))
-
-    // API 호출 성공 시 UI 업데이트
-    setFollowers(prevFollowers =>
-      prevFollowers.filter(follower => follower.id !== userId) // 간단한 예시: 언팔로우 시 목록에서 제거
-      // 실제로는 팔로우/언팔로우 API 호출 후 응답에 따라 상태를 업데이트하거나, 전체 목록을 다시 불러오는 것이 더 안정적입니다.
-    );
+  const handleFollowToggle = async (targetUserId: string, isCurrentlyFollowing: boolean) => {
+    try {
+      if (isCurrentlyFollowing) {
+        await unfollowUser(targetUserId); 
+        console.log(`User ${targetUserId} 언팔로우 성공`);
+        // 언팔로우 시 목록에서 해당 사용자를 제거
+        setFollowers(prevFollowers => 
+          prevFollowers.filter(follower => follower.id !== targetUserId) 
+        );
+      } else {
+        await followUser(targetUserId); 
+        console.log(`User ${targetUserId} 팔로우 성공`);
+        // 팔로우 시 해당 사용자의 isFollowing 상태를 true로 변경
+        setFollowers(prevFollowers => 
+          prevFollowers.map(f => f.id === targetUserId ? { ...f, isFollowing: true } : f)
+        );
+      }
+    } catch (err) {
+      console.error(`팔로우/언팔로우 실패 for user ${targetUserId}:`, err);
+      alert("팔로우/언팔로우 처리 중 오류가 발생했습니다.");
+    }
   };
 
 
@@ -219,7 +234,7 @@ const MyFollowersPage: React.FC = () => {
                 key={follower.id}
                 user={follower}
                 onFollowToggle={handleFollowToggle}
-                 type="follower" 
+                type="follower" 
               />
             ))}
           </UserList>

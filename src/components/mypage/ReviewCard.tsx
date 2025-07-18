@@ -11,9 +11,10 @@ interface ShortReview {
   rating: number;
   likes: number;
   createdAt: string;
-  // reviewer 필드는 MyPageMain의 API 응답에 없으므로, 필요하다면 ShortReviewCard에서 직접 처리하거나 없애야 합니다.
-  // ShortReviewCard가 reviewer를 직접 사용하지 않는다면 제거해도 됩니다.
-  // 현재 ShortReviewCard는 reviewer를 직접 사용하지 않으므로 여기서 제거합니다.
+  reviewer?: Reviewer;
+  title: string;
+  views: number;
+  comments: number;
 }
 
 // MyPageMain에서 매핑된 DetailReviewType과 동일하게 정의
@@ -198,14 +199,28 @@ const ReviewCard: React.FC<ReviewCardProps> = ({ review, type }) => {
           onClick={handleCardClick}
         />
       )}
-      {type === "detail" && (
-        <DetailReviewCard
-          review={review as DetailReview}
-          isMine={true}
-          showProfile={false}
-          onClick={handleCardClick}
-        />
-      )}
+      {type === "detail" &&
+        review.title &&
+        review.likes &&
+        review.comments &&
+        review.views && (
+          <DetailReviewCard
+            review={{
+              reviewId: review.id,
+              userProfile: reviewer.image,
+              userNickname: reviewer.nickname,
+              title: review.title,
+              content: review.content,
+              likeCount: review.likes,
+              totalViews: review.views,
+              commentCount: review.comments,
+              createdAt: review.createdAt,
+            }}
+            isMine={true}
+            showProfile={false}
+            onClick={handleCardClick}
+          />
+        )}
     </>
   );
 };

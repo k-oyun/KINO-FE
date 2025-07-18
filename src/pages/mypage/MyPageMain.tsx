@@ -1,16 +1,13 @@
 import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
-// import axios from "axios"; // 기존 axios 대신 커스텀 인스턴스 사용
-import axiosInstance from "../../api/axiosInstance"; // 새로 생성한 axiosInstance 임포트
+import axios from "axios"; 
+import useMyPageApi from "../../api/useMyPageApi";
 
 import UserProfileSection from "../../components/mypage/UserProfileSection";
 import ReviewCard from "../../components/mypage/ReviewCard";
 import MovieCard from "../../components/mypage/MovieCard";
 import VideoBackground from "../../components/VideoBackground";
-
-// 백엔드 API 기본 URL은 이제 axiosInstance에서 관리하므로 여기서는 필요 없음
-// const API_BASE_URL = "http://43.203.218.183:8080/api/data";
 
 const MyPageContainer = styled.div`
   max-width: 1200px;
@@ -95,11 +92,11 @@ const SortOptions = styled.div`
   }
 `;
 
-const SortButton = styled.button<{ isActive: boolean }>`
+const SortButton = styled.button<{ $isActive: boolean }>`
   background: none;
   border: none;
-  color: ${(props) => (props.isActive ? "#e0e0e0" : "#888")};
-  font-weight: ${(props) => (props.isActive ? "bold" : "normal")};
+  color: ${(props) => (props.$isActive ? "#e0e0e0" : "#888")};
+  font-weight: ${(props) => (props.$isActive ? "bold" : "normal")};
   cursor: pointer;
   padding: 5px 0;
   position: relative;
@@ -109,7 +106,7 @@ const SortButton = styled.button<{ isActive: boolean }>`
   }
 
   ${(props) =>
-    props.isActive &&
+    props.$isActive &&
     `
     &::after {
       content: '';
@@ -167,19 +164,14 @@ const PinkText = styled.span`
   margin-left: 0.25em;
 `;
 
-// =======================================================
-// 타입 정의 (백엔드 응답 스키마와 프런트엔드 컴포넌트 props에 맞춰 수정)
-// =======================================================
-
-// 백엔드 API 응답 데이터 구조에 맞춘 타입
-interface MyPageMainApiResponse {
+export interface MyPageMainApiResponse {
   status: number;
   success: boolean;
   message: string;
   data: {
     nickname: string;
-    image: string; // 프로필 이미지 URL
-    shortReview: { // 메인 페이지에 한줄평 하나만 보여주는 것으로 추정됩니다.
+    image: string;
+    shortReview: {
       shortReviewId: number;
       content: string;
       rating: number;
@@ -187,37 +179,30 @@ interface MyPageMainApiResponse {
       createdAt: string;
       likes: number;
       userNickname: string;
-      userProfileUrl: string; // 이 필드는 사용되지 않을 수 있지만, 일단 유지
-    } | null; // 한줄평이 없을 수도 있으므로 null 허용
-    review: { // 메인 페이지에 상세 리뷰 하나만 보여주는 것으로 추정됩니다.
+      userProfileUrl: string;
+    } | null;
+    review: {
       reviewId: number;
       title: string;
       content: string;
-      movieTitle: string; // 상세 리뷰에 영화 제목 추가
+      movieTitle: string;
       totalViews: number;
       createdAt: string;
       likes: number;
       comments: number;
-      // 백엔드에서 reviewer 정보를 제공한다면 여기에 추가
-      reviewer?: { 
-        id: string;
-        nickname: string;
-        image: string;
-      };
-    } | null; // 상세 리뷰가 없을 수도 있으므로 null 허용
+    } | null;
     followers: number;
     following: number;
-    myPickMoives: Array<{ // 오타 수정: myPickMovies (myPickMoives -> myPickMovies)
+    myPickMoives: Array<{
       myPickId: number;
       movieTitle: string;
       posterUrl: string;
       director: string;
-      releaseDate: string; // 백엔드 응답은 "2025-07-18" 형태
+      releaseDate: string;
     }>;
   };
 }
 
-// UserProfileSection 컴포넌트에 전달될 props 타입
 interface UserProfileType {
   nickname: string;
   profileImageUrl: string;
@@ -225,9 +210,8 @@ interface UserProfileType {
   followingCount: number;
 }
 
-// ReviewCard (ShortReview) 컴포넌트에 전달될 props 타입
 interface ShortReviewType {
-  id: string; // ReviewCard는 id를 string으로 받음
+  id: string;
   movieTitle: string;
   content: string;
   rating: number;
@@ -235,40 +219,33 @@ interface ShortReviewType {
   createdAt: string;
 }
 
-// ReviewCard (DetailReview) 컴포넌트에 전달될 props 타입
 interface DetailReviewType {
-  id: string; // ReviewCard는 id를 string으로 받음
+  id: string;
   title: string;
-  image?: string; // 백엔드 상세 리뷰 응답에 image 필드가 없음. DetailReviewCard에 필요하다면 추가 논의 필요.
   content: string;
   likes: number;
-  views: number; // totalViews -> views
+  views: number;
   comments: number;
   createdAt: string;
-  reviewer?: { // MyPageMain에서 임시로 추가했으므로, DetailReviewCard가 이 필드를 꼭 필요로 한다면 API에 추가 요청
+  reviewer?: {
     id: string;
     nickname: string;
     image: string;
   };
-  movieTitle?: string; // MyPageMain에서 직접 movieTitle을 넘겨줄 수 있도록 추가
 }
 
-// MovieCard 컴포넌트에 전달될 props 타입
 interface FavoriteMovieType {
-  id: string; // MovieCard는 id를 string으로 받음
-  title: string; // movieTitle -> title
+  id: string;
+  title: string;
   director: string;
   releaseDate: string;
   posterUrl: string;
 }
 
-// =======================================================
-// 메인 컴포넌트
-// =======================================================
 const MyPageMain: React.FC = () => {
   const navigate = useNavigate();
+  const { fetchMyPageMainData } = useMyPageApi();
 
-  // API 데이터 상태
   const [userProfile, setUserProfile] = useState<UserProfileType | null>(null);
   const [shortReviews, setShortReviews] = useState<ShortReviewType[]>([]);
   const [detailReviews, setDetailReviews] = useState<DetailReviewType[]>([]);
@@ -276,7 +253,6 @@ const MyPageMain: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  // 정렬 상태 (기존 유지)
   const [shortReviewSort, setShortReviewSort] = useState<
     "latest" | "likes" | "rating"
   >("latest");
@@ -284,90 +260,88 @@ const MyPageMain: React.FC = () => {
     "latest" | "views" | "likes"
   >("latest");
 
-  // API 호출 로직
   useEffect(() => {
-    const fetchMyPageData = async () => {
+    const loadMyPageData = async () => {
       setLoading(true);
       setError(null);
       try {
-        // axios 대신 axiosInstance 사용
-        const response = await axiosInstance.get<MyPageMainApiResponse>("/mypage/main");
-        const data = response.data.data;
+        const data = await fetchMyPageMainData();
 
-        // User Profile 매핑
-        setUserProfile({
-          nickname: data.nickname,
-          profileImageUrl: data.image,
-          followerCount: data.followers,
-          followingCount: data.following,
-        });
+        if (data) {
+          setUserProfile({
+            nickname: data.nickname,
+            profileImageUrl: data.image,
+            followerCount: data.followers,
+            followingCount: data.following,
+          });
 
-        // Short Reviews 매핑
-        if (data.shortReview) {
-          setShortReviews([
-            {
-              id: String(data.shortReview.shortReviewId),
-              movieTitle: data.shortReview.movieTitle,
-              content: data.shortReview.content,
-              rating: data.shortReview.rating,
-              likes: data.shortReview.likes,
-              createdAt: data.shortReview.createdAt,
-            },
-          ]);
+          if (data.shortReview) {
+            setShortReviews([
+              {
+                id: String(data.shortReview.shortReviewId),
+                movieTitle: data.shortReview.movieTitle,
+                content: data.shortReview.content,
+                rating: data.shortReview.rating,
+                likes: data.shortReview.likes,
+                createdAt: data.shortReview.createdAt,
+              },
+            ]);
+          } else {
+            setShortReviews([]);
+          }
+
+          if (data.review) {
+            setDetailReviews([
+              {
+                id: String(data.review.reviewId),
+                title: data.review.title,
+                content: data.review.content,
+                likes: data.review.likes,
+                views: data.review.totalViews,
+                comments: data.review.comments,
+                createdAt: data.review.createdAt,
+                reviewer: {
+                  id: 'dummy',
+                  nickname: data.nickname,
+                  image: data.image,
+                }
+              },
+            ]);
+          } else {
+            setDetailReviews([]);
+          }
+
+          setFavoriteMovies(
+            data.myPickMoives.map((movie) => ({
+              id: String(movie.myPickId),
+              title: movie.movieTitle,
+              director: movie.director,
+              releaseDate: movie.releaseDate.substring(0, 4),
+              posterUrl: movie.posterUrl,
+            }))
+          );
         } else {
-          setShortReviews([]);
+          setError("마이페이지 데이터를 찾을 수 없습니다.");
         }
-
-        // Detail Reviews 매핑
-        if (data.review) {
-          setDetailReviews([
-            {
-              id: String(data.review.reviewId),
-              title: data.review.title,
-              content: data.review.content,
-              likes: data.review.likes,
-              views: data.review.totalViews,
-              comments: data.review.comments,
-              createdAt: data.review.createdAt,
-              movieTitle: data.review.movieTitle, // API 응답에서 movieTitle 가져옴
-              // 백엔드에서 reviewer 정보를 제공하면 data.review.reviewer를 직접 할당
-              reviewer: data.review.reviewer || { 
-                id: 'logged_in_user_id', // 실제 로그인한 유저 ID로 대체 필요
-                nickname: data.nickname, 
-                image: data.image 
-              }, // MyPageMain은 본인 리뷰이므로 본인 프로필 정보 사용 가능
-            },
-          ]);
-        } else {
-          setDetailReviews([]);
-        }
-
-        // Favorite Movies 매핑
-        setFavoriteMovies(
-          data.myPickMoives.map((movie) => ({ // myPickMoives -> myPickMovies 로 수정
-            id: String(movie.myPickId),
-            title: movie.movieTitle,
-            director: movie.director,
-            releaseDate: movie.releaseDate.substring(0, 4),
-            posterUrl: movie.posterUrl,
-          }))
-        );
-      } catch (err) {
+      } catch (err: any) {
         console.error("마이페이지 데이터 불러오기 실패:", err);
-        setError("데이터를 불러오는 데 실패했습니다.");
-        // 에러가 401 Unauthorized인 경우 로그인 페이지로 리다이렉트 등의 추가 처리
-        // if (axios.isAxiosError(err) && err.response?.status === 401) {
-        //   navigate('/login'); // 예시: 401 에러 시 로그인 페이지로 이동
-        // }
+
+        if (axios.isAxiosError(err) && err.response?.status === 401) {
+          console.log("401 Unauthorized: Access token invalid or expired. Redirecting to login.");
+          localStorage.removeItem("accessToken"); 
+          navigate("/login"); 
+          return;
+        } else {
+          setError("데이터를 불러오는 데 실패했습니다.");
+        }
       } finally {
         setLoading(false);
       }
     };
 
-    fetchMyPageData();
-  }, []); // 빈 배열: 컴포넌트 마운트 시 한 번만 실행
+    loadMyPageData();
+  }, [fetchMyPageMainData, navigate]);
 
-  // 정렬 로직 (API 데이터가 없는 경우를 대비하여 조건부 실행)
   const sortedShortReviews = userProfile && shortReviews.length > 0 ? [...shortReviews].sort((a, b) => {
     if (shortReviewSort === "latest") {
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
@@ -390,7 +364,6 @@ const MyPageMain: React.FC = () => {
     return 0;
   }) : [];
 
-  // 로딩 및 에러 상태 처리
   if (loading) {
     return (
       <MyPageContainer>
@@ -409,12 +382,11 @@ const MyPageMain: React.FC = () => {
     );
   }
 
-  // 데이터가 없는데 로딩도 끝났을 때
-  if (!userProfile && !error) {
+  if (!userProfile) {
     return (
       <MyPageContainer>
         <VideoBackground />
-        <EmptyState>마이페이지 데이터를 찾을 수 없습니다.</EmptyState>
+        <EmptyState>마이페이지 데이터를 찾을 수 없습니다. 로그인 상태를 확인해주세요.</EmptyState>
       </MyPageContainer>
     );
   }
@@ -424,6 +396,7 @@ const MyPageMain: React.FC = () => {
       <VideoBackground />
       {userProfile && <UserProfileSection userProfile={userProfile} />}
 
+      {/* 한줄평 섹션 */}
       <SectionWrapper style={{ gridArea: "shortReview" }}>
         <SectionHeader>
           <SectionTitle onClick={() => navigate("/mypage/reviews/short")}>
@@ -446,19 +419,19 @@ const MyPageMain: React.FC = () => {
           </SectionTitle>
           <SortOptions>
             <SortButton
-              isActive={shortReviewSort === "latest"}
+              $isActive={shortReviewSort === "latest"} // $isActive로 변경
               onClick={() => setShortReviewSort("latest")}
             >
               최신순
             </SortButton>
             <SortButton
-              isActive={shortReviewSort === "likes"}
+              $isActive={shortReviewSort === "likes"} // $isActive로 변경
               onClick={() => setShortReviewSort("likes")}
             >
               좋아요순
             </SortButton>
             <SortButton
-              isActive={shortReviewSort === "rating"}
+              $isActive={shortReviewSort === "rating"} // $isActive로 변경
               onClick={() => setShortReviewSort("rating")}
             >
               별점순
@@ -478,6 +451,7 @@ const MyPageMain: React.FC = () => {
         </PreviewContent>
       </SectionWrapper>
 
+      {/* 상세 리뷰 섹션 */}
       <SectionWrapper style={{ gridArea: "detailReview" }}>
         <SectionHeader>
           <SectionTitle onClick={() => navigate("/mypage/reviews/detail")}>
@@ -500,19 +474,19 @@ const MyPageMain: React.FC = () => {
           </SectionTitle>
           <SortOptions>
             <SortButton
-              isActive={detailReviewSort === "latest"}
+              $isActive={detailReviewSort === "latest"} // $isActive로 변경
               onClick={() => setDetailReviewSort("latest")}
             >
               최신순
             </SortButton>
             <SortButton
-              isActive={detailReviewSort === "likes"}
+              $isActive={detailReviewSort === "likes"} // $isActive로 변경
               onClick={() => setDetailReviewSort("likes")}
             >
               좋아요순
             </SortButton>
             <SortButton
-              isActive={detailReviewSort === "views"}
+              $isActive={detailReviewSort === "views"} // $isActive로 변경
               onClick={() => setDetailReviewSort("views")}
             >
               조회순
@@ -524,7 +498,6 @@ const MyPageMain: React.FC = () => {
             sortedDetailReviews
               .slice(0, 3)
               .map((review: DetailReviewType) => (
-                // DetailReviewCard에 movieTitle prop 전달
                 <ReviewCard key={review.id} review={review} type="detail" />
               ))
           ) : (
@@ -533,6 +506,7 @@ const MyPageMain: React.FC = () => {
         </PreviewContent>
       </SectionWrapper>
 
+      {/* 찜한 영화 섹션 */}
       <SectionWrapper style={{ gridArea: "favoriteMovies" }}>
         <SectionHeader>
           <SectionTitle onClick={() => navigate("/mypage/movies/favorite")}>
@@ -554,7 +528,7 @@ const MyPageMain: React.FC = () => {
             </svg>
           </SectionTitle>
           <SortOptions>
-            <SortButton isActive={true}>최신순</SortButton>
+            <SortButton $isActive={true}>최신순</SortButton> {/* $isActive로 변경 */}
           </SortOptions>
         </SectionHeader>
         <MovieCardGrid>
