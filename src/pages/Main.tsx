@@ -47,7 +47,7 @@ const ListContainer = styled.div`
 
 const MovieContainer = styled.div`
   width: 100%;
-  height: 300px;
+  height: 210px;
   position: relative;
   margin-top: 20px;
   margin-left: 40px;
@@ -61,11 +61,12 @@ const MoviesSlider = styled.div`
   -webkit-overflow-scrolling: touch;
   margin-top: 15px;
   background-color: transparent;
+  overflow-y: hidden;
 `;
 
 const Movies = styled.div`
   display: inline-block;
-  width: 100px;
+  width: 250px;
   height: 150px;
   margin-right: 8px;
   background-color: #ddd;
@@ -213,6 +214,7 @@ const Main = () => {
     monthlyTopMovieList,
     recommendedMovieList,
   ]);
+
   return (
     <>
       {isNewUser && <SurveyModal setIsNewUser={setIsNewUser} />}
@@ -285,7 +287,7 @@ const Main = () => {
                       </Movies>
                     ))
                   ) : (
-                    <div>영화 없음</div>
+                    <div>영화가 없습니다.</div>
                   )}
                 </MoviesSlider>
               </MovieContainer>
