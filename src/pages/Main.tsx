@@ -2,9 +2,15 @@ import styled from "styled-components";
 import MainHeader from "../components/MainHeader";
 import { useEffect, useState } from "react";
 import SurveyModal from "../components/SurveyModal";
-import teaservideo from "../assets/video/teaser.mp4";
 import useHomeApi from "../api/home";
-import Review from "../components/Review";
+import { useMediaQuery } from "react-responsive";
+import logo from "../assets/img/Logo.png";
+import { AnimatePresence, motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
+
+interface styleType {
+  $ismobile: boolean;
+}
 
 const MainContainer = styled.div`
   display: flex;
@@ -14,21 +20,22 @@ const MainContainer = styled.div`
 `;
 
 const VideoContainer = styled.div`
-  background-color: black;
   width: 100%;
-  margin-top: 40px;
+  height: 80vh;
   display: flex;
   justify-content: center;
   align-items: center;
   position: relative;
-  scroll-snap-align: start;
-  /* position: fixed; */
+  overflow: hidden;
 `;
 
 const Video = styled.iframe`
   width: 100%;
   height: 100vh;
   object-fit: cover;
+  border: none;
+  outline: none;
+  pointer-events: none;
 `;
 
 const ListContainer = styled.div`
@@ -39,10 +46,11 @@ const ListContainer = styled.div`
   height: auto;
   top: 77vh;
   overflow-x: hidden;
-  /* background-color: ${({ theme }) => theme.backgroundColor}; */
   background-color: transparent;
-  backdrop-filter: blur(8px);
+  margin-top: 10px;
+  backdrop-filter: blur(2px);
   padding-bottom: 50px;
+  z-index: 1000;
 `;
 
 const MovieContainer = styled.div`
@@ -73,6 +81,28 @@ const Movies = styled.div`
   text-align: center;
   line-height: 120px;
   position: relative;
+  cursor: pointer;
+`;
+
+const SkeletonBox = styled(motion.div)`
+  display: inline-block;
+  width: 250px;
+  height: 150px;
+  margin-right: 8px;
+  border-radius: 10px;
+  background: linear-gradient(90deg, #222222 25%, #444444 50%, #222222 75%);
+
+  background-size: 200% 100%;
+`;
+const VideoSkeletonBox = styled(motion.div)`
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  margin-top: 130px;
+  border-radius: 24px;
+  background: linear-gradient(90deg, #222222 25%, #444444 50%, #222222 75%);
+  background-size: 200% 100%;
+  z-index: 2;
 `;
 
 const PreviousSlideBtn = styled.button`
@@ -95,8 +125,6 @@ const NextSlideBtn = styled.button`
   height: 120px;
   background-color: rgba(0, 0, 0, 0.7);
   position: absolute;
-  /* right: 0px;
-  top: 52px; */
   border: none;
   cursor: pointer;
 `;
@@ -108,10 +136,66 @@ const SliderTypeTxt = styled.span`
   color: ${({ theme }) => theme.textColor};
 `;
 
+const VideoHiddenContainer = styled(motion.div)<{ $image: string }>`
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  margin-top: 130px;
+  background-image: linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 1) 0%,
+      rgba(0, 0, 0, 0.1) 50%,
+      rgba(0, 0, 0, 0) 100%
+    ),
+    url(${(props) => props.$image});
+  background-position: center;
+  background-size: cover;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  z-index: 1;
+  margin-bottom: 100px;
+  padding-left: 140px;
+  font-size: 32;
+  font-weight: bold;
+  cursor: pointer;
+`;
+
+const Logo = styled.img<styleType>`
+  width: ${(props) => (props.$ismobile ? "80px" : "80px")};
+  margin-right: 30px;
+  cursor: pointer;
+`;
+
+const MoviePosterImg = styled.img`
+  width: 100%;
+  height: 100%;
+  position: relative;
+`;
+const TeaserTitleContainer = styled.div`
+  display: flex;
+  align-items: center;
+  padding-left: 20px;
+  height: auto;
+  font-size: 40px;
+  margin-top: 10px;
+`;
+
+const TeaserExplainContainer = styled.div`
+  display: flex;
+  align-items: center;
+  padding-left: 20px;
+  font-size: 20px;
+  margin-top: 20px;
+`;
+
 interface TeaserType {
   movieId: number;
   title: string;
   teaserUrl: string;
+  plot: string;
+  stillCutUrl: string;
 }
 
 interface TopLikeReviewListType {
@@ -131,12 +215,18 @@ interface MovieList {
 const Main = () => {
   const [keyword, setKeyword] = useState("");
   const [isNewUser, setIsNewUser] = useState(false);
+  const isMobile = useMediaQuery({ query: "(max-width: 767px)" });
   const { getHomeApi, searchHomeApi } = useHomeApi();
+  const navigate = useNavigate();
+  const [isReviewLoading, setIsReviewLoading] = useState(true);
+  const [isMovieLoading, setIsMovieLoading] = useState(true);
 
   const [teaser, setTeaser] = useState<TeaserType>({
     movieId: 0,
     title: "",
     teaserUrl: "",
+    plot: "",
+    stillCutUrl: "",
   });
 
   const [topLikeReviewList, setTopLikeReviewList] = useState<
@@ -156,15 +246,19 @@ const Main = () => {
   const [searchedMovieList, setSearchedMovieList] = useState<MovieList[]>([]);
 
   const getHomeData = async () => {
+    setIsReviewLoading(true);
+    setIsMovieLoading(true);
     const res = await getHomeApi();
 
-    console.log(res);
     setTeaser(res.data.data.teaser);
     setTopLikeReviewList(res.data.data.topLikeReviewList);
     setTopPickMovieList(res.data.data.topPickMovieList);
     setBoxOfficeMovieList(res.data.data.boxOfficeMovieList);
     setDailyTopMovieList(res.data.data.dailyTopMovieList);
     setMonthlyTopMovieList(res.data.data.monthlyTopMovieList);
+    setRecommendedMovieList(res.data.data.recommendedMovieList || []);
+    setIsReviewLoading(false);
+    setIsMovieLoading(false);
   };
 
   const searchData = async () => {
@@ -178,8 +272,13 @@ const Main = () => {
 
   useEffect(() => {
     searchData();
-    console.log("검색 결과", searchedMovieList);
   }, [keyword]);
+
+  useEffect(() => {
+    if (teaser.stillCutUrl === "") {
+      setShowIframe(false);
+    }
+  }, [teaser.stillCutUrl]);
 
   const reviewData = [{ prefix: "사용자 좋아요", highlight: "TOP 10 리뷰" }];
   const movieData = [
@@ -199,42 +298,63 @@ const Main = () => {
     recommendedMovieList, // 추천 TOP 10 영화 (필요하다면 추가)
   ];
 
-  useEffect(() => {
-    console.log("사용자 좋아요 TOP 10 리뷰:", topLikeReviewList);
-    console.log("사용자 좋아요 TOP 10 영화:", topPickMovieList);
-    console.log(" 박스 오피스 TOP 10 영화:", boxOfficeMovieList);
-    console.log("일별 조회수 TOP 10 영화:", dailyTopMovieList);
-    console.log("월별 조회수 TOP 10 영화:", monthlyTopMovieList);
-    console.log("추천 TOP 10 영화 (필요하다면 추가):", recommendedMovieList);
-  }, [
-    topLikeReviewList,
-    topPickMovieList,
-    boxOfficeMovieList,
-    dailyTopMovieList,
-    monthlyTopMovieList,
-    recommendedMovieList,
-  ]);
+  const [showIframe, setShowIframe] = useState(false);
 
   return (
     <>
       {isNewUser && <SurveyModal setIsNewUser={setIsNewUser} />}
       <MainHeader keyword={keyword} setKeyword={setKeyword} />
       <MainContainer>
-        <VideoContainer>
-          <Video
-            width="560"
-            height="315"
-            src="https://www.youtube.com/embed/g2ClO3O5QWA"
-            title="YouTube video player"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-            allowFullScreen
-            // src={teaservideo}
-            // autoPlay
-            // muted
-            // loop
-            // playsInline
-            // controls={false}
-          />
+        <VideoContainer
+          // onMouseEnter={() => setShowIframe(true)}
+          // onMouseLeave={() => setShowIframe(false)}
+          onMouseEnter={() => {
+            if (teaser.stillCutUrl !== "") setShowIframe(true);
+          }}
+          onMouseLeave={() => {
+            if (teaser.stillCutUrl !== "") setShowIframe(false);
+          }}
+        >
+          {showIframe && (
+            <Video
+              width="100%"
+              height="100%"
+              src={`${teaser.teaserUrl}`}
+              title="Teaser"
+              allow="accelerometer; autoplay; encrypted-media"
+              allowFullScreen
+            />
+          )}
+          <AnimatePresence>
+            {!showIframe &&
+              (teaser.stillCutUrl ? (
+                <VideoHiddenContainer
+                  as={motion.div}
+                  key="teaser"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0, transition: { duration: 0.3 } }}
+                  transition={{ duration: 0.3 }}
+                  $image={teaser.stillCutUrl}
+                >
+                  <Logo $ismobile={isMobile} src={logo} />
+                  <TeaserTitleContainer>{teaser.title}</TeaserTitleContainer>
+                  <TeaserExplainContainer>{teaser.plot}</TeaserExplainContainer>
+                </VideoHiddenContainer>
+              ) : (
+                <VideoSkeletonBox
+                  key="teaser-skeleton"
+                  animate={{
+                    backgroundPosition: ["200% 0", "-200% 0"],
+                  }}
+                  transition={{
+                    duration: 1.2,
+                    repeat: Infinity,
+                    ease: "linear",
+                  }}
+                />
+              ))}
+          </AnimatePresence>
         </VideoContainer>
         {keyword !== "" ? (
           <></>
@@ -246,22 +366,26 @@ const Main = () => {
                   {prefix} <strong>{highlight}</strong>
                 </SliderTypeTxt>
                 <MoviesSlider>
-                  {reviewLists[idx] && reviewLists[idx].length > 0 ? (
+                  {isReviewLoading ? (
+                    Array.from({ length: 10 }).map((_, i) => (
+                      <SkeletonBox
+                        key={i}
+                        animate={{
+                          backgroundPosition: ["200% 0", "-200% 0"],
+                        }}
+                        transition={{
+                          duration: 1.2,
+                          repeat: Infinity,
+                          ease: "linear",
+                        }}
+                      />
+                    ))
+                  ) : reviewLists[idx] && reviewLists[idx].length > 0 ? (
                     reviewLists[idx].map((review, reviewIdx) => (
-                      <Movies key={review.movieId}>
-                        {/* <img
-                          src={movie.poster_url}
-                          alt={movie.title}
-                          style={{
-                            position: "relative",
-                            width: "100%",
-                            height: "100%",
-                          }}
-                        /> */}
-                      </Movies>
+                      <Movies key={review.movieId}></Movies>
                     ))
                   ) : (
-                    <div>영화 없음</div>
+                    <div>리뷰가 존재하지 않습니다.</div>
                   )}
                 </MoviesSlider>
               </MovieContainer>
@@ -272,10 +396,29 @@ const Main = () => {
                   {prefix} <strong>{highlight}</strong>
                 </SliderTypeTxt>
                 <MoviesSlider>
-                  {movieLists[idx] && movieLists[idx].length > 0 ? (
+                  {isMovieLoading ? (
+                    Array.from({ length: 10 }).map((_, i) => (
+                      <SkeletonBox
+                        key={i}
+                        animate={{
+                          backgroundPosition: ["200% 0", "-200% 0"],
+                        }}
+                        transition={{
+                          duration: 1.2,
+                          repeat: Infinity,
+                          ease: "linear",
+                        }}
+                      />
+                    ))
+                  ) : movieLists[idx] && movieLists[idx].length > 0 ? (
                     movieLists[idx].map((movie, movieIdx) => (
-                      <Movies key={movie.movie_id}>
-                        <img
+                      <Movies
+                        key={movie.movie_id}
+                        onClick={() => {
+                          navigate(`/movie/${movie.movie_id}`);
+                        }}
+                      >
+                        <MoviePosterImg
                           src={movie.poster_url}
                           alt={movie.title}
                           style={{
@@ -287,7 +430,7 @@ const Main = () => {
                       </Movies>
                     ))
                   ) : (
-                    <div>영화가 없습니다.</div>
+                    <div>영화가 존재하지 않습니다.</div>
                   )}
                 </MoviesSlider>
               </MovieContainer>
@@ -300,38 +443,3 @@ const Main = () => {
 };
 
 export default Main;
-
-{
-  /* <PreviousSlideBtn>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke-width="1.5"
-                  stroke="white"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    d="M15.75 19.5 8.25 12l7.5-7.5"
-                  />
-                </svg>
-              </PreviousSlideBtn> */
-}
-{
-  /* <NextSlideBtn>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke-width="1.5"
-                  stroke="white"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    d="m8.25 4.5 7.5 7.5-7.5 7.5"
-                  />
-                </svg>
-              </NextSlideBtn> */
-}

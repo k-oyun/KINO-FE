@@ -25,9 +25,15 @@ const HeaderContainer = styled.header<styleType>`
   align-items: center;
   width: 100%;
   height: 60px;
-  background-color: ${({ theme }) => theme.backgroundColor};
+  /* background-color: ${({ theme }) => theme.backgroundColor}; */
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 1) 0%,
+    rgba(0, 0, 0, 0.7) 50%,
+    rgba(0, 0, 0, 0) 100%
+  );
   color: ${({ theme }) => theme.textColor};
-  backdrop-filter: blur(8px);
+  /* backdrop-filter: blur(8px); */
   position: fixed;
   top: 0;
   z-index: 3000;
@@ -42,7 +48,8 @@ const HeaderMenuContainer = styled.div<styleType>`
 
 const HeaderMenuBtn = styled.button<styleType>`
   text-align: center;
-  background-color: ${({ theme }) => theme.backgroundColor};
+  /* background-color: ${({ theme }) => theme.backgroundColor}; */
+  background-color: transparent;
   color: ${({ theme }) => theme.textColor};
   position: relative;
   height: 100%;
@@ -164,7 +171,7 @@ const MenuPopupText = styled.span<{ $ismenupopupopen: boolean }>`
 `;
 
 const MainHeader = ({ keyword, setKeyword }: SearchBarProps) => {
-  const [nickname, setNickname] = useState("오윤");
+  const [nickname, setNickname] = useState("권오윤");
   const [userImg, setUserImg] = useState("");
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [isMenuPopupOpen, setIsMenuPopupOpen] = useState(false);
