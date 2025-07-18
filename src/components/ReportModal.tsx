@@ -133,7 +133,7 @@ const CloseBtn = styled.svg`
   height: 25px;
 `;
 
-const AdminModal = ({ setIsModalOpen }: reportProp) => {
+const ReportModal = ({ setIsModalOpen }: reportProp) => {
   const isMobile = useMediaQuery({ query: "(max-width: 767px)" });
   const [reportProcessType, setReportProcessType] = useState("선택하세요.");
   const [reportReason, setReportReason] = useState("");
@@ -222,4 +222,4 @@ const AdminModal = ({ setIsModalOpen }: reportProp) => {
   );
 };
 
-export default AdminModal;
+export default ReportModal;
