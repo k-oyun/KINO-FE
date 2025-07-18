@@ -209,12 +209,12 @@ interface TopLikeReviewListType {
 interface MovieList {
   title: string;
   movie_id: number;
-  poster_url: string;
+  still_cut_url: string;
 }
 
 const Main = () => {
   const [keyword, setKeyword] = useState("");
-  const [isNewUser, setIsNewUser] = useState(false);
+  const [isNewUser, setIsNewUser] = useState(true);
   const isMobile = useMediaQuery({ query: "(max-width: 767px)" });
   const { getHomeApi, searchHomeApi } = useHomeApi();
   const navigate = useNavigate();
@@ -419,7 +419,7 @@ const Main = () => {
                         }}
                       >
                         <MoviePosterImg
-                          src={movie.poster_url}
+                          src={movie.still_cut_url}
                           alt={movie.title}
                           style={{
                             position: "relative",

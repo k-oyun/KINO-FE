@@ -9,9 +9,14 @@ export const useHomeApi = () => {
     return await axios.get(`/movies/search?keyword=${keyword}`);
   };
 
+  const surveyApi = async (genreIds: number[]) => {
+    return await axios.post(`/user/genre`, { genreIds });
+  };
+
   return {
     getHomeApi,
     searchHomeApi,
+    surveyApi,
   };
 };
 export default useHomeApi;
