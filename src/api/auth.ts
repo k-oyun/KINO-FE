@@ -15,11 +15,16 @@ export const useAuthApi = () => {
     return await axios.get(`auth/oauth/naver?code=${code}`);
   };
 
+  const userInfoGet = async () => {
+    return await axios.get("/user");
+  };
+
   return {
     login,
     loginWithKakao,
     loginWithGoogle,
     loginWithNaver,
+    userInfoGet,
   };
 };
 export default useAuthApi;
