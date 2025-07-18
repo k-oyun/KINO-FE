@@ -13,7 +13,8 @@ export const lightTheme = {
 };
 
 export const darkTheme = {
-  backgroundColor: "#000000",
+  // backgroundColor: "#000000",
+  backgroundColor: "#141414",
   textColor: "#ffffff",
   modalTextColor: "#d9d9d9",
   hoverColor: "#212529",
