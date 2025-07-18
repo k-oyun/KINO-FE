@@ -55,33 +55,32 @@ const ListContainer = styled.div`
 
 const MovieContainer = styled.div`
   width: 100%;
-  height: 210px;
   position: relative;
-  margin-top: 20px;
-  margin-left: 40px;
   right: 0px;
-  background-color: transparent;
 `;
 
 const MoviesSlider = styled.div`
   overflow-x: auto;
   white-space: nowrap;
   -webkit-overflow-scrolling: touch;
-  margin-top: 15px;
-  background-color: transparent;
+  /* padding: 15px 0px; */
+  padding-top: 15px;
+  padding-bottom: 15px;
+  padding-left: 60px;
   overflow-y: hidden;
 `;
 
-const Movies = styled.div`
+const Movies = styled(motion.div)`
   display: inline-block;
   width: 250px;
   height: 150px;
   margin-right: 8px;
-  background-color: #ddd;
+  background-color: transparent;
   text-align: center;
   line-height: 120px;
   position: relative;
   cursor: pointer;
+  border-radius: 15px;
 `;
 
 const SkeletonBox = styled(motion.div)`
@@ -133,6 +132,7 @@ const SliderTypeTxt = styled.span`
   font-size: 18px;
   font-weight: 400;
   margin-top: 30px;
+  padding-left: 60px;
   color: ${({ theme }) => theme.textColor};
 `;
 
@@ -172,6 +172,7 @@ const MoviePosterImg = styled.img`
   width: 100%;
   height: 100%;
   position: relative;
+  border-radius: 10px;
 `;
 const TeaserTitleContainer = styled.div`
   display: flex;
@@ -214,7 +215,7 @@ interface MovieList {
 
 const Main = () => {
   const [keyword, setKeyword] = useState("");
-  const [isNewUser, setIsNewUser] = useState(true);
+  const [isNewUser, setIsNewUser] = useState(false);
   const isMobile = useMediaQuery({ query: "(max-width: 767px)" });
   const { getHomeApi, searchHomeApi } = useHomeApi();
   const navigate = useNavigate();
@@ -381,8 +382,22 @@ const Main = () => {
                       />
                     ))
                   ) : reviewLists[idx] && reviewLists[idx].length > 0 ? (
-                    reviewLists[idx].map((review, reviewIdx) => (
-                      <Movies key={review.movieId}></Movies>
+                    reviewLists[idx].map((review) => (
+                      <Movies
+                        key={review.movieId}
+                        style={{ backgroundColor: "gray" }}
+                        whileHover={{
+                          scale: 1.1,
+                          boxShadow: "0 30px 30px rgba(0,0,0,0.25)",
+                          zIndex: 10,
+                          borderRadius: "15px",
+                        }}
+                        transition={{
+                          type: "spring",
+                          stiffness: 250,
+                          damping: 18,
+                        }}
+                      ></Movies>
                     ))
                   ) : (
                     <div>리뷰가 존재하지 않습니다.</div>
@@ -411,9 +426,20 @@ const Main = () => {
                       />
                     ))
                   ) : movieLists[idx] && movieLists[idx].length > 0 ? (
-                    movieLists[idx].map((movie, movieIdx) => (
+                    movieLists[idx].map((movie) => (
                       <Movies
                         key={movie.movie_id}
+                        whileHover={{
+                          scale: 1.1,
+                          boxShadow: "0 30px 30px rgba(0,0,0,0.25)",
+                          zIndex: 10,
+                          borderRadius: "15px",
+                        }}
+                        transition={{
+                          type: "spring",
+                          stiffness: 250,
+                          damping: 18,
+                        }}
                         onClick={() => {
                           navigate(`/movie/${movie.movie_id}`);
                         }}
@@ -421,11 +447,6 @@ const Main = () => {
                         <MoviePosterImg
                           src={movie.still_cut_url}
                           alt={movie.title}
-                          style={{
-                            position: "relative",
-                            width: "100%",
-                            height: "100%",
-                          }}
                         />
                       </Movies>
                     ))

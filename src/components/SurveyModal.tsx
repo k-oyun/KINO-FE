@@ -61,10 +61,10 @@ const SubText = styled.span`
 `;
 
 const GenreBtn = styled.button<{ $selected: boolean; $ismobile: boolean }>`
-  width: ${(props) => (props.$ismobile ? "60px" : "80px")};
-  height: ${(props) => (props.$ismobile ? "35px" : "35px")};
+  width: ${(props) => (props.$ismobile ? "55px" : "80px")};
+  height: ${(props) => (props.$ismobile ? "30px" : "35px")};
   text-align: center;
-  font-size: 0.8rem;
+  font-size: ${(props) => (props.$ismobile ? "0.6rem" : "0.8rem")};
   background-color: ${({ $selected }) => ($selected ? "#FE5890" : "#d9d9d9")};
   border: none;
   border-radius: 14px;
@@ -124,16 +124,16 @@ const SurveyModal = ({ setIsNewUser }: userStateProps) => {
       { genre: "전쟁", id: 10752 },
       { genre: "범죄", id: 80 },
       { genre: "역사", id: 36 },
+      { genre: "드라마", id: 18 },
     ],
     [
       { genre: "애니메이션", id: 16 },
       { genre: "다큐멘터리", id: 99 },
       { genre: "액션", id: 28 },
       { genre: "판타지", id: 14 },
-      { genre: "드라마", id: 18 },
+      { genre: "가족", id: 10751 },
     ],
     [
-      { genre: "가족", id: 10751 },
       { genre: "음악", id: 10402 },
       { genre: "미스터리", id: 9648 },
       { genre: "서부", id: 37 },

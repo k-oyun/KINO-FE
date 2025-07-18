@@ -62,8 +62,9 @@ const HeaderMenuBtn = styled.button<styleType>`
   border: none;
   cursor: pointer;
   &:hover {
-    background-color: ${({ theme }) => theme.hoverColor};
+    transform: scale(1.1);
   }
+  transition: 0.1s ease-in;
 `;
 
 const UserInfoContainer = styled.div<styleType>`
