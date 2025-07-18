@@ -6,6 +6,7 @@ import profileIcon from "../assets/img/profileIcon.png";
 import logoText from "../assets/img/LogoTxt.png";
 import { SearchBar } from "./SearchBar";
 import { useNavigate } from "react-router-dom";
+import useAuthApi from "../api/auth";
 
 interface styleType {
   $ismobile: boolean;
@@ -14,9 +15,10 @@ interface styleType {
 interface userImageType extends styleType {
   $image: string;
 }
-interface SearchBarProps {
+interface HeaderProps {
   keyword: string;
   setKeyword: (value: string) => void;
+  setIsNewUser: (value: boolean) => void;
 }
 
 const HeaderContainer = styled.header<styleType>`
@@ -170,16 +172,29 @@ const MenuPopupText = styled.span<{ $ismenupopupopen: boolean }>`
   transition: transform 0.4s ease;
   font-family: sans-serif;
 `;
+interface UserType {
+  userId: number;
+  nickname: string;
+  image: string;
+  email: string;
+  isFirstLogin: boolean;
+}
 
-const MainHeader = ({ keyword, setKeyword }: SearchBarProps) => {
-  const [nickname, setNickname] = useState("권오윤");
-  const [userImg, setUserImg] = useState("");
+const MainHeader = ({ keyword, setKeyword, setIsNewUser }: HeaderProps) => {
+  const [user, setUser] = useState<UserType>({
+    userId: 0,
+    nickname: "",
+    image: "",
+    email: "",
+    isFirstLogin: false,
+  });
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [isMenuPopupOpen, setIsMenuPopupOpen] = useState(false);
   const popupRef = useRef<HTMLDivElement>(null);
   const menuPopupRef = useRef<HTMLDivElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
   const isMobile = useMediaQuery({ query: "(max-width: 767px)" });
+  const { userInfoGet, logout } = useAuthApi();
   const menuItems = [
     { label: "홈", path: "/" },
     { label: "커뮤니티", path: "/comnmuniy" },
@@ -204,10 +219,14 @@ const MainHeader = ({ keyword, setKeyword }: SearchBarProps) => {
     navigate("/mypage");
   };
 
-  const onClickLogout = () => {
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("refreshToken");
-    navigate("/login");
+  const onClickLogout = async () => {
+    try {
+      await logout();
+    } finally {
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("refreshToken");
+      navigate("/login");
+    }
   };
   const navigate = useNavigate();
 
@@ -230,6 +249,15 @@ const MainHeader = ({ keyword, setKeyword }: SearchBarProps) => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [isPopupOpen, isMenuPopupOpen]);
+
+  useEffect(() => {
+    const userDataGet = async () => {
+      const res = await userInfoGet();
+      setUser(res.data.data);
+    };
+    userDataGet();
+    setIsNewUser(user.isFirstLogin);
+  }, []);
 
   return (
     <>
@@ -293,17 +321,17 @@ const MainHeader = ({ keyword, setKeyword }: SearchBarProps) => {
         <UserInfoContainer $ismobile={isMobile}>
           {!isMobile && <SearchBar keyword={keyword} setKeyword={setKeyword} />}
 
-          {nickname === "" ? (
-            <LoginBtn $ismobile={isMobile}>
+          {user.nickname === "" ? (
+            <LoginBtn $ismobile={isMobile} onClick={() => navigate("/login")}>
               {isMobile ? "로그인" : "로그인하러 가기"}
             </LoginBtn>
           ) : (
             <>
-              <HeaderText $ismobile={isMobile}>{nickname}</HeaderText>
+              <HeaderText $ismobile={isMobile}>{user.nickname}</HeaderText>
               <UserImageContainer
                 ref={imageRef}
                 $ismobile={isMobile}
-                $image={userImg ? userImg : profileIcon}
+                $image={user.image ? user.image : profileIcon}
                 onClick={handlePopup}
               />
             </>
