@@ -207,7 +207,6 @@ const ShortReview = ({ isMobile, movieId }: ShortReviewProps) => {
     deleteShortReview,
     getShortReviews,
     likeShortReview,
-    unlikeShortReview,
   } = useMovieDetailApi();
 
   const handleRatingChange = (newRating: number) => {
@@ -222,7 +221,7 @@ const ShortReview = ({ isMobile, movieId }: ShortReviewProps) => {
     }
     try {
       const res = postShortReview(movieId, review);
-      res.then((data: { data: Review }) => {
+      res.then((data) => {
         console.log("Review written successfully:", data);
         setReviews((prevReviews) => [
           ...prevReviews,

@@ -10,17 +10,22 @@ interface ShortReview {
   rating: number;
   likeCount: number;
   createdAt: string;
+
   reviewer?: Reviewer;
+  title: string;
+  likes: number;
+  views: number;
+  comments: number;
 }
 
 interface DetailReview {
   id: string;
-  title: string;
+  title?: string;
   image: string;
   content: string;
-  likes: number;
-  views: number;
-  comments: number;
+  likes?: number;
+  views?: number;
+  comments?: number;
   createdAt: string;
   reviewer?: Reviewer;
 }
@@ -189,14 +194,28 @@ const ReviewCard: React.FC<ReviewCardProps> = ({ review, type }) => {
           onClick={handleCardClick}
         />
       )}
-      {type === "detail" && (
-        <DetailReviewCard
-          review={review as DetailReview}
-          isMine={true}
-          showProfile={false}
-          onClick={handleCardClick}
-        />
-      )}
+      {type === "detail" &&
+        review.title &&
+        review.likes &&
+        review.comments &&
+        review.views && (
+          <DetailReviewCard
+            review={{
+              reviewId: review.id,
+              userProfile: reviewer.image,
+              userNickname: reviewer.nickname,
+              title: review.title,
+              content: review.content,
+              likeCount: review.likes,
+              totalViews: review.views,
+              commentCount: review.comments,
+              createdAt: review.createdAt,
+            }}
+            isMine={true}
+            showProfile={false}
+            onClick={handleCardClick}
+          />
+        )}
     </>
   );
 };
