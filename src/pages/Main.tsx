@@ -274,6 +274,7 @@ const Main = () => {
 
   useEffect(() => {
     searchData();
+    console.log(searchedMovieList);
   }, [keyword]);
 
   useEffect(() => {
@@ -363,7 +364,49 @@ const Main = () => {
           </AnimatePresence>
         </VideoContainer>
         {keyword !== "" ? (
-          <></>
+          searchedMovieList.length > 0 ? (
+            <ListContainer>
+              <MovieContainer>
+                <SliderTypeTxt>
+                  <span>검색 결과</span>
+                </SliderTypeTxt>
+                <MoviesSlider>
+                  {searchedMovieList.map((movie, i) => (
+                    <Movies
+                      key={movie.movie_id ?? i}
+                      whileHover={{
+                        scale: 1.1,
+                        boxShadow: "0 30px 30px rgba(0,0,0,0.25)",
+                        zIndex: 10,
+                        borderRadius: "15px",
+                      }}
+                      transition={{
+                        type: "spring",
+                        stiffness: 250,
+                        damping: 18,
+                      }}
+                      onClick={() => {
+                        navigate(`/movie/${movie.movie_id}`);
+                      }}
+                    >
+                      <MoviePosterImg
+                        src={movie.still_cut_url}
+                        alt={movie.title}
+                      />
+                    </Movies>
+                  ))}
+                </MoviesSlider>
+              </MovieContainer>
+            </ListContainer>
+          ) : (
+            <ListContainer>
+              <MovieContainer>
+                <SliderTypeTxt>
+                  <span>검색 결과가 없습니다.</span>
+                </SliderTypeTxt>
+              </MovieContainer>
+            </ListContainer>
+          )
         ) : (
           <ListContainer>
             {reviewData.map(({ prefix, highlight }, idx) => (
@@ -387,9 +430,9 @@ const Main = () => {
                       />
                     ))
                   ) : reviewLists[idx] && reviewLists[idx].length > 0 ? (
-                    reviewLists[idx].map((review) => (
+                    reviewLists[idx].map((review, i) => (
                       <Movies
-                        key={review.movieId}
+                        key={review.reviewId ?? i}
                         style={{ backgroundColor: "gray" }}
                         whileHover={{
                           scale: 1.1,
@@ -431,9 +474,9 @@ const Main = () => {
                       />
                     ))
                   ) : movieLists[idx] && movieLists[idx].length > 0 ? (
-                    movieLists[idx].map((movie) => (
+                    movieLists[idx].map((movie, i) => (
                       <Movies
-                        key={movie.movie_id}
+                        key={movie.movie_id ?? i}
                         whileHover={{
                           scale: 1.1,
                           boxShadow: "0 30px 30px rgba(0,0,0,0.25)",

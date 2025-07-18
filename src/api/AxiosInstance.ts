@@ -18,7 +18,8 @@ AxiosInstance.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       console.log(error.response);
-      // alert("서버에러"); // SPA 방식으로 이동
+      localStorage.removeItem("accessToken");
+      window.location.href = "/login";
     }
     return Promise.reject(error);
   }
