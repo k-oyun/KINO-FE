@@ -1,18 +1,28 @@
-// src/api/useMyPageApi.ts
 import { useCallback } from 'react';
-import axios from "./AxiosInstance";
+import axios from "./axiosInstance";
 import type { MyPageMainApiResponse } from "../pages/mypage/MyPageMain";
 import type { ShortReviewListApiResponse } from "../pages/mypage/MyReviewsShortPage";
 import type { DetailReviewListApiResponse } from "../pages/mypage/MyReviewsDetailPage";
 import type { FavoriteMovieApiResponse } from "../pages/mypage/MyFavoriteMoviesPage";
-import type { FollowerApiResponse } from "../pages/mypage/MyFollowersPage"; 
-import type { FollowingApiResponse } from "../pages/mypage/MyFollowingPage"; // MyFollowingPage에서 정의된 인터페이스 임포트
+import type { FollowerApiResponse } from "../pages/mypage/MyFollowersPage";
+import type { FollowingApiResponse } from "../pages/mypage/MyFollowingPage";
+import type { UserGenresApiResponse } from "../pages/mypage/MyTagsPage";
 
-// 팔로우/언팔로우 API 응답 인터페이스 (useMyPageApi 내부에서 사용)
 interface FollowToggleResponse {
   status: number;
   success: boolean;
   message: string;
+}
+
+interface SaveUserGenresRequest {
+  genreNames: string[];
+}
+
+interface UpdateProfileResponse {
+  status: number;
+  success: boolean;
+  message: string;
+  data: {};
 }
 
 const useMyPageApi = () => {
@@ -136,6 +146,10 @@ const useMyPageApi = () => {
     }
   }, []);
 
+
+
+
+  // 유저
   const updateMyProfile = useCallback(async (profileData: { nickname?: string; image?: string }) => {
     try {
       const response = await axios.patch("/users/me", profileData);
@@ -146,11 +160,9 @@ const useMyPageApi = () => {
     }
   }, []);
 
-
-  // 2. fetchUserGenres 함수 추가 (mypage/userGenres GET 호출)
   const fetchUserGenres = useCallback(async (): Promise<UserGenresApiResponse["data"] | null> => {
     try {
-      const url = `/mypage/userGenres`; // mypage/userGenres GET API 경로
+      const url = `/mypage/userGenres`;
       console.log(`[fetchUserGenres] API 요청 URL: ${axios.defaults.baseURL}${url}`);
       const response = await axios.get<UserGenresApiResponse>(url);
       if (response.data.success) {
@@ -165,14 +177,13 @@ const useMyPageApi = () => {
     }
   }, []);
 
-  // 3. saveUserGenres 함수 추가 (mypage/userGenres POST 호출)
   const saveUserGenres = useCallback(async (genreNames: string[]): Promise<boolean> => {
     try {
-      const url = `/mypage/userGenres`; // mypage/userGenres POST API 경로
-      const requestBody: SaveUserGenresRequest = { genreNames }; // 요청 바디 생성
+      const url = `/mypage/userGenres`;
+      const requestBody: SaveUserGenresRequest = { genreNames };
       console.log(`[saveUserGenres] API 요청 URL: ${axios.defaults.baseURL}${url}, Body:`, requestBody);
 
-      const response = await axios.post(url, requestBody); // POST 요청
+      const response = await axios.post(url, requestBody);
       if (response.data.success) {
         console.log("장르 저장 성공:", response.data.message);
         return true;
@@ -186,6 +197,31 @@ const useMyPageApi = () => {
     }
   }, []);
 
+  const updateProfileWithImage = useCallback(async (formData: FormData): Promise<UpdateProfileResponse["data"] | null> => {
+    try {
+      const url = `/mypage/profile`;
+      console.log(`[updateProfileWithImage] API 요청 URL: ${axios.defaults.baseURL}${url}`);
+
+      const response = await axios.post<UpdateProfileResponse>(url, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data', 
+        },
+      });
+
+      if (response.data.success) {
+        console.log("프로필 업데이트 성공:", response.data.message);
+        return response.data.data;
+      } else {
+        console.error("프로필 업데이트 실패:", response.data.message);
+        throw new Error(response.data.message || "Failed to update profile with success: false");
+      }
+    } catch (error) {
+      console.error("프로필 업데이트 중 오류 발생:", error);
+      throw error;
+    }
+  }, []);
+
+
 
 
   return {
@@ -198,9 +234,9 @@ const useMyPageApi = () => {
     followUser,
     unfollowUser,
     updateMyProfile,
-    // 새로 추가된 함수들
     fetchUserGenres,
     saveUserGenres,
+    updateProfileWithImage,
   };
 };
 

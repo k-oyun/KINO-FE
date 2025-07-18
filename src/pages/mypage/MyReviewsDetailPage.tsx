@@ -3,13 +3,10 @@ import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
 import axios from 'axios';
 
-// useMyPageApi에서 'DetailReviewListApiResponse'를 임포트하지 않습니다.
-// 대신, 이 파일 자체에서 'DetailReviewListApiResponse'를 정의합니다.
 import useMyPageApi from '../../api/useMyPageApi';
 import ReviewCard from "../../components/mypage/ReviewCard";
 import VideoBackground from '../../components/VideoBackground';
 
-// ✨✨✨ 여기에 DetailReviewListApiResponse 인터페이스를 정의하고 export 합니다. ✨✨✨
 export interface DetailReviewListApiResponse {
   status: number;
   success: boolean;
@@ -28,14 +25,13 @@ export interface DetailReviewListApiResponse {
   };
 }
 
-// DetailReviewType은 UI 컴포넌트에 필요한 형태로 그대로 유지합니다.
 interface DetailReviewType {
-  id: string; // reviewId를 매핑하여 사용
+  id: string;
   title: string;
   content: string;
   movieTitle: string;
   likes: number;
-  views: number; // API 응답의 totalViews를 매핑
+  views: number;
   comments: number;
   createdAt: string;
 }
@@ -198,7 +194,6 @@ const MyReviewsDetailPage: React.FC = () => {
       setLoading(true);
       setError(null);
       try {
-        // ✨ 이 페이지에 정의된 DetailReviewListApiResponse 타입을 사용합니다.
         const data: DetailReviewListApiResponse["data"]["reviews"] | null = await fetchMyDetailReviews();
         if (data) {
           const mappedReviews: DetailReviewType[] = data.map(dr => ({

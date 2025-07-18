@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios'; // axios.isAxiosError를 사용하기 위해 추가
+import axios from 'axios';
 
 import UserListItem from '../../components/mypage/UserListItem';
 import VideoBackground from '../../components/VideoBackground';
-import useMyPageApi from '../../api/useMyPageApi'; // useMyPageApi와 FollowerApiResponse 임포트
+import useMyPageApi from '../../api/useMyPageApi';
 
 
 export interface FollowerApiResponse {
@@ -15,23 +15,22 @@ export interface FollowerApiResponse {
   data: Array<{
     userId: number;
     nickname: string;
-    follow: boolean; // 내가 이 팔로워를 팔로우하고 있는지 여부
-    profileImageUrl?: string; // API 명세에는 없지만, 프론트엔드에서 필요할 경우를 대비하여 선택적 속성으로 추가
+    follow: boolean;
+    profileImageUrl?: string;
   }>;
 }
 
-// 컴포넌트 내부에서 사용할 FollowerType 인터페이스
 interface FollowerType {
-  id: string; // userId를 매핑하여 사용
+  id: string;
   nickname: string;
   profileImageUrl: string;
-  isFollowing: boolean; // follow를 매핑하여 사용
+  isFollowing: boolean;
 }
 
 const PageContainer = styled.div`
   max-width: 1200px;
   margin: 0 auto;
-  padding-top: 300px; /* HeaderSelector 높이에 따라 조정 */
+  padding-top: 300px;
   background-color: transparent;
   min-height: calc(100vh - 60px);
   color: #f0f0f0;
@@ -41,7 +40,7 @@ const PageContainer = styled.div`
 
   @media (max-width: 767px) {
     padding: 20px 15px;
-    padding-top: 80px; /* 모바일에서 조정 */
+    padding-top: 80px;
   }
 `;
 
@@ -49,8 +48,8 @@ const SectionWrapper = styled.div`
   background-color: rgba(0, 0, 0, 0.7);
   padding: 25px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-  flex-grow: 1; /* 콘텐츠가 적어도 배경이 채워지도록 */
-  overflow-y: auto; /* 스크롤 가능하게 */
+  flex-grow: 1;
+  overflow-y: auto;
 
   @media (max-width: 767px) {
     padding: 20px;
@@ -136,32 +135,24 @@ const EmptyState = styled.div`
 
 const MyFollowersPage: React.FC = () => {
   const navigate = useNavigate();
-  // useMyPageApi에서 필요한 모든 함수를 구조 분해 할당
   const { fetchMyFollowers, followUser, unfollowUser } = useMyPageApi(); 
-
   const [followers, setFollowers] = useState<FollowerType[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  // 현재 로그인한 사용자의 ID를 localStorage 등에서 가져오거나, 다른 Context API를 통해 가져와야 합니다.
-  // 이 userId는 팔로워 API 호출 시 {targetId}에 들어갈 값입니다.
-  // ⭐ 실제 사용자 ID로 대체해야 합니다. 예: localStorage.getItem('userId') || 'defaultUserId';
   const myUserId = "1"; 
-  // const myUserId = "someLoggedInUserId"; 
 
   useEffect(() => {
     const loadFollowers = async () => {
       setLoading(true);
       setError(null);
       try {
-        // ⭐ 더미 데이터 대신 실제 API 호출
         const data: FollowerApiResponse["data"] | null = await fetchMyFollowers(myUserId); 
         
         if (data) {
           const mappedFollowers: FollowerType[] = data.map(follower => ({
             id: String(follower.userId), 
             nickname: follower.nickname,
-            // API 명세에 profileImageUrl이 없으므로, 더미 이미지 또는 닉네임 첫 글자로 대체
             profileImageUrl: follower.profileImageUrl || `https://via.placeholder.com/50/CCCCCC/FFFFFF?text=${follower.nickname.substring(0,1)}`, 
             isFollowing: follower.follow, 
           }));
@@ -192,14 +183,12 @@ const MyFollowersPage: React.FC = () => {
       if (isCurrentlyFollowing) {
         await unfollowUser(targetUserId); 
         console.log(`User ${targetUserId} 언팔로우 성공`);
-        // 언팔로우 시 목록에서 해당 사용자를 제거
         setFollowers(prevFollowers => 
           prevFollowers.filter(follower => follower.id !== targetUserId) 
         );
       } else {
         await followUser(targetUserId); 
         console.log(`User ${targetUserId} 팔로우 성공`);
-        // 팔로우 시 해당 사용자의 isFollowing 상태를 true로 변경
         setFollowers(prevFollowers => 
           prevFollowers.map(f => f.id === targetUserId ? { ...f, isFollowing: true } : f)
         );

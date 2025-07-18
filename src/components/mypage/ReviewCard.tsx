@@ -3,7 +3,6 @@ import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
 import DetailReviewCard from "./DetailReviewCard";
 
-// MyPageMain에서 매핑된 ShortReviewType과 동일하게 정의
 interface ShortReview {
   id: string;
   movieTitle: string;
@@ -17,29 +16,20 @@ interface ShortReview {
   comments: number;
 }
 
-// MyPageMain에서 매핑된 DetailReviewType과 동일하게 정의
 interface DetailReview {
   id: string;
   title: string;
-  // image: string; // MyPageMain API 응답에 image 필드 없음. 필요하다면 DetailReviewCard에서 처리 방식 결정.
   content: string;
   likes: number;
-  views: number; // totalViews -> views (MyPageMain에서 매핑됨)
+  views: number; 
   comments: number;
   createdAt: string;
-  reviewer?: { // MyPageMain에서 임시로 추가했으므로, DetailReviewCard가 이 필드를 꼭 필요로 한다면 API에 추가 요청
+  reviewer?: { 
     id: string;
     nickname: string;
     image: string;
   };
 }
-
-// Reviewer 인터페이스는 MyPageMain에서 더미로 추가했으므로, 실제 필요 여부 확인 후 유지/제거
-// interface Reviewer {
-//   id: string;
-//   nickname: string;
-//   image: string;
-// }
 
 // --- 공통 스타일드 컴포넌트 ---
 const CardBase = styled.div`
@@ -182,14 +172,6 @@ const ReviewCard: React.FC<ReviewCardProps> = ({ review, type }) => {
       navigate(`/reviews/detail/${review.id}`);
     }
   };
-
-  // const reviewer = {
-  //   id: "reviewer_001",
-  //   nickname: "시영",
-  //   image:
-  //     "https://img.danawa.com/prod_img/500000/981/068/img/63068981_1.jpg?_v=20250413191900&shrink=360:360",
-  // };
-  // review.reviewer = reviewer; // 임시로 reviewer 추가
 
   return (
     <>

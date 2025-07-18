@@ -419,19 +419,19 @@ const MyPageMain: React.FC = () => {
           </SectionTitle>
           <SortOptions>
             <SortButton
-              $isActive={shortReviewSort === "latest"} // $isActive로 변경
+              $isActive={shortReviewSort === "latest"}
               onClick={() => setShortReviewSort("latest")}
             >
               최신순
             </SortButton>
             <SortButton
-              $isActive={shortReviewSort === "likes"} // $isActive로 변경
+              $isActive={shortReviewSort === "likes"}
               onClick={() => setShortReviewSort("likes")}
             >
               좋아요순
             </SortButton>
             <SortButton
-              $isActive={shortReviewSort === "rating"} // $isActive로 변경
+              $isActive={shortReviewSort === "rating"}
               onClick={() => setShortReviewSort("rating")}
             >
               별점순
@@ -474,19 +474,19 @@ const MyPageMain: React.FC = () => {
           </SectionTitle>
           <SortOptions>
             <SortButton
-              $isActive={detailReviewSort === "latest"} // $isActive로 변경
+              $isActive={detailReviewSort === "latest"}
               onClick={() => setDetailReviewSort("latest")}
             >
               최신순
             </SortButton>
             <SortButton
-              $isActive={detailReviewSort === "likes"} // $isActive로 변경
+              $isActive={detailReviewSort === "likes"}
               onClick={() => setDetailReviewSort("likes")}
             >
               좋아요순
             </SortButton>
             <SortButton
-              $isActive={detailReviewSort === "views"} // $isActive로 변경
+              $isActive={detailReviewSort === "views"}
               onClick={() => setDetailReviewSort("views")}
             >
               조회순
@@ -528,7 +528,7 @@ const MyPageMain: React.FC = () => {
             </svg>
           </SectionTitle>
           <SortOptions>
-            <SortButton $isActive={true}>최신순</SortButton> {/* $isActive로 변경 */}
+            <SortButton $isActive={true}>최신순</SortButton>
           </SortOptions>
         </SectionHeader>
         <MovieCardGrid>

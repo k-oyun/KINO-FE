@@ -1,14 +1,12 @@
   import React, { useState, useEffect } from 'react';
   import styled from 'styled-components';
   import { useNavigate } from 'react-router-dom';
-  import axios from 'axios'; // axios.isAxiosError를 사용하기 위해 추가
+  import axios from 'axios';
 
   import UserListItem from '../../components/mypage/UserListItem';
   import VideoBackground from '../../components/VideoBackground';
-  import useMyPageApi from '../../api/useMyPageApi'; // useMyPageApi와 FollowingApiResponse 임포트
+  import useMyPageApi from '../../api/useMyPageApi';
 
-  // src/pages/mypage/MyFollowingPage.tsx (또는 src/types/followTypes.ts 같은 별도 파일)
-  // FollowingApiResponse 인터페이스
   export interface FollowingApiResponse {
     status: number;
     success: boolean;
@@ -16,8 +14,8 @@
     data: Array<{
       userId: number;
       nickname: string;
-      follow: boolean; // 내가 이 팔로잉 대상을 팔로우하고 있는지 여부 (이 페이지에서는 항상 true일 가능성 높음)
-      profileImageUrl?: string; // API 명세에는 없지만, 프론트엔드에서 필요할 경우를 대비하여 선택적 속성으로 추가
+      follow: boolean;
+      profileImageUrl?: string;
     }>;
   }
 
@@ -25,7 +23,7 @@
     id: string; 
     nickname: string;
     profileImageUrl: string;
-    isFollowing: boolean; // 내가 이 사용자를 팔로우하고 있는지 여부 (이 페이지에서는 항상 true로 시작)
+    isFollowing: boolean;
   }
 
   const PageContainer = styled.div`
@@ -136,33 +134,26 @@
 
   const MyFollowingPage: React.FC = () => {
     const navigate = useNavigate();
-    // useMyPageApi에서 필요한 모든 함수를 구조 분해 할당
     const { fetchMyFollowing, followUser, unfollowUser } = useMyPageApi(); 
 
     const [following, setFollowing] = useState<FollowingType[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
-
-    // 현재 로그인한 사용자의 ID를 localStorage 등에서 가져오거나, 다른 Context API를 통해 가져와야 합니다.
-    // ⭐ 실제 사용자 ID로 대체해야 합니다. 예: localStorage.getItem('userId') || 'defaultUserId';
     const myUserId = "1"; 
-    // const myUserId = "someLoggedInUserId"; 
 
     useEffect(() => {
       const loadFollowing = async () => {
         setLoading(true);
         setError(null);
         try {
-          // ⭐ 더미 데이터 대신 실제 API 호출
           const data: FollowingApiResponse["data"] | null = await fetchMyFollowing(myUserId); 
           
           if (data) {
             const mappedFollowing: FollowingType[] = data.map(followedUser => ({
               id: String(followedUser.userId), 
               nickname: followedUser.nickname,
-              // API 명세에 profileImageUrl이 없으므로, 더미 이미지 또는 닉네임 첫 글자로 대체
               profileImageUrl: followedUser.profileImageUrl || `https://via.placeholder.com/50/CCCCCC/FFFFFF?text=${followedUser.nickname.substring(0,1)}`, 
-              isFollowing: followedUser.follow, // API에서 제공하는 follow 필드를 isFollowing으로 매핑
+              isFollowing: followedUser.follow,
             }));
             setFollowing(mappedFollowing);
           } else {
@@ -188,16 +179,13 @@
 
     const handleFollowToggle = async (targetUserId: string, isCurrentlyFollowing: boolean) => {
       try {
-        if (isCurrentlyFollowing) { // 팔로잉 중이라면 -> 언팔로우
+        if (isCurrentlyFollowing) {
           await unfollowUser(targetUserId); 
           console.log(`User ${targetUserId} 언팔로우 성공`);
-          // UI 업데이트: 언팔로우 시 목록에서 제거
           setFollowing(prevFollowing => 
             prevFollowing.filter(user => user.id !== targetUserId) 
           );
         } else {
-          // 팔로잉 페이지에서는 기본적으로 모두 isFollowing이 true이므로, 이 블록은 실행되지 않을 것임.
-          // 하지만 혹시 모를 경우를 대비하여 (예: 다른 페이지에서 팔로우 후 상태 업데이트) 넣어둠.
           await followUser(targetUserId);
           console.log(`User ${targetUserId} 팔로우 성공`);
           setFollowing(prevFollowing =>

@@ -3,11 +3,10 @@ import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
-import useMyPageApi from '../../api/useMyPageApi'; // ShortReviewListApiResponse 인터페이스는 이제 여기서 임포트하지 않습니다.
+import useMyPageApi from '../../api/useMyPageApi';
 import ReviewCard from '../../components/mypage/ReviewCard';
 import VideoBackground from '../../components/VideoBackground';
 
-// API 응답 구조를 위한 인터페이스를 여기에 정의합니다.
 export interface ShortReviewListApiResponse {
   status: number;
   success: boolean;
@@ -26,15 +25,14 @@ export interface ShortReviewListApiResponse {
   };
 }
 
-// ReviewCard에 전달할 데이터 구조를 위한 인터페이스
 interface ShortReviewType {
-  id: string; // shortReviewId를 매핑하여 사용
+  id: string;
   movieTitle: string;
   content: string;
   rating: number;
   likes: number;
   createdAt: string;
-  // userNickname, userProfileUrl은 필요에 따라 추가
+  // userNickname, userProfileUrl
 }
 
 
@@ -194,7 +192,6 @@ const MyReviewsShortPage: React.FC = () => {
       setLoading(true);
       setError(null);
       try {
-        // API 훅에서 반환되는 데이터의 타입을 명시적으로 지정
         const data: ShortReviewListApiResponse['data']['shortReviews'] | null = await fetchMyShortReviews();
         if (data) {
           const mappedReviews: ShortReviewType[] = data.map(sr => ({

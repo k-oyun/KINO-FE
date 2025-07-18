@@ -9,10 +9,8 @@ interface UserListItemProps {
     profileImageUrl: string;
     isFollowing?: boolean;
   };
-  onFollowToggle?: (userId: string, isCurrentlyFollowing: boolean) => void; // 팔로우/언팔로우 액션 콜백
-  // 'follower': 팔로워 목록에서 사용 (팔로우/언팔로우 버튼 필요)
-  // 'following': 팔로잉 목록에서 사용 (언팔로우 버튼만 필요)
-  type: 'follower' | 'following' | 'searchResult'; // 추가 시나리오 고려
+  onFollowToggle?: (userId: string, isCurrentlyFollowing: boolean) => void;
+  type: 'follower' | 'following' | 'searchResult';
 }
 
 const UserItemContainer = styled.div`
@@ -86,24 +84,18 @@ const FollowButton = styled.button<{ $isFollowing: boolean }>`
 
 const UserListItem: React.FC<UserListItemProps> = ({ user, onFollowToggle, type }) => {
   const navigate = useNavigate();
-
-  // user.isFollowing의 기본값 설정. 팔로잉 목록이라면 기본적으로 true로 간주
   const currentIsFollowingStatus = user.isFollowing ?? (type === 'following');
-
   const handleUserClick = () => {
     navigate(`/profile/${user.id}`);
   };
 
   const handleFollowButtonClick = (e: React.MouseEvent) => {
-    e.stopPropagation(); // 부모 요소 (UserItemContainer)의 클릭 이벤트 방지
+    e.stopPropagation();
     if (onFollowToggle) {
       onFollowToggle(user.id, currentIsFollowingStatus);
     }
   };
 
-  // type에 따라 버튼을 렌더링할지 결정
-  // 'follower' 또는 'searchResult'에서는 팔로우/언팔로우 버튼이 필요
-  // 'following'에서는 언팔로우 버튼만 필요 (만약 텍스트만 '팔로잉'으로 보여주고 싶다면 조건 변경)
   const shouldShowFollowButton = onFollowToggle && (type === 'follower' || type === 'following' || type === 'searchResult');
 
   return (

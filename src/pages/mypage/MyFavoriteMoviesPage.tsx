@@ -1,13 +1,12 @@
-import React, { useState, useEffect } from 'react'; // useEffect, useState 추가
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios'; // axios 추가
+import axios from 'axios';
 
 import MovieCard from '../../components/mypage/MovieCard';
 import VideoBackground from '../../components/VideoBackground';
 import useMyPageApi from '../../api/useMyPageApi';
 
-// 이 파일에서 FavoriteMovieApiResponse를 정의하고 export 합니다.
 export interface FavoriteMovieApiResponse {
   status: number;
   success: boolean;
@@ -18,30 +17,26 @@ export interface FavoriteMovieApiResponse {
       movieTitle: string;
       posterUrl: string;
       director: string;
-      releaseDate: string; // "YYYY-MM-DD" 형식
+      releaseDate: string;
     }>;
   };
 }
 
-// FavoriteMovieType 인터페이스를 API 응답 구조에 맞게 조정
 interface FavoriteMovieType {
-  id: string; // myPickId를 매핑하여 사용
+  id: string; 
   movieTitle: string;
   director: string;
   releaseDate: string;
   posterUrl: string;
 }
 
-// DUMMY_FAVORITE_MOVIES는 이제 API 연동을 위해 제거합니다.
-// const DUMMY_FAVORITE_MOVIES: FavoriteMovieType[] = [...];
-
 const PageContainer = styled.div`
   max-width: 1200px;
   margin: 0 auto;
   padding-top: 300px;
   background-color: transparent;
-  // min-height: calc(100vh - 60px); // 전체 뷰포트 높이에 맞추되, 실제 콘텐츠에 따라 조절
-  min-height: calc(100vh - 60px); /* max-height 대신 min-height로 변경하여 내용에 따라 늘어나게 함 */
+  // min-height: calc(100vh - 60px);
+  min-height: calc(100vh - 60px); 
   color: #f0f0f0;
 
   display: flex;
@@ -57,8 +52,8 @@ const SectionWrapper = styled.div`
   background-color: rgba(0, 0, 0, 0.7);
   padding: 25px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-  flex-grow: 1; /* 콘텐츠가 적어도 배경이 채워지도록 */
-  overflow-y: auto; /* 스크롤 가능하게 */
+  flex-grow: 1;
+  overflow-y: auto;
 
   @media (max-width: 767px) {
     padding: 20px;
@@ -130,7 +125,6 @@ const SortOptions = styled.div`
   }
 `;
 
-// isActive prop을 $isActive로 변경하여 transient prop으로 만듦
 const SortButton = styled.button<{ $isActive: boolean }>`
   background: none;
   border: none;
@@ -189,14 +183,14 @@ const EmptyState = styled.div`
 
 const MyFavoriteMoviesPage: React.FC = () => {
   const navigate = useNavigate();
-  const { fetchMyFavoriteMovies } = useMyPageApi(); // 새로운 훅 함수 임포트
+  const { fetchMyFavoriteMovies } = useMyPageApi();
 
   const [favoriteMovies, setFavoriteMovies] = useState<FavoriteMovieType[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [sortOrder, setSortOrder] = useState<"latest" | "title">(
     "latest"
-  ); // 찜한 영화는 보통 최신순, 가나다순 정도
+  );
 
   useEffect(() => {
     const loadFavoriteMovies = async () => {
@@ -206,7 +200,7 @@ const MyFavoriteMoviesPage: React.FC = () => {
         const data: FavoriteMovieApiResponse["data"]["myPickMoives"] | null = await fetchMyFavoriteMovies();
         if (data) {
           const mappedMovies: FavoriteMovieType[] = data.map(movie => ({
-            id: String(movie.myPickId), // myPickId를 id로 매핑
+            id: String(movie.myPickId),
             movieTitle: movie.movieTitle,
             director: movie.director,
             releaseDate: movie.releaseDate,
@@ -232,11 +226,10 @@ const MyFavoriteMoviesPage: React.FC = () => {
     };
 
     loadFavoriteMovies();
-  }, [fetchMyFavoriteMovies, navigate]); // 의존성 배열에 fetchMyFavoriteMovies 추가
+  }, [fetchMyFavoriteMovies, navigate]);
 
   const sortedMovies = [...favoriteMovies].sort((a, b) => {
     if (sortOrder === "latest") {
-      // releaseDate가 "YYYY-MM-DD" 형식이므로 직접 비교 가능
       return new Date(b.releaseDate).getTime() - new Date(a.releaseDate).getTime();
     } else if (sortOrder === "title") {
       return a.movieTitle.localeCompare(b.movieTitle);
@@ -247,7 +240,7 @@ const MyFavoriteMoviesPage: React.FC = () => {
   if (loading) {
     return (
       <PageContainer>
-        <VideoBackground /> {/* VideoBackground 컴포넌트 사용 유지 */}
+        <VideoBackground />
         <EmptyState>찜한 영화 데이터를 불러오는 중입니다...</EmptyState>
       </PageContainer>
     );
@@ -256,7 +249,7 @@ const MyFavoriteMoviesPage: React.FC = () => {
   if (error) {
     return (
       <PageContainer>
-        <VideoBackground /> {/* VideoBackground 컴포넌트 사용 유지 */}
+        <VideoBackground />
         <EmptyState>{error}</EmptyState>
       </PageContainer>
     );
@@ -264,7 +257,7 @@ const MyFavoriteMoviesPage: React.FC = () => {
 
   return (
     <PageContainer>
-      <VideoBackground /> {/* VideoBackground 컴포넌트 사용 유지 */}
+      <VideoBackground />
       <SectionWrapper>
         <PageHeader>
           <BackButton onClick={() => navigate('/mypage')}>
