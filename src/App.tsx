@@ -48,9 +48,12 @@ const AppContents = () => {
         <Route path="/api/auth/oauth/kakao" element={<KakaoCallback />} />
         <Route path="/api/auth/oauth/google" element={<GoogleCallback />} />
         <Route path="/api/auth/oauth/naver" element={<NaverCallback />} />
+
         <Route path="/movie" element={<Movie />}></Route>
         <Route path="/movie/:id" element={<MovieDetail />}></Route>
+
         <Route path="/admin" element={<Admin />}></Route>
+
         <Route path="/mypage" element={<MyPageMain />} />
         <Route path="/mypage/reviews/short" element={<MyReviewsShortPage />} />
         <Route
@@ -63,6 +66,10 @@ const AppContents = () => {
         />
         <Route path="/mypage/settings" element={<MySettingsPage />} />
         <Route path="/mypage/tags" element={<MyTagsPage />} />
+
+        <Route path="/community" element={<CommunityListPage />} />
+        <Route path="/community/:id" element={<CommunityDetailPage />} />
+        <Route path="/community/create" element={<CommunityCreatePage />} />
       </Routes>
     </ThemeProvider>
   );
