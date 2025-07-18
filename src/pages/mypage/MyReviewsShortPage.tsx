@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
-import ReviewCard from '../../components/mypage/ReviewCard';
-
+import ShortReviewCard from '../../components/mypage/ReviewCard';
 interface ShortReviewType {
   id: string;
   movieTitle: string;
@@ -12,18 +11,6 @@ interface ShortReviewType {
   createdAt: string;
   viewCount?: number;
 }
-
-type ReviewType = ShortReviewType | {
-  id: string;
-  movieTitle: string;
-  moviePosterUrl: string;
-  title: string;
-  content: string;
-  rating: number;
-  likeCount: number;
-  createdAt: string;
-  viewCount?: number;
-};
 
 const DUMMY_SHORT_REVIEWS: ShortReviewType[] = [
   { id: 'sr1', movieTitle: '노이즈', content: '무서워요 무서워요무서워요무서워요무서워요무서워요', rating: 4.5, likeCount: 7, createdAt: '2023.08.15 11:00', viewCount: 150 },
@@ -37,6 +24,13 @@ const DUMMY_SHORT_REVIEWS: ShortReviewType[] = [
   { id: 'sr9', movieTitle: '헤어질 결심', content: '섬세한 감정선과 미장센이 돋보이는 박찬욱 감독의 영화.', rating: 4.3, likeCount: 28, createdAt: '2022.07.07 11:00', viewCount: 650 },
   { id: 'sr10', movieTitle: '겨울왕국 2', content: '엘사와 안나의 성장 스토리. OST가 또 한번 대박!', rating: 4.1, likeCount: 15, createdAt: '2021.11.01 09:00', viewCount: 480 },
 ];
+
+// Helper function to parse "YYYY.MM.DD HH:MM" string to Date object
+const parseDateString = (dateStr: string): Date => {
+  const parts = dateStr.split(/[. :]/).map(Number);
+  return new Date(parts[0], parts[1] - 1, parts[2], parts[3], parts[4]);
+};
+
 
 const PageContainer = styled.div`
   max-width: 1200px;
@@ -59,9 +53,12 @@ const SectionWrapper = styled.div`
   background-color: #000000;
   padding: 25px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  border-radius: 8px;
+  margin-bottom: 25px; 
 
   @media (max-width: 767px) {
     padding: 20px;
+    margin-bottom: 15px;
   }
 `;
 
@@ -69,7 +66,7 @@ const PageHeader = styled.div`
   display: flex;
   align-items: center;
   margin-bottom: 20px;
-  
+
   @media (max-width: 767px) {
     flex-direction: column;
     align-items: flex-start;
@@ -161,10 +158,10 @@ const SortButton = styled.button<{ isActive: boolean }>`
 const ReviewList = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  /* gap: 15px; -> ShortReviewCard의 margin-bottom으로 간격 조절 */
 
   @media (max-width: 767px) {
-    gap: 10px;
+    /* gap: 10px; */
   }
 `;
 
@@ -188,7 +185,7 @@ const MyReviewsShortPage: React.FC = () => {
 
   const sortedReviews = [...shortReviews].sort((a, b) => {
     if (sortOrder === 'latest') {
-      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      return parseDateString(b.createdAt).getTime() - parseDateString(a.createdAt).getTime();
     } else if (sortOrder === 'views') {
       return (b.viewCount || 0) - (a.viewCount || 0);
     } else if (sortOrder === 'likes') {
@@ -196,6 +193,11 @@ const MyReviewsShortPage: React.FC = () => {
     }
     return 0;
   });
+
+  const handleReviewClick = (reviewId: string) => {
+    // 한줄평 상세 페이지로 이동 (필요하다면)
+    navigate(`/reviews/short/${reviewId}`);
+  };
 
   return (
     <PageContainer>
@@ -216,7 +218,11 @@ const MyReviewsShortPage: React.FC = () => {
         {sortedReviews && sortedReviews.length > 0 ? (
           <ReviewList>
             {sortedReviews.map((review: ShortReviewType) => (
-              <ReviewCard key={review.id} review={review as ReviewType} type="short" />
+              <ShortReviewCard // ReviewCard 대신 ShortReviewCard 직접 사용
+                key={review.id}
+                review={review}
+                onClick={() => handleReviewClick(review.id)}
+              />
             ))}
           </ReviewList>
         ) : (

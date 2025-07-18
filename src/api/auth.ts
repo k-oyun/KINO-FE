@@ -19,12 +19,17 @@ export const useAuthApi = () => {
     return await axios.get("/user");
   };
 
+  const logout = async () => {
+    return await axios.get("/logout");
+  };
+
   return {
     login,
     loginWithKakao,
     loginWithGoogle,
     loginWithNaver,
     userInfoGet,
+    logout,
   };
 };
 export default useAuthApi;

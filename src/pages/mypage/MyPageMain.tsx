@@ -3,7 +3,8 @@ import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
 
 import UserProfileSection from "../../components/mypage/UserProfileSection";
-import ReviewCard from "../../components/mypage/ReviewCard";
+import ShortReviewCard from "../../components/mypage/ReviewCard";
+import DetailReviewCard from "../../components/mypage/DetailReviewCard";
 import MovieCard from "../../components/mypage/MovieCard";
 
 const MyPageContainer = styled.div`
@@ -16,10 +17,12 @@ const MyPageContainer = styled.div`
 
   display: flex;
   flex-direction: column;
+  gap: 25px;
 
   @media (max-width: 767px) {
     padding: 20px 15px;
     padding-top: 80px;
+    gap: 15px;
   }
 `;
 
@@ -27,10 +30,7 @@ const SectionWrapper = styled.section`
   background-color: #000000;
   padding: 25px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-
-  &:last-child {
-    margin-bottom: 0;
-  }
+  border-radius: 8px;
 
   @media (max-width: 767px) {
     padding: 20px;
@@ -119,10 +119,10 @@ const SortButton = styled.button<{ isActive: boolean }>`
 const PreviewContent = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  /* gap은 각 카드 컴포넌트의 margin-bottom으로 처리 */
 
   @media (max-width: 767px) {
-    gap: 10px;
+    /* gap: 10px; */
   }
 `;
 
@@ -160,6 +160,7 @@ const PinkText = styled.span`
   margin-left: 0.25em;
 `;
 
+// DUMMY DATA 및 타입 정의 (실제 앱에서는 API에서 받아올 데이터에 맞춰 조정)
 interface UserProfileType {
   nickname: string;
   profileImageUrl: string;
@@ -177,6 +178,12 @@ interface ShortReviewType {
   viewCount?: number;
 }
 
+interface Reviewer {
+  id: string;
+  nickname: string;
+  image: string;
+}
+
 interface DetailReviewType {
   id: string;
   title: string;
@@ -188,14 +195,6 @@ interface DetailReviewType {
   createdAt: string;
   reviewer?: Reviewer;
 }
-
-interface Reviewer {
-  id: string;
-  nickname: string;
-  image: string;
-}
-
-// type ReviewType = ShortReviewType | DetailReviewType;
 
 interface FavoriteMovieType {
   id: string;
@@ -242,7 +241,7 @@ const DUMMY_SHORT_REVIEWS: ShortReviewType[] = [
   },
   {
     id: "sr4",
-    movieTitle: "아바타",
+    movieTitle: "아바타 (두번째)",
     content: "아바타 진짜 재밌어요 너무 재밌어요 또 보러갈 거예요",
     rating: 4.0,
     likeCount: 10,
@@ -251,7 +250,7 @@ const DUMMY_SHORT_REVIEWS: ShortReviewType[] = [
   },
   {
     id: "sr5",
-    movieTitle: "아바타",
+    movieTitle: "아바타 (세번째)",
     content: "아바타 진짜 재밌어요 너무 재밌어요 또 보러갈 거예요",
     rating: 4.0,
     likeCount: 10,
@@ -263,19 +262,22 @@ const DUMMY_SHORT_REVIEWS: ShortReviewType[] = [
 const DUMMY_DETAIL_REVIEWS: DetailReviewType[] = [
   {
     id: "dr1",
-
     title: "엘리오 내용 평가 4.0",
     image: "https://sitem.ssgcdn.com/72/10/00/item/1000569001072_i1_750.jpg",
     content:
       "엘리오는 영화 (콜 미 바이 유어 네임) 속에서 섬세하고 감성적인 소년으로 그려진다. 그는 이탈리아의 한적한 시골 마을에서 가족과 함께 지내며 지적이고 조용한 삶을 살고 있지만, 여름 방학 동안 올리버를 만나면서 그의 일상은 서서히 변화하기 시작한다. 처음에는 올리버에게 낯섦과 경계심을 느끼지만, 시간이 흐를수록 그들은 서로에게 깊은 감정을 느끼게 된다. 그 감정은 삶에 대한 새로운 통찰과 함께 서로에게 변화를 가져다준다. 시간이 흐를수록 그는 모든 것을 올리버에게 걸게 된다.",
     likes: 15,
-    createdAt: "14시간 전",
+    createdAt: "2024.07.18 11:00",
     views: 217,
     comments: 3,
+    reviewer: {
+      id: "user1",
+      nickname: "영화평론가1",
+      image: "https://via.placeholder.com/50/FF69B4/FFFFFF?text=R1",
+    },
   },
   {
     id: "dr2",
-
     title: "2025년 7/10 박스오피스",
     image: "https://via.placeholder.com/200x300/9b59b6/ffffff?text=BoxOffice",
     content: "매트릭스를 보고, 나라면 빨간약과 파란약 중에... (중략)",
@@ -283,27 +285,44 @@ const DUMMY_DETAIL_REVIEWS: DetailReviewType[] = [
     createdAt: "2023.09.01 10:00",
     views: 500,
     comments: 2,
+    reviewer: {
+      id: "user2",
+      nickname: "영화광2",
+      image: "https://via.placeholder.com/50/00CED1/FFFFFF?text=R2",
+    },
   },
   {
     id: "dr3",
-
-    title: "2025년 7/10 박스오피스",
-    image: "https://via.placeholder.com/200x300/9b59b6/ffffff?text=BoxOffice",
-    content: "매트릭스를 보고, 나라면 빨간약과 파란약 중에... (중략)",
-    likes: 10,
-    createdAt: "2023.09.01 10:00",
-    views: 500,
-    comments: 21,
+    title: "인터스텔라 심층 분석",
+    image:
+      "https://via.placeholder.com/200x300/2c3e50/ffffff?text=Interstellar",
+    content:
+      "인터스텔라는 과학적 고증과 감동적인 스토리가 어우러진 명작입니다. 웜홀 이론과 시간 지연 현상을...",
+    likes: 30,
+    createdAt: "2024.06.25 14:00",
+    views: 750,
+    comments: 10,
+    reviewer: {
+      id: "user3",
+      nickname: "무비마스터",
+      image: "https://via.placeholder.com/50/FFD700/FFFFFF?text=R3",
+    },
   },
   {
     id: "dr4",
-    title: "2025년 7/10 박스오피스",
-    image: "https://via.placeholder.com/200x300/9b59b6/ffffff?text=BoxOffice",
-    content: "매트릭스를 보고, 나라면 빨간약과 파란약 중에... (중략)",
-    likes: 10,
-    createdAt: "2023.09.01 10:00",
-    views: 500,
-    comments: 12,
+    title: "기생충, 사회를 비추는 거울",
+    image: "https://via.placeholder.com/200x300/27ae60/ffffff?text=Parasite",
+    content:
+      "봉준호 감독의 '기생충'은 한국 사회의 계층 문제를 날카롭게 꼬집으면서도 유머를 잃지 않습니다.",
+    likes: 45,
+    createdAt: "2024.05.10 09:30",
+    views: 1200,
+    comments: 25,
+    reviewer: {
+      id: "user4",
+      nickname: "비평가",
+      image: "https://via.placeholder.com/50/3498DB/FFFFFF?text=R4",
+    },
   },
 ];
 
@@ -429,6 +448,12 @@ const DUMMY_FAVORITE_MOVIES: FavoriteMovieType[] = [
   },
 ];
 
+// Helper function to parse "YYYY.MM.DD HH:MM" string to Date object
+const parseDateString = (dateStr: string): Date => {
+  const parts = dateStr.split(/[. :]/).map(Number);
+  return new Date(parts[0], parts[1] - 1, parts[2], parts[3], parts[4]);
+};
+
 const MyPageMain: React.FC = () => {
   const navigate = useNavigate();
   const [shortReviewSort, setShortReviewSort] = useState<
@@ -445,7 +470,10 @@ const MyPageMain: React.FC = () => {
 
   const sortedShortReviews = [...shortReviews].sort((a, b) => {
     if (shortReviewSort === "latest") {
-      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      return (
+        parseDateString(b.createdAt).getTime() -
+        parseDateString(a.createdAt).getTime()
+      );
     } else if (shortReviewSort === "views") {
       return (b.viewCount || 0) - (a.viewCount || 0);
     } else if (shortReviewSort === "likes") {
@@ -456,7 +484,10 @@ const MyPageMain: React.FC = () => {
 
   const sortedDetailReviews = [...detailReviews].sort((a, b) => {
     if (detailReviewSort === "latest") {
-      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      return (
+        parseDateString(b.createdAt).getTime() -
+        parseDateString(a.createdAt).getTime()
+      );
     } else if (detailReviewSort === "views") {
       return (b.views || 0) - (a.views || 0);
     } else if (detailReviewSort === "likes") {
@@ -465,10 +496,21 @@ const MyPageMain: React.FC = () => {
     return 0;
   });
 
+  // 공통적인 카드 클릭 핸들러 (네비게이션)
+  const handleShortReviewClick = (reviewId: string) => {
+    navigate(`/mypage/reviews/short/${reviewId}`);
+  };
+
+  const handleDetailReviewClick = (reviewId: string) => {
+    navigate(`/mypage/reviews/detail/${reviewId}`);
+  };
+
   return (
     <MyPageContainer>
       <UserProfileSection userProfile={userProfile} />
-      <SectionWrapper style={{ gridArea: "shortReview" }}>
+
+      {/* 내가 작성한 한줄평 섹션 */}
+      <SectionWrapper>
         <SectionHeader>
           <SectionTitle onClick={() => navigate("/mypage/reviews/short")}>
             내가 작성한<PinkText>한줄평</PinkText>
@@ -511,18 +553,22 @@ const MyPageMain: React.FC = () => {
         </SectionHeader>
         <PreviewContent>
           {sortedShortReviews && sortedShortReviews.length > 0 ? (
-            sortedShortReviews
-              .slice(0, 3)
-              .map((review: ShortReviewType) => (
-                <ReviewCard key={review.id} review={review} type="short" />
-              ))
+            sortedShortReviews.slice(0, 3).map((review: ShortReviewType) => (
+              <ShortReviewCard
+                key={review.id}
+                review={review}
+                onClick={() => handleShortReviewClick(review.id)}
+                // isMobile prop은 필요하다면 여기에 추가 (예: useMediaQuery 훅 사용)
+              />
+            ))
           ) : (
             <EmptyState>작성한 한줄평이 없습니다.</EmptyState>
           )}
         </PreviewContent>
       </SectionWrapper>
 
-      <SectionWrapper style={{ gridArea: "detailReview" }}>
+      {/* 내가 작성한 상세 리뷰 섹션 */}
+      <SectionWrapper>
         <SectionHeader>
           <SectionTitle onClick={() => navigate("/mypage/reviews/detail")}>
             내가 작성한<PinkText>상세 리뷰</PinkText>
@@ -565,17 +611,23 @@ const MyPageMain: React.FC = () => {
         </SectionHeader>
         <PreviewContent>
           {sortedDetailReviews && sortedDetailReviews.length > 0 ? (
-            sortedDetailReviews
-              .slice(0, 3)
-              .map((review: DetailReviewType) => (
-                <ReviewCard key={review.id} review={review} type="detail" />
-              ))
+            sortedDetailReviews.slice(0, 3).map((review: DetailReviewType) => (
+              <DetailReviewCard
+                key={review.id}
+                review={review}
+                isMine={true}
+                showProfile={true}
+                onClick={() => handleDetailReviewClick(review.id)}
+                // isMobile prop은 필요하다면 여기에 추가
+              />
+            ))
           ) : (
             <EmptyState>작성한 상세 리뷰가 없습니다.</EmptyState>
           )}
         </PreviewContent>
       </SectionWrapper>
 
+      {/* 내가 찜한 영화 섹션 */}
       <SectionWrapper style={{ gridArea: "favoriteMovies" }}>
         <SectionHeader>
           <SectionTitle onClick={() => navigate("/mypage/movies/favorite")}>

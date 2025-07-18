@@ -269,6 +269,7 @@ const Main = () => {
 
   useEffect(() => {
     getHomeData();
+    console.log("새로운 유저인가 : ", isNewUser);
   }, []);
 
   useEffect(() => {
@@ -304,7 +305,11 @@ const Main = () => {
   return (
     <>
       {isNewUser && <SurveyModal setIsNewUser={setIsNewUser} />}
-      <MainHeader keyword={keyword} setKeyword={setKeyword} />
+      <MainHeader
+        keyword={keyword}
+        setKeyword={setKeyword}
+        setIsNewUser={setIsNewUser}
+      />
       <MainContainer>
         <VideoContainer
           // onMouseEnter={() => setShowIframe(true)}
