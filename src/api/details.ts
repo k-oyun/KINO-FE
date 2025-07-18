@@ -35,10 +35,6 @@ export const useMovieDetailApi = () => {
     return await axios.post(`/${reviewId}/like`);
   };
 
-  const unlikeShortReview = async (reviewId: number) => {
-    return await axios.delete(`/${reviewId}/like`);
-  };
-
   return {
     getMovieDetail,
     postShortReview,
@@ -47,7 +43,6 @@ export const useMovieDetailApi = () => {
     getShortReviews,
     getReviews,
     likeShortReview,
-    unlikeShortReview,
   };
 };
 

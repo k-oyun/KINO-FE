@@ -41,7 +41,7 @@ const AppContents = () => {
       theme={isAdminPage ? lightTheme : isDarkMode ? darkTheme : lightTheme}
     >
       <GlobalStyle />
-      <HeaderSelector />
+      <HeaderSelector path={path} />
       <Routes>
         <Route path="/" element={<Main />}></Route>
         <Route path="/login" element={<Login />}></Route>
