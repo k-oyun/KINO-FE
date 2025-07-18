@@ -1,11 +1,16 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
+// import axios from "axios"; // 기존 axios 대신 커스텀 인스턴스 사용
+import axiosInstance from "../../api/axiosInstance"; // 새로 생성한 axiosInstance 임포트
 
 import UserProfileSection from "../../components/mypage/UserProfileSection";
 import ReviewCard from "../../components/mypage/ReviewCard";
 import MovieCard from "../../components/mypage/MovieCard";
-import VideoBackground from '../../components/VideoBackground';
+import VideoBackground from "../../components/VideoBackground";
+
+// 백엔드 API 기본 URL은 이제 axiosInstance에서 관리하므로 여기서는 필요 없음
+// const API_BASE_URL = "http://43.203.218.183:8080/api/data";
 
 const MyPageContainer = styled.div`
   max-width: 1200px;
@@ -27,7 +32,7 @@ const MyPageContainer = styled.div`
 const SectionWrapper = styled.section`
   background-color: rgba(0, 0, 0, 0.7);
   padding: 25px;
-  // box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  margin-bottom: 25px;
 
   &:last-child {
     margin-bottom: 0;
@@ -35,6 +40,7 @@ const SectionWrapper = styled.section`
 
   @media (max-width: 767px) {
     padding: 20px;
+    margin-bottom: 20px;
   }
 `;
 
@@ -161,6 +167,57 @@ const PinkText = styled.span`
   margin-left: 0.25em;
 `;
 
+// =======================================================
+// 타입 정의 (백엔드 응답 스키마와 프런트엔드 컴포넌트 props에 맞춰 수정)
+// =======================================================
+
+// 백엔드 API 응답 데이터 구조에 맞춘 타입
+interface MyPageMainApiResponse {
+  status: number;
+  success: boolean;
+  message: string;
+  data: {
+    nickname: string;
+    image: string; // 프로필 이미지 URL
+    shortReview: { // 메인 페이지에 한줄평 하나만 보여주는 것으로 추정됩니다.
+      shortReviewId: number;
+      content: string;
+      rating: number;
+      movieTitle: string;
+      createdAt: string;
+      likes: number;
+      userNickname: string;
+      userProfileUrl: string; // 이 필드는 사용되지 않을 수 있지만, 일단 유지
+    } | null; // 한줄평이 없을 수도 있으므로 null 허용
+    review: { // 메인 페이지에 상세 리뷰 하나만 보여주는 것으로 추정됩니다.
+      reviewId: number;
+      title: string;
+      content: string;
+      movieTitle: string; // 상세 리뷰에 영화 제목 추가
+      totalViews: number;
+      createdAt: string;
+      likes: number;
+      comments: number;
+      // 백엔드에서 reviewer 정보를 제공한다면 여기에 추가
+      reviewer?: { 
+        id: string;
+        nickname: string;
+        image: string;
+      };
+    } | null; // 상세 리뷰가 없을 수도 있으므로 null 허용
+    followers: number;
+    following: number;
+    myPickMoives: Array<{ // 오타 수정: myPickMovies (myPickMoives -> myPickMovies)
+      myPickId: number;
+      movieTitle: string;
+      posterUrl: string;
+      director: string;
+      releaseDate: string; // 백엔드 응답은 "2025-07-18" 형태
+    }>;
+  };
+}
+
+// UserProfileSection 컴포넌트에 전달될 props 타입
 interface UserProfileType {
   nickname: string;
   profileImageUrl: string;
@@ -168,8 +225,9 @@ interface UserProfileType {
   followingCount: number;
 }
 
+// ReviewCard (ShortReview) 컴포넌트에 전달될 props 타입
 interface ShortReviewType {
-  id: string;
+  id: string; // ReviewCard는 id를 string으로 받음
   movieTitle: string;
   content: string;
   rating: number;
@@ -177,255 +235,48 @@ interface ShortReviewType {
   createdAt: string;
 }
 
+// ReviewCard (DetailReview) 컴포넌트에 전달될 props 타입
 interface DetailReviewType {
-  id: string;
+  id: string; // ReviewCard는 id를 string으로 받음
   title: string;
-  // image: string;
+  image?: string; // 백엔드 상세 리뷰 응답에 image 필드가 없음. DetailReviewCard에 필요하다면 추가 논의 필요.
   content: string;
   likes: number;
-  views: number;
+  views: number; // totalViews -> views
   comments: number;
   createdAt: string;
-  reviewer?: Reviewer;
+  reviewer?: { // MyPageMain에서 임시로 추가했으므로, DetailReviewCard가 이 필드를 꼭 필요로 한다면 API에 추가 요청
+    id: string;
+    nickname: string;
+    image: string;
+  };
+  movieTitle?: string; // MyPageMain에서 직접 movieTitle을 넘겨줄 수 있도록 추가
 }
 
-interface Reviewer {
-  id: string;
-  nickname: string;
-  image: string;
-}
-
-// type ReviewType = ShortReviewType | DetailReviewType;
-
+// MovieCard 컴포넌트에 전달될 props 타입
 interface FavoriteMovieType {
-  id: string;
-  title: string;
+  id: string; // MovieCard는 id를 string으로 받음
+  title: string; // movieTitle -> title
   director: string;
   releaseDate: string;
   posterUrl: string;
 }
 
-const DUMMY_USER_PROFILE: UserProfileType = {
-  nickname: "Nick_name",
-  profileImageUrl: "https://via.placeholder.com/100/3498db/ffffff?text=User",
-  followerCount: 123,
-  followingCount: 45,
-};
-
-const DUMMY_SHORT_REVIEWS: ShortReviewType[] = [
-  {
-    id: "sr1",
-    movieTitle: "노이즈",
-    content: "무서워요 무서워요무서워요무서워요무서워요무서워요",
-    rating: 4.5,
-    likes: 7,
-    createdAt: "2023.08.15 11:00",
-  },
-  {
-    id: "sr2",
-    movieTitle: "타이타닉",
-    content: "잭과 로즈의 아름다운 사랑 이야기. OST가 정말 좋아요!",
-    rating: 5.0,
-    likes: 25,
-    createdAt: "2023.07.20 14:30",
-  },
-  {
-    id: "sr3",
-    movieTitle: "아바타",
-    content: "아바타 진짜 재밌어요 너무 재밌어요 또 보러갈 거예요",
-    rating: 4.0,
-    likes: 10,
-    createdAt: "2024.01.10 10:00",
-  },
-  {
-    id: "sr4",
-    movieTitle: "아바타",
-    content: "아바타 진짜 재밌어요 너무 재밌어요 또 보러갈 거예요",
-    rating: 4.0,
-    likes: 10,
-    createdAt: "2024.01.10 10:00",
-  },
-  {
-    id: "sr5",
-    movieTitle: "아바타",
-    content: "아바타 진짜 재밌어요 너무 재밌어요 또 보러갈 거예요",
-    rating: 4.0,
-    likes: 10,
-    createdAt: "2024.01.10 10:00",
-  },
-];
-
-const DUMMY_DETAIL_REVIEWS: DetailReviewType[] = [
-  {
-    id: "dr1",
-
-    title: "엘리오 내용 평가 4.0",
-    // image: "https://sitem.ssgcdn.com/72/10/00/item/1000569001072_i1_750.jpg",
-    content:
-      "엘리오는 영화 (콜 미 바이 유어 네임) 속에서 섬세하고 감성적인 소년으로 그려진다. 그는 이탈리아의 한적한 시골 마을에서 가족과 함께 지내며 지적이고 조용한 삶을 살고 있지만, 여름 방학 동안 올리버를 만나면서 그의 일상은 서서히 변화하기 시작한다. 처음에는 올리버에게 낯섦과 경계심을 느끼지만, 시간이 흐를수록 그들은 서로에게 깊은 감정을 느끼게 된다. 그 감정은 삶에 대한 새로운 통찰과 함께 서로에게 변화를 가져다준다. 시간이 흐를수록 그는 모든 것을 올리버에게 걸게 된다.",
-    likes: 15,
-    createdAt: "14시간 전",
-    views: 217,
-    comments: 3,
-  },
-  {
-    id: "dr2",
-
-    title: "2025년 7/10 박스오피스",
-    // image: "https://via.placeholder.com/200x300/9b59b6/ffffff?text=BoxOffice",
-    content: "매트릭스를 보고, 나라면 빨간약과 파란약 중에... (중략)",
-    likes: 10,
-    createdAt: "2023.09.01 10:00",
-    views: 500,
-    comments: 2,
-  },
-  {
-    id: "dr3",
-
-    title: "2025년 7/10 박스오피스",
-    // image: "https://via.placeholder.com/200x300/9b59b6/ffffff?text=BoxOffice",
-    content: "매트릭스를 보고, 나라면 빨간약과 파란약 중에... (중략)",
-    likes: 10,
-    createdAt: "2023.09.01 10:00",
-    views: 500,
-    comments: 21,
-  },
-  {
-    id: "dr4",
-    title: "2025년 7/10 박스오피스",
-    // image: "https://via.placeholder.com/200x300/9b59b6/ffffff?text=BoxOffice",
-    content: "매트릭스를 보고, 나라면 빨간약과 파란약 중에... (중략)",
-    likes: 10,
-    createdAt: "2023.09.01 10:00",
-    views: 500,
-    comments: 12,
-  },
-];
-
-const DUMMY_FAVORITE_MOVIES: FavoriteMovieType[] = [
-  {
-    id: "fm1",
-    title: "인터스텔라",
-    director: "크리스토퍼 놀란",
-    releaseDate: "2014",
-    posterUrl:
-      "https://via.placeholder.com/200x300/3498db/ffffff?text=Interstellar",
-  },
-  {
-    id: "fm2",
-    title: "아바타: 물의 길",
-    director: "제임스 카메론",
-    releaseDate: "2022",
-    posterUrl: "https://via.placeholder.com/200x300/9b59b6/ffffff?text=Avatar2",
-  },
-  {
-    id: "fm3",
-    title: "스파이더맨: 노 웨이 홈",
-    director: "존 왓츠",
-    releaseDate: "2021",
-    posterUrl:
-      "https://via.placeholder.com/200x300/e67e22/ffffff?text=Spiderman",
-  },
-  {
-    id: "fm4",
-    title: "기생충",
-    director: "봉준호",
-    releaseDate: "2019",
-    posterUrl:
-      "https://via.placeholder.com/200x300/27ae60/ffffff?text=Parasite",
-  },
-  {
-    id: "fm6",
-    title: "범죄도시 3",
-    director: "이상용",
-    releaseDate: "2023",
-    posterUrl:
-      "https://via.placeholder.com/200x300/c0392b/ffffff?text=The+Outlaws3",
-  },
-  {
-    id: "fm7",
-    title: "범죄도시 3",
-    director: "이상용",
-    releaseDate: "2023",
-    posterUrl:
-      "https://via.placeholder.com/200x300/c0392b/ffffff?text=The+Outlaws3",
-  },
-  {
-    id: "fm8",
-    title: "범죄도시 3",
-    director: "이상용",
-    releaseDate: "2023",
-    posterUrl:
-      "https://via.placeholder.com/200x300/c0392b/ffffff?text=The+Outlaws3",
-  },
-  {
-    id: "fm9",
-    title: "범죄도시 3",
-    director: "이상용",
-    releaseDate: "2023",
-    posterUrl:
-      "https://via.placeholder.com/200x300/c0392b/ffffff?text=The+Outlaws3",
-  },
-  {
-    id: "fm10",
-    title: "범죄도시 3",
-    director: "이상용",
-    releaseDate: "2023",
-    posterUrl:
-      "https://via.placeholder.com/200x300/c0392b/ffffff?text=The+Outlaws3",
-  },
-  {
-    id: "fm11",
-    title: "범죄도시 3",
-    director: "이상용",
-    releaseDate: "2023",
-    posterUrl:
-      "https://via.placeholder.com/200x300/c0392b/ffffff?text=The+Outlaws3",
-  },
-  {
-    id: "fm12",
-    title: "범죄도시 3",
-    director: "이상용",
-    releaseDate: "2023",
-    posterUrl:
-      "https://via.placeholder.com/200x300/c0392b/ffffff?text=The+Outlaws3",
-  },
-  {
-    id: "fm13",
-    title: "범죄도시 3",
-    director: "이상용",
-    releaseDate: "2023",
-    posterUrl:
-      "https://via.placeholder.com/200x300/c0392b/ffffff?text=The+Outlaws3",
-  },
-  {
-    id: "fm14",
-    title: "범죄도시 3",
-    director: "이상용",
-    releaseDate: "2023",
-    posterUrl:
-      "https://via.placeholder.com/200x300/c0392b/ffffff?text=The+Outlaws3",
-  },
-  {
-    id: "fm15",
-    title: "범죄도시 3",
-    director: "이상용",
-    releaseDate: "2023",
-    posterUrl:
-      "https://via.placeholder.com/200x300/c0392b/ffffff?text=The+Outlaws3",
-  },
-  {
-    id: "fm16",
-    title: "범죄도시 3",
-    director: "이상용",
-    releaseDate: "2023",
-    posterUrl:
-      "https://via.placeholder.com/200x300/c0392b/ffffff?text=The+Outlaws3",
-  },
-];
-
+// =======================================================
+// 메인 컴포넌트
+// =======================================================
 const MyPageMain: React.FC = () => {
   const navigate = useNavigate();
+
+  // API 데이터 상태
+  const [userProfile, setUserProfile] = useState<UserProfileType | null>(null);
+  const [shortReviews, setShortReviews] = useState<ShortReviewType[]>([]);
+  const [detailReviews, setDetailReviews] = useState<DetailReviewType[]>([]);
+  const [favoriteMovies, setFavoriteMovies] = useState<FavoriteMovieType[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // 정렬 상태 (기존 유지)
   const [shortReviewSort, setShortReviewSort] = useState<
     "latest" | "likes" | "rating"
   >("latest");
@@ -433,37 +284,146 @@ const MyPageMain: React.FC = () => {
     "latest" | "views" | "likes"
   >("latest");
 
-  const userProfile = DUMMY_USER_PROFILE; // useQuery로 대체 예정
-  const shortReviews = DUMMY_SHORT_REVIEWS; // useQuery로 대체 예정
-  const detailReviews = DUMMY_DETAIL_REVIEWS; // useQuery로 대체 예정
-  const favoriteMovies = DUMMY_FAVORITE_MOVIES; // useQuery로 대체 예정
+  // API 호출 로직
+  useEffect(() => {
+    const fetchMyPageData = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        // axios 대신 axiosInstance 사용
+        const response = await axiosInstance.get<MyPageMainApiResponse>("/mypage/main");
+        const data = response.data.data;
 
-  const sortedShortReviews = [...shortReviews].sort((a, b) => {
+        // User Profile 매핑
+        setUserProfile({
+          nickname: data.nickname,
+          profileImageUrl: data.image,
+          followerCount: data.followers,
+          followingCount: data.following,
+        });
+
+        // Short Reviews 매핑
+        if (data.shortReview) {
+          setShortReviews([
+            {
+              id: String(data.shortReview.shortReviewId),
+              movieTitle: data.shortReview.movieTitle,
+              content: data.shortReview.content,
+              rating: data.shortReview.rating,
+              likes: data.shortReview.likes,
+              createdAt: data.shortReview.createdAt,
+            },
+          ]);
+        } else {
+          setShortReviews([]);
+        }
+
+        // Detail Reviews 매핑
+        if (data.review) {
+          setDetailReviews([
+            {
+              id: String(data.review.reviewId),
+              title: data.review.title,
+              content: data.review.content,
+              likes: data.review.likes,
+              views: data.review.totalViews,
+              comments: data.review.comments,
+              createdAt: data.review.createdAt,
+              movieTitle: data.review.movieTitle, // API 응답에서 movieTitle 가져옴
+              // 백엔드에서 reviewer 정보를 제공하면 data.review.reviewer를 직접 할당
+              reviewer: data.review.reviewer || { 
+                id: 'logged_in_user_id', // 실제 로그인한 유저 ID로 대체 필요
+                nickname: data.nickname, 
+                image: data.image 
+              }, // MyPageMain은 본인 리뷰이므로 본인 프로필 정보 사용 가능
+            },
+          ]);
+        } else {
+          setDetailReviews([]);
+        }
+
+        // Favorite Movies 매핑
+        setFavoriteMovies(
+          data.myPickMoives.map((movie) => ({ // myPickMoives -> myPickMovies 로 수정
+            id: String(movie.myPickId),
+            title: movie.movieTitle,
+            director: movie.director,
+            releaseDate: movie.releaseDate.substring(0, 4),
+            posterUrl: movie.posterUrl,
+          }))
+        );
+      } catch (err) {
+        console.error("마이페이지 데이터 불러오기 실패:", err);
+        setError("데이터를 불러오는 데 실패했습니다.");
+        // 에러가 401 Unauthorized인 경우 로그인 페이지로 리다이렉트 등의 추가 처리
+        // if (axios.isAxiosError(err) && err.response?.status === 401) {
+        //   navigate('/login'); // 예시: 401 에러 시 로그인 페이지로 이동
+        // }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMyPageData();
+  }, []); // 빈 배열: 컴포넌트 마운트 시 한 번만 실행
+
+  // 정렬 로직 (API 데이터가 없는 경우를 대비하여 조건부 실행)
+  const sortedShortReviews = userProfile && shortReviews.length > 0 ? [...shortReviews].sort((a, b) => {
     if (shortReviewSort === "latest") {
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     } else if (shortReviewSort === "likes") {
       return b.likes - a.likes;
-    } else if (shortReviewSort === 'rating') {
+    } else if (shortReviewSort === "rating") {
       return (b.rating || 0) - (a.rating || 0);
     }
     return 0;
-  });
+  }) : [];
 
-  const sortedDetailReviews = [...detailReviews].sort((a, b) => {
+  const sortedDetailReviews = userProfile && detailReviews.length > 0 ? [...detailReviews].sort((a, b) => {
     if (detailReviewSort === "latest") {
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     } else if (detailReviewSort === "views") {
       return (b.views || 0) - (a.views || 0);
     } else if (detailReviewSort === "likes") {
       return b.likes - a.likes;
-    } 
+    }
     return 0;
-  });
+  }) : [];
+
+  // 로딩 및 에러 상태 처리
+  if (loading) {
+    return (
+      <MyPageContainer>
+        <VideoBackground />
+        <EmptyState>데이터를 불러오는 중입니다...</EmptyState>
+      </MyPageContainer>
+    );
+  }
+
+  if (error) {
+    return (
+      <MyPageContainer>
+        <VideoBackground />
+        <EmptyState>{error}</EmptyState>
+      </MyPageContainer>
+    );
+  }
+
+  // 데이터가 없는데 로딩도 끝났을 때
+  if (!userProfile && !error) {
+    return (
+      <MyPageContainer>
+        <VideoBackground />
+        <EmptyState>마이페이지 데이터를 찾을 수 없습니다.</EmptyState>
+      </MyPageContainer>
+    );
+  }
 
   return (
     <MyPageContainer>
-      <VideoBackground /> 
-      <UserProfileSection userProfile={userProfile} />
+      <VideoBackground />
+      {userProfile && <UserProfileSection userProfile={userProfile} />}
+
       <SectionWrapper style={{ gridArea: "shortReview" }}>
         <SectionHeader>
           <SectionTitle onClick={() => navigate("/mypage/reviews/short")}>
@@ -506,7 +466,7 @@ const MyPageMain: React.FC = () => {
           </SortOptions>
         </SectionHeader>
         <PreviewContent>
-          {sortedShortReviews && sortedShortReviews.length > 0 ? (
+          {sortedShortReviews.length > 0 ? (
             sortedShortReviews
               .slice(0, 3)
               .map((review: ShortReviewType) => (
@@ -560,10 +520,11 @@ const MyPageMain: React.FC = () => {
           </SortOptions>
         </SectionHeader>
         <PreviewContent>
-          {sortedDetailReviews && sortedDetailReviews.length > 0 ? (
+          {sortedDetailReviews.length > 0 ? (
             sortedDetailReviews
               .slice(0, 3)
               .map((review: DetailReviewType) => (
+                // DetailReviewCard에 movieTitle prop 전달
                 <ReviewCard key={review.id} review={review} type="detail" />
               ))
           ) : (
@@ -597,7 +558,7 @@ const MyPageMain: React.FC = () => {
           </SortOptions>
         </SectionHeader>
         <MovieCardGrid>
-          {favoriteMovies && favoriteMovies.length > 0 ? (
+          {favoriteMovies.length > 0 ? (
             favoriteMovies
               .slice(0, 12)
               .map((movie: FavoriteMovieType) => (
