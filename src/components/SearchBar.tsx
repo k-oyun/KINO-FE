@@ -34,6 +34,10 @@ const Input = styled(motion.input)`
   background-color: transparent;
   border: none;
   z-index: 3001;
+  &:focus {
+    outline: none !important;
+    box-shadow: none !important;
+  }
 `;
 
 export const SearchBar = ({ keyword, setKeyword }: SearchBarProps) => {
