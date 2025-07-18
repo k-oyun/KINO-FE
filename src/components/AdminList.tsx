@@ -163,14 +163,32 @@ const AdminList = ({
     createdAt: "",
   });
 
+  const [selectedOnly, setSelectedOnly] = useState(0);
+
+  // const selectAllUser = () => {
+  //   if (selectedUser.length === users.length) {
+  //     setSelectedUser([]);
+  //   } else {
+  //     setSelectedUser(users.map((user) => user.id));
+  //   }
+  // };
+
+  const bannedIds = users
+    .filter((user) => user.role === "BAN_USER")
+    .map((user) => user.id);
+
+  const isAllBannedChecked =
+    bannedIds.length > 0 &&
+    bannedIds.every((id) => selectedUser.includes(id)) &&
+    selectedUser.length === bannedIds.length;
+
   const selectAllUser = () => {
-    if (selectedUser.length === users.length) {
+    if (isAllBannedChecked) {
       setSelectedUser([]);
     } else {
-      setSelectedUser(users.map((user) => user.id));
+      setSelectedUser(bannedIds);
     }
   };
-
   const selectUser = (userId: number, userStatus: string) => {
     if (userStatus === "USER" || userStatus === "ADMIN") return;
     setSelectedUser((prev) =>
@@ -194,7 +212,7 @@ const AdminList = ({
           handleRevoke(userId);
           selectUser(userId, userRole);
           console.log(selectedUser);
-          userActive();
+          usersActive();
         }}
         destructive={true}
       >
@@ -297,7 +315,7 @@ const AdminList = ({
     }
   };
 
-  const userActive = async () => {
+  const usersActive = async () => {
     const res = await axios.post(
       "http://43.203.218.183:8080/api/admin/active",
       selectedUser
@@ -305,6 +323,16 @@ const AdminList = ({
     setSelectedUser([]);
     listGet();
   };
+
+  const userActive = async () => {
+    const res = await axios.post(
+      "http://43.203.218.183:8080/api/admin/active",
+      [selectedOnly]
+    );
+    setSelectedUser([]);
+    listGet();
+  };
+
   useEffect(() => {
     listGet();
   }, [isConfirmBtnPrs]);
@@ -313,7 +341,6 @@ const AdminList = ({
     listGet();
   }, [selectedOption]);
 
-  // 12명으로 페이지네이션
   useEffect(() => {
     listGet();
   }, [pageInfo.currentPage]);
@@ -429,12 +456,13 @@ const AdminList = ({
     }
   }, [isMobile]);
 
-  // useEffect(() => {
-  //   if (isMobile) {
-  //     userActive();
-  //   }
-  //   console.log(selectedUser);
-  // }, [selectedUser]);
+  useEffect(() => {
+    setSelectedUser([]);
+  }, [pageInfo]);
+
+  useEffect(() => {
+    console.log(selectedUser);
+  }, [selectedUser]);
   return (
     <>
       {selectedOption === "회원관리" ? (
@@ -511,7 +539,11 @@ const AdminList = ({
               <thead>
                 <tr>
                   <Th>
-                    <CheckBox type="checkbox" onClick={selectAllUser} />
+                    <CheckBox
+                      type="checkbox"
+                      checked={isAllBannedChecked}
+                      onChange={selectAllUser}
+                    />
                   </Th>
                   {selectedOption === "회원관리" ? (
                     <>
@@ -549,7 +581,10 @@ const AdminList = ({
                       <CheckBox
                         type="checkbox"
                         checked={selectedUser.includes(user.id)}
-                        onChange={() => selectUser(user.id, user.role)}
+                        onChange={() => {
+                          selectUser(user.id, user.role);
+                          setSelectedUserForDialog(user);
+                        }}
                       />
                     </Td>
                     <Td>{user.nickname}</Td>
@@ -581,7 +616,9 @@ const AdminList = ({
                           onClick={() => {
                             setIsConfirmModalOpen(true);
                             setSelectedUserForDialog(user);
-                            selectUser(user.id, user.role);
+                            // selectUser(user.id, user.role);
+                            setSelectedOnly(user.id);
+                            setSelectedUser([]);
                           }}
                         >
                           정지 철회
@@ -720,13 +757,13 @@ const AdminList = ({
         title="정지 철회"
         message={
           selectedUser.length > 1
-            ? "선택된 회원들의 정지를 철회하시겠습니까?"
+            ? "선택된 회원들의 정지 상태를 철회하시겠습니까?"
             : `${selectedUserForDialog.nickname} 님을 철회하시겠습니까?`
         }
         onConfirm={() => {
           setIsConfirmModalOpen(false);
           setIsConfirmModalOk(true);
-          userActive();
+          selectedUser.length === 0 ? userActive() : usersActive();
           listGet();
         }}
         onCancel={() => {
