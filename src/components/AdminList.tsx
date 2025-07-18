@@ -187,12 +187,14 @@ const AdminList = ({
     }
   };
 
-  const hiddenDeleteSection = (userId: number) => (
+  const hiddenDeleteSection = (userId: number, userRole: string) => (
     <TrailingActions>
       <SwipeAction
         onClick={() => {
           handleRevoke(userId);
-          userActive(userId);
+          selectUser(userId, userRole);
+          console.log(selectedUser);
+          userActive();
         }}
         destructive={true}
       >
@@ -295,10 +297,12 @@ const AdminList = ({
     }
   };
 
-  const userActive = async (id: number) => {
+  const userActive = async () => {
     const res = await axios.post(
-      `http://43.203.218.183:8080/api/admin/active/${id}`
+      "http://43.203.218.183:8080/api/admin/active",
+      selectedUser
     );
+    setSelectedUser([]);
     listGet();
   };
   useEffect(() => {
@@ -383,7 +387,7 @@ const AdminList = ({
 
   const lastElementRef = useCallback(
     (node: HTMLElement | null) => {
-      if (!isMobile) return; // 모바일 아닐 때 무시
+      if (!isMobile) return;
       if (observerRef.current) observerRef.current.disconnect();
 
       observerRef.current = new IntersectionObserver((entries) => {
@@ -425,6 +429,12 @@ const AdminList = ({
     }
   }, [isMobile]);
 
+  // useEffect(() => {
+  //   if (isMobile) {
+  //     userActive();
+  //   }
+  //   console.log(selectedUser);
+  // }, [selectedUser]);
   return (
     <>
       {selectedOption === "회원관리" ? (
@@ -433,13 +443,15 @@ const AdminList = ({
             <SwipeableList threshold={0.25} fullSwipe={false}>
               {users.map((user, idx) => {
                 const showSwipe =
-                  selectedOption === "회원관리" && user.role === "BAN";
+                  selectedOption === "회원관리" && user.role === "BAN_USER";
                 const isLast = idx === users.length - 1;
                 return (
                   <CustomSwipeableListItem
                     key={user.id}
                     trailingActions={
-                      showSwipe ? hiddenDeleteSection(user.id) : false
+                      showSwipe
+                        ? hiddenDeleteSection(user.id, user.role)
+                        : false
                     }
                   >
                     <div>
@@ -467,14 +479,14 @@ const AdminList = ({
                               $status={
                                 user.role === "USER"
                                   ? "정상"
-                                  : user.role === "BAN"
+                                  : user.role === "BAN_USER"
                                   ? "정지"
                                   : "관리자"
                               }
                             >
                               {user.role === "USER"
                                 ? "정상"
-                                : user.role === "BAN"
+                                : user.role === "BAN_USER"
                                 ? "정지"
                                 : "관리자"}
                             </Status>
@@ -513,7 +525,6 @@ const AdminList = ({
                           $ismobile={isMobile}
                           onClick={() => {
                             setIsConfirmModalOpen(true);
-                            // 12명 유저 활성화 해제
                           }}
                         >
                           정지 철회
@@ -549,14 +560,14 @@ const AdminList = ({
                         $status={
                           user.role === "USER"
                             ? "정상"
-                            : user.role === "BAN"
+                            : user.role === "BAN_USER"
                             ? "정지"
                             : "관리자"
                         }
                       >
                         {user.role === "USER"
                           ? "정상"
-                          : user.role === "BAN"
+                          : user.role === "BAN_USER"
                           ? "정지"
                           : "관리자"}
                       </Status>
@@ -564,12 +575,13 @@ const AdminList = ({
                     <Td>{useFormatDate(user.createdAt)}</Td>
 
                     <Td>
-                      {user.role == "BAN" && (
+                      {user.role == "BAN_USER" && (
                         <ManageBtn
                           $ismobile={isMobile}
                           onClick={() => {
                             setIsConfirmModalOpen(true);
                             setSelectedUserForDialog(user);
+                            selectUser(user.id, user.role);
                           }}
                         >
                           정지 철회
@@ -621,14 +633,14 @@ const AdminList = ({
                           $status={
                             data.reportedRole === "USER"
                               ? "정상"
-                              : data.reportedRole === "BAN"
+                              : data.reportedRole === "BAN_USER"
                               ? "정지"
                               : "관리자"
                           }
                         >
                           {data.reportedRole === "USER"
                             ? "정상"
-                            : data.reportedRole === "BAN"
+                            : data.reportedRole === "BAN_USER"
                             ? "정지"
                             : "관리자"}
                         </Status>
@@ -672,14 +684,14 @@ const AdminList = ({
                       $status={
                         data.reportedRole === "USER"
                           ? "정상"
-                          : data.reportedRole === "BAN"
+                          : data.reportedRole === "BAN_USER"
                           ? "정지"
                           : "관리자"
                       }
                     >
                       {data.reportedRole === "USER"
                         ? "정상"
-                        : data.reportedRole === "BAN"
+                        : data.reportedRole === "BAN_USER"
                         ? "정지"
                         : "관리자"}
                     </Status>
@@ -706,11 +718,15 @@ const AdminList = ({
       <AdminConfirmDialog
         isOpen={isConfirmModalOpen}
         title="정지 철회"
-        message={`${selectedUserForDialog.nickname}님을 철회하시겠습니까?`}
+        message={
+          selectedUser.length > 1
+            ? "선택된 회원들의 정지를 철회하시겠습니까?"
+            : `${selectedUserForDialog.nickname} 님을 철회하시겠습니까?`
+        }
         onConfirm={() => {
           setIsConfirmModalOpen(false);
           setIsConfirmModalOk(true);
-          userActive(selectedUserForDialog.id);
+          userActive();
           listGet();
         }}
         onCancel={() => {
