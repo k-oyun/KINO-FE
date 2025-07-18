@@ -68,8 +68,8 @@ const Review = ({ isMobile, movieId }: ReviewProps) => {
     try {
       const res = getReviews(movieId);
       res.then((data) => {
-        console.log("Fetched reviews:", data.data.content);
-        setReviews(data.data.content);
+        console.log("Fetched reviews:", data.data.data.content);
+        setReviews(data.data.data.content);
       });
     } catch (error: any) {
       console.error("Error fetching reviews:", error.message);
@@ -79,19 +79,20 @@ const Review = ({ isMobile, movieId }: ReviewProps) => {
   return (
     <ReviewContainer $ismobile={isMobile}>
       <Head $ismobile={isMobile}>
-        <div>리뷰가 총 {reviews.length} 개 등록되어 있어요!</div>
+        <div>리뷰가 총 {reviews ? reviews.length : 0} 개 등록되어 있어요!</div>
         <WriteBtn $ismobile={isMobile}>작성하기</WriteBtn>
       </Head>
-      {reviews.map((review) => (
-        <DetailReviewCard
-          key={review.reviewId}
-          review={review}
-          isMine={review.mine} // 임시로 첫 번째 리뷰어가 작성한 것으로 간주
-          showProfile={true}
-          isMobile={isMobile}
-          onClick={() => navigate(`/review/${review.reviewId}`)}
-        />
-      ))}
+      {reviews &&
+        reviews.map((review) => (
+          <DetailReviewCard
+            key={review.reviewId}
+            review={review}
+            isMine={review.mine} // 임시로 첫 번째 리뷰어가 작성한 것으로 간주
+            showProfile={true}
+            isMobile={isMobile}
+            onClick={() => navigate(`/review/${review.reviewId}`)}
+          />
+        ))}
     </ReviewContainer>
   );
 };

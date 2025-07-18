@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { styled } from "styled-components";
+import { formatDistanceToNow } from "date-fns";
+import { ko } from "date-fns/locale";
 import ReportModal from "../ReportModal";
 
 interface DetailReview {
@@ -24,6 +26,7 @@ const CardBase = styled.div<styleType>`
   background-color: #d9d9d9;
   border-radius: 8px;
   padding: ${(props) => (props.$ismobile ? "15px" : "25px")};
+  padding-right: ${(props) => (props.$ismobile ? "2px" : "20px")};
   margin-bottom: 15px;
   display: flex;
   flex-direction: column;
@@ -31,7 +34,6 @@ const CardBase = styled.div<styleType>`
   /* border: 1px solid #333; */
   transition: transform 0.2s ease-in-out;
   cursor: pointer;
-
   &:hover {
     transform: translateY(-3px);
   }
@@ -52,14 +54,21 @@ const ReviewText = styled.p<styleType>`
   overflow: hidden;
   text-overflow: ellipsis;
   word-break: break-word;
+  min-height: ${(props) => (props.$ismobile ? "5vh" : "8vh")};
 `;
 
-const MetaInfo = styled.div`
-  font-size: 0.8em;
+const MetaInfo = styled.div<styleType>`
+  font-size: ${(prints) => (prints.$ismobile ? "0.7em" : "1em")};
   color: #888;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: ${(props) => (props.$ismobile ? "3px" : "7px")};
+`;
+
+const Heart = styled.img<styleType>`
+  width: ${(props) => (props.$ismobile ? "16px" : "20px")};
+  height: ${(props) => (props.$ismobile ? "16px" : "20px")};
+  object-fit: cover;
 `;
 
 const LikesDisplay = styled.span`
@@ -69,12 +78,19 @@ const LikesDisplay = styled.span`
   color: #000;
 `;
 
+const CommentImage = styled.img<styleType>`
+  width: ${(props) => (props.$ismobile ? "16px" : "20px")};
+  height: ${(props) => (props.$ismobile ? "16px" : "20px")};
+  object-fit: cover;
+  margin-left: 5px;
+`;
+
 const CommentDisplay = styled.span`
   display: flex;
   align-items: center;
   gap: 3px;
   color: #000;
-  background-image: url("https://img.icons8.com/?size=100&id=61f1pL4hEqO1&format=png&color=000000");
+  margin-right: 5px;
 `;
 
 const ThreeDotsMenu = styled.button`
@@ -137,13 +153,8 @@ const ProfileNReview = styled.div<styleType>`
 `;
 
 const DetailMoviePoster = styled.img<styleType>`
-  /* width: ${(props) => (props.$ismobile ? "25vw" : "250px")}; */
   width: 20vw;
-  /* height: 22vh; */
-  height: ${(props) => (props.$ismobile ? "13vh" : "27vh")};
-  height: ${(props) =>
-    !props.$ismobile && props.$showProfile ? "27vh" : "18vh"};
-  /* height: ${(props) => (props.$ismobile ? "15vw" : "200px")}; */
+  height: ${(props) => (props.$ismobile ? "15vh" : "27vh")};
   object-fit: cover;
   border-radius: 4px;
   flex-shrink: 0;
@@ -283,11 +294,24 @@ const DetailReviewCard: React.FC<DetailReviewCardProps> = ({
             )}
             <ReviewText $ismobile={isMobile}>{review.content}</ReviewText>
             <DetailReviewFooter $ismobile={isMobile}>
-              <MetaInfo>
-                <LikesDisplay>♥ {review.likeCount}</LikesDisplay>
+              <MetaInfo $ismobile={isMobile}>
+                <Heart
+                  src="https://img.icons8.com/?size=100&id=V4c6yYlvXtzy&format=png&color=000000"
+                  alt="좋아요"
+                  $ismobile={isMobile}
+                ></Heart>
+                <LikesDisplay>{review.likeCount}</LikesDisplay>
+                <CommentImage
+                  src="https://img.icons8.com/?size=100&id=61f1pL4hEqO1&format=png&color=000000"
+                  alt="댓글"
+                  $ismobile={isMobile}
+                ></CommentImage>
                 <CommentDisplay>{review.commentCount}</CommentDisplay>
+                {formatDistanceToNow(review.createdAt, {
+                  addSuffix: true,
+                  locale: ko,
+                })}
               </MetaInfo>
-              <MetaInfo>{review.createdAt}</MetaInfo>
             </DetailReviewFooter>
           </DetailReviewContentWrapper>
         </ProfileNReview>

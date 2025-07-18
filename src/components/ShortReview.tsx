@@ -3,6 +3,9 @@ import StarRatings from "react-star-ratings";
 import { useEffect, useState } from "react";
 import ReportModal from "./ReportModal";
 import useMovieDetailApi from "../api/details";
+import { formatDistanceToNow } from "date-fns";
+import { ko } from "date-fns/locale";
+import { formatDate, utcToKstString } from "../utils/date";
 
 interface ShortReviewProps {
   isMobile: boolean;
@@ -40,23 +43,23 @@ const ShortWrite = styled.div`
   flex-direction: column;
 `;
 
-const ShortText = styled.textarea`
+const ShortText = styled.textarea<styleType>`
   font-size: 16px;
   background-color: #d9d9d9;
   border: none;
   border-radius: 8px;
   padding: 20px;
   resize: none;
-  height: 80px;
+  height: ${(props) => (props.$ismobile ? "60px" : "80px")};
   outline: none;
 `;
 
-const ShortButton = styled.button<styleType>`
+const ShortButton = styled.button<{ $isEdit: boolean } & styleType>`
   background-color: #fd6782;
   color: white;
   border: none;
   max-width: 150px;
-  margin: 0 10px 10px auto;
+  margin: ${(props) => (props.$isEdit ? "0 2px" : "0 10px 10px auto")};
   border-radius: 8px;
   padding: ${(props) => (props.$ismobile ? "5px" : "10px")};
   font-size: ${(props) => (props.$ismobile ? "12px" : "16px")};
@@ -125,35 +128,55 @@ const ReviewText = styled.div<{ $ismobile: boolean }>`
   border-bottom: 1px solid #000;
 `;
 
+const EditBox = styled.div<styleType>`
+  display: flex;
+  flex-direction: column;
+  margin: ${(props) => (props.$ismobile ? "10px" : "20px")};
+  padding: ${(props) => (props.$ismobile ? "0 10px" : "0 20px")};
+`;
+
+const EditBtns = styled.div<styleType>`
+  display: flex;
+  margin: ${(props) => (props.$ismobile ? "5px 0 10px 0" : "10px 0 20px 0")};
+  margin-left: auto;
+`;
+
 const UnderBar = styled.div<styleType>`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: ${(props) => (props.$ismobile ? "0 10px" : "0 20px")};
+  padding: ${(props) =>
+    props.$ismobile ? "0 20px 0 10px" : "0 30px 10px 20px"};
   font-size: ${(props) => (props.$ismobile ? "12px" : "16px")};
   color: #666;
 `;
 
 const ReviewLike = styled.div<styleType>`
-  padding: ${(props) => (props.$ismobile ? "10px" : "20px")};
+  padding: ${(props) => (props.$ismobile ? "3px 10px" : "5px 20px 3px 20px")};
   margin-right: auto;
+  display: flex;
+  align-items: center;
 `;
 
-const Heart = styled.button<{ $heartUrl: string }>`
-  width: 24px;
-  height: 24px;
+const Heart = styled.button<{ $heartUrl: string } & styleType>`
+  width: ${(props) => (props.$ismobile ? "17px" : "24px")};
+  height: ${(props) => (props.$ismobile ? "20px" : "24px")};
   cursor: pointer;
   background-image: url(${(props) => props.$heartUrl});
   background-color: transparent;
   background-position: center;
   background-repeat: no-repeat;
-
-  background-size: 24px 24px;
+  background-size: contain;
   border: none;
   transition: transform 0.2s ease-in-out;
   &:hover {
     transform: scale(1.1);
   }
+`;
+
+const LikeCount = styled.span<styleType>`
+  margin-left: ${(props) => (props.$ismobile ? "3px" : "6px")};
+  font-size: ${(props) => (props.$ismobile ? "12px" : "16px")};
 `;
 
 const Btn = styled.button<styleType>`
@@ -162,6 +185,8 @@ const Btn = styled.button<styleType>`
   cursor: pointer;
   font-size: ${(props) => (props.$ismobile ? "10px" : "16px")};
   margin-left: ${(props) => (props.$ismobile ? "5px" : "6px")};
+  margin-top: ${(props) => (props.$ismobile ? "1px" : "8px")};
+
   color: #666;
   &:hover {
     color: #333;
@@ -172,7 +197,6 @@ const ShortReview = ({ isMobile, movieId }: ShortReviewProps) => {
   const [rating, setRating] = useState<number>(0);
   const [review, setReview] = useState<string>("");
   const [reviews, setReviews] = useState<Review[]>([]);
-  const [liked, setLiked] = useState(false);
 
   const [isReportOpen, setIsReportOpen] = useState<boolean>(false);
   const [editReviewId, setEditReviewId] = useState<number>(0);
@@ -188,6 +212,8 @@ const ShortReview = ({ isMobile, movieId }: ShortReviewProps) => {
 
   const handleRatingChange = (newRating: number) => {
     setRating(newRating);
+    setEditReviewId(0); // Reset edit mode when rating changes
+    setEditText(""); // Clear edit text when rating changes
   };
   const handleReviewWrite = () => {
     if (review.trim() === "") {
@@ -200,7 +226,7 @@ const ShortReview = ({ isMobile, movieId }: ShortReviewProps) => {
         console.log("Review written successfully:", data);
         setReviews((prevReviews) => [
           ...prevReviews,
-          { ...data.data, mine: true },
+          { ...data.data.data, mine: true },
         ]);
         setReview("");
       });
@@ -209,13 +235,30 @@ const ShortReview = ({ isMobile, movieId }: ShortReviewProps) => {
       // alert("리뷰 작성에 실패했습니다.");
     }
   };
-  const handleLikeClick = (reviewId: number) => {
+  const handleLikeClick = (reviewId: number, liked: boolean) => {
     console.log("Like button clicked: ");
-    setLiked(!liked);
     if (!liked) {
-      likeShortReview(reviewId);
+      likeShortReview(reviewId).then((data) => {
+        console.log("Review liked successfully:", data);
+        setReviews((prevReviews) =>
+          prevReviews.map((review) =>
+            review.shortReviewId === reviewId
+              ? { ...review, liked: true, likeCount: ++review.likeCount }
+              : review
+          )
+        );
+      });
     } else {
-      unlikeShortReview(reviewId);
+      likeShortReview(reviewId).then((data) => {
+        console.log("Review unliked successfully:", data);
+        setReviews((prevReviews) =>
+          prevReviews.map((review) =>
+            review.shortReviewId === reviewId
+              ? { ...review, liked: false, likeCount: --review.likeCount }
+              : review
+          )
+        );
+      });
     }
   };
   const handleReportClick = () => {
@@ -224,6 +267,7 @@ const ShortReview = ({ isMobile, movieId }: ShortReviewProps) => {
   const handleReviewEdit = (reviewId: number, oldContent: string) => {
     setEditReviewId(reviewId);
     setEditText(oldContent);
+    setRating(0); // Reset rating after editing
   };
   const handleReviewUpdate = () => {
     if (editText.trim() === "") {
@@ -237,7 +281,11 @@ const ShortReview = ({ isMobile, movieId }: ShortReviewProps) => {
         setReviews((prevReviews) =>
           prevReviews.map((review) =>
             review.shortReviewId === editReviewId
-              ? { ...review, content: editText }
+              ? {
+                  ...review,
+                  content: editText,
+                  createdAt: data.data.data.createdAt,
+                }
               : review
           )
         );
@@ -273,8 +321,8 @@ const ShortReview = ({ isMobile, movieId }: ShortReviewProps) => {
     try {
       const res = getShortReviews(movieId);
       res.then((data) => {
-        console.log("Fetched short reviews:", data.data.content);
-        setReviews(data.data.content);
+        console.log("Fetched short reviews:", data.data.data.content);
+        setReviews(data.data.data.content);
       });
     } catch (error: any) {
       console.error("Error fetching short reviews:", error.message);
@@ -298,12 +346,14 @@ const ShortReview = ({ isMobile, movieId }: ShortReviewProps) => {
         {rating > 0 && (
           <ShortWrite>
             <ShortText
+              $ismobile={isMobile}
               value={review}
               onChange={(e) => setReview(e.target.value)}
               placeholder="한줄평을 남겨주세요!"
             ></ShortText>
             <ShortButton
               $ismobile={isMobile}
+              $isEdit={false}
               onClick={() => handleReviewWrite()}
             >
               리뷰 작성
@@ -311,87 +361,108 @@ const ShortReview = ({ isMobile, movieId }: ShortReviewProps) => {
           </ShortWrite>
         )}
         <ReviewList $ismobile={isMobile}>
-          {reviews.map((review, id) => (
-            <ReviewItem key={id} $ismobile={isMobile}>
-              <UserProfile $ismobile={isMobile}>
-                <UserImage
-                  $ismobile={isMobile}
-                  src={review.userProfile}
-                  alt={review.userNickname}
-                />
-                <UserText $ismobile={isMobile}>
-                  <UserNickname $ismobile={isMobile} /> {review.userNickname}
-                  <UserCreatedAt $ismobile={isMobile}>
-                    {review.createdAt}
-                  </UserCreatedAt>
-                </UserText>
-              </UserProfile>
-              {editReviewId === review.shortReviewId ? (
-                <>
-                  <ShortText
-                    value={editText}
-                    onChange={(e) => setEditText(e.target.value)}
-                    placeholder="한줄평을 남겨주세요!"
-                  ></ShortText>
-                  <ShortButton
+          {reviews &&
+            reviews.map((review, id) => (
+              <ReviewItem key={id} $ismobile={isMobile}>
+                <UserProfile $ismobile={isMobile}>
+                  <UserImage
                     $ismobile={isMobile}
-                    onClick={() => handleReviewUpdate()}
-                  >
-                    수정
-                  </ShortButton>
-                  <ShortButton
-                    $ismobile={isMobile}
-                    onClick={() => handleEditCancel()}
-                  >
-                    취소
-                  </ShortButton>
-                </>
-              ) : (
-                <ReviewText $ismobile={isMobile}>{review.content}</ReviewText>
-              )}
-              <UnderBar $ismobile={isMobile}>
-                <ReviewLike $ismobile={isMobile}>
-                  <Heart
-                    $heartUrl={
-                      liked
-                        ? "https://img.icons8.com/?size=100&id=V4c6yYlvXtzy&format=png&color=000000"
-                        : "https://img.icons8.com/?size=100&id=12306&format=png&color=000000"
-                    }
-                    onClick={() => handleLikeClick(review.shortReviewId)}
-                  ></Heart>
-                  {review.likeCount}
-                </ReviewLike>
-                <UserCreatedAt
-                  $ismobile={isMobile}
-                  style={{ margin: "0 6px 0 0" }}
-                >
-                  {review.createdAt}
-                </UserCreatedAt>
-                <Btn $ismobile={isMobile} onClick={() => handleReportClick()}>
-                  신고
-                </Btn>
-                {review.mine && (
+                    src={review.userProfile}
+                    alt={review.userNickname}
+                  />
+                  <UserText $ismobile={isMobile}>
+                    <UserNickname $ismobile={isMobile} /> {review.userNickname}
+                    <UserCreatedAt $ismobile={isMobile}>
+                      {formatDistanceToNow(review.createdAt, {
+                        addSuffix: true,
+                        locale: ko,
+                      })}
+                    </UserCreatedAt>
+                  </UserText>
+                </UserProfile>
+                {editReviewId === review.shortReviewId ? (
+                  <EditBox $ismobile={isMobile}>
+                    <ShortText
+                      $ismobile={isMobile}
+                      value={editText}
+                      onChange={(e) => setEditText(e.target.value)}
+                    ></ShortText>
+                    <EditBtns $ismobile={isMobile}>
+                      <ShortButton
+                        $ismobile={isMobile}
+                        $isEdit={true}
+                        onClick={() => handleReviewUpdate()}
+                      >
+                        수정
+                      </ShortButton>
+                      <ShortButton
+                        $ismobile={isMobile}
+                        $isEdit={true}
+                        onClick={() => handleEditCancel()}
+                      >
+                        취소
+                      </ShortButton>
+                    </EditBtns>
+                  </EditBox>
+                ) : (
                   <>
-                    <Btn
-                      $ismobile={isMobile}
-                      onClick={() =>
-                        handleReviewEdit(review.shortReviewId, review.content)
-                      }
-                    >
-                      {" "}
-                      | 수정
-                    </Btn>
-                    <Btn
-                      $ismobile={isMobile}
-                      onClick={() => handleReviewDelete(review.shortReviewId)}
-                    >
-                      | 삭제
-                    </Btn>
+                    <ReviewText $ismobile={isMobile}>
+                      {review.content}
+                    </ReviewText>
+                    <UnderBar $ismobile={isMobile}>
+                      <ReviewLike $ismobile={isMobile}>
+                        <Heart
+                          $ismobile={isMobile}
+                          $heartUrl={
+                            review.liked
+                              ? "https://img.icons8.com/?size=100&id=V4c6yYlvXtzy&format=png&color=000000"
+                              : "https://img.icons8.com/?size=100&id=12306&format=png&color=000000"
+                          }
+                          onClick={() =>
+                            handleLikeClick(review.shortReviewId, review.liked)
+                          }
+                        />
+                        <LikeCount $ismobile={isMobile} />
+                        {review.likeCount}
+                      </ReviewLike>
+                      <UserCreatedAt $ismobile={isMobile}>
+                        {utcToKstString(review.createdAt)}
+                      </UserCreatedAt>
+                      <Btn
+                        $ismobile={isMobile}
+                        onClick={() => handleReportClick()}
+                      >
+                        신고
+                      </Btn>
+                      {review.mine && (
+                        <>
+                          <Btn
+                            $ismobile={isMobile}
+                            onClick={() =>
+                              handleReviewEdit(
+                                review.shortReviewId,
+                                review.content
+                              )
+                            }
+                          >
+                            {" "}
+                            | 수정
+                          </Btn>
+                          <Btn
+                            $ismobile={isMobile}
+                            onClick={() =>
+                              handleReviewDelete(review.shortReviewId)
+                            }
+                          >
+                            | 삭제
+                          </Btn>
+                        </>
+                      )}
+                    </UnderBar>
                   </>
                 )}
-              </UnderBar>
-            </ReviewItem>
-          ))}
+              </ReviewItem>
+            ))}
         </ReviewList>
       </ReviewContainer>
       {isReportOpen && <ReportModal setIsModalOpen={setIsReportOpen} />}
