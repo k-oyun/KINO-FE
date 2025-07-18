@@ -11,7 +11,8 @@ const SearchWrapper = styled(motion.form)`
   display: flex;
   align-items: center;
   position: relative;
-  color: ${({ theme }) => theme.textColor};
+  /* color: ${({ theme }) => theme.textColor}; */
+  color: white;
   svg {
     height: 25px;
     cursor: pointer;
@@ -27,10 +28,11 @@ const Input = styled(motion.input)`
   height: 100%;
   padding-left: 40px;
   z-index: -1;
-  color: ${({ theme }) => theme.textColor};
+  /* color: ${({ theme }) => theme.textColor}; */
+  color: white;
   font-size: 14px;
   background-color: transparent;
-  border: 1px solid ${({ theme }) => theme.textColor};
+  border: none;
   z-index: 3001;
 `;
 
@@ -58,8 +60,17 @@ export const SearchBar = ({ keyword, setKeyword }: SearchBarProps) => {
       <motion.svg
         ref={scope}
         onClick={toggleSearch}
+        whileHover={{
+          scale: 1.2,
+          // zIndex: 10,
+          // borderRadius: "15px",
+        }}
+        transition={{
+          type: "spring",
+          stiffness: 200,
+          damping: 18,
+        }}
         animate={{ x: searchOpen ? -220 : 0 }}
-        transition={{ ease: "linear" }}
         style={{ zIndex: "5001" }}
         fill="currentColor"
         viewBox="0 0 20 20"

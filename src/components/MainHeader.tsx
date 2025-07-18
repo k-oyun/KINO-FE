@@ -12,6 +12,11 @@ interface styleType {
   $ismobile: boolean;
 }
 
+interface headerType {
+  $ismobile: boolean;
+  $ispopupopen: boolean;
+  $ismenupopupopen: boolean;
+}
 interface userImageType extends styleType {
   $image: string;
 }
@@ -21,20 +26,24 @@ interface HeaderProps {
   setIsNewUser: (value: boolean) => void;
 }
 
-const HeaderContainer = styled.header<styleType>`
+const HeaderContainer = styled.header<headerType>`
   display: flex;
   justify-content: space-between;
   align-items: center;
   width: 100%;
   height: 60px;
   /* background-color: ${({ theme }) => theme.backgroundColor}; */
-  background: linear-gradient(
-    to bottom,
-    rgba(0, 0, 0, 1) 0%,
-    rgba(0, 0, 0, 0.7) 50%,
-    rgba(0, 0, 0, 0) 100%
-  );
-  color: ${({ theme }) => theme.textColor};
+  background: ${({ $ispopupopen, $ismenupopupopen }) =>
+    $ispopupopen || $ismenupopupopen
+      ? "black"
+      : `linear-gradient(
+          to bottom,
+          rgba(0, 0, 0, 1) 0%,
+          rgba(0, 0, 0, 0.7) 50%,
+          rgba(0, 0, 0, 0) 100%
+        )`};
+  /* color: ${({ theme }) => theme.textColor}; */
+  color: white;
   /* backdrop-filter: blur(8px); */
   position: fixed;
   top: 0;
@@ -52,7 +61,8 @@ const HeaderMenuBtn = styled.button<styleType>`
   text-align: center;
   /* background-color: ${({ theme }) => theme.backgroundColor}; */
   background-color: transparent;
-  color: ${({ theme }) => theme.textColor};
+  /* color: ${({ theme }) => theme.textColor}; */
+  color: white;
   position: relative;
   height: 100%;
   min-width: 8%;
@@ -99,7 +109,8 @@ const UserImageContainer = styled.div<userImageType>`
 
 const HeaderText = styled.span<styleType>`
   font-size: ${(props) => (props.$ismobile ? "12px" : "14px")};
-  color: ${({ theme }) => theme.textColor};
+  /* color: ${({ theme }) => theme.textColor}; */
+  color: white;
 `;
 
 const LoginBtn = styled.button<styleType>`
@@ -109,7 +120,8 @@ const LoginBtn = styled.button<styleType>`
   padding: 0px 5px;
   font-size: ${(props) => (props.$ismobile ? "12px" : "14px")};
   border: none;
-  color: ${({ theme }) => theme.textColor};
+  /* color: ${({ theme }) => theme.textColor}; */
+  color: white;
   cursor: pointer;
   &:hover {
     transform: scale(1.1);
@@ -121,7 +133,8 @@ const Popup = styled(motion.div)<styleType>`
   width: ${(props) => (props.$ismobile ? "130px" : "150px")};
   height: ${(props) => (props.$ismobile ? "100px" : "120px")};
   border-radius: 14px;
-  background-color: ${({ theme }) => theme.backgroundColor};
+  /* background-color: ${({ theme }) => theme.backgroundColor}; */
+  background-color: rgba(0, 0, 0, 0.8);
   box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.3);
   display: flex;
   flex-direction: column;
@@ -133,12 +146,15 @@ const Popup = styled(motion.div)<styleType>`
   top: ${(props) => (props.$ismobile ? "48px" : "50px")};
 `;
 
-const PopupBtn = styled.button`
+const PopupBtn = styled.button<styleType>`
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: ${({ theme }) => theme.backgroundColor};
-  color: ${({ theme }) => theme.textColor};
+  /* background-color: ${({ theme }) => theme.backgroundColor}; */
+  background-color: transparent;
+  color: white;
+  font-size: ${(props) => (props.$ismobile ? "10px" : "14px")};
+  /* color: ${({ theme }) => theme.textColor}; */
   width: 80%;
   height: 50px;
   cursor: pointer;
@@ -159,7 +175,10 @@ const MenuPopup = styled(motion.div)`
   left: 0px;
   width: 200px;
   height: 200px;
-  background-color: ${({ theme }) => theme.backgroundColor};
+  /* background-color: ${({ theme }) => theme.backgroundColor}; */
+  background-color: rgba(0, 0, 0, 0.7);
+  border-bottom-right-radius: 15px;
+  opacity: 50%;
   box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.3);
 `;
 
@@ -209,8 +228,8 @@ const MainHeader = ({ keyword, setKeyword, setIsNewUser }: HeaderProps) => {
 
   const handleMenuPopup = (path: string) => {
     setIsMenuPopupOpen((prev) => !prev);
+    console.log("메뉴 팝업", isMenuPopupOpen);
     setIsPopupOpen(false);
-    console.log("dasdsad");
     navigate(`${path}`);
   };
 
@@ -261,7 +280,11 @@ const MainHeader = ({ keyword, setKeyword, setIsNewUser }: HeaderProps) => {
 
   return (
     <>
-      <HeaderContainer $ismobile={isMobile}>
+      <HeaderContainer
+        $ismobile={isMobile}
+        $ispopupopen={isPopupOpen}
+        $ismenupopupopen={isMenuPopupOpen}
+      >
         <Logo
           $ismobile={isMobile}
           src={logoText}
@@ -274,7 +297,7 @@ const MainHeader = ({ keyword, setKeyword, setIsNewUser }: HeaderProps) => {
               <HeaderMenuBtn
                 $ismobile={isMobile}
                 onClick={() => {
-                  setIsMenuPopupOpen(true);
+                  setIsMenuPopupOpen((prev) => !prev);
                 }}
               >
                 메뉴
@@ -347,8 +370,12 @@ const MainHeader = ({ keyword, setKeyword, setIsNewUser }: HeaderProps) => {
           exit={{ opacity: 0, y: -20 }}
           transition={{ duration: 0.3 }}
         >
-          <PopupBtn onClick={onClickMypage}>마이페이지</PopupBtn>
-          <PopupBtn onClick={onClickLogout}>로그아웃</PopupBtn>
+          <PopupBtn onClick={onClickMypage} $ismobile={isMobile}>
+            마이페이지
+          </PopupBtn>
+          <PopupBtn onClick={onClickLogout} $ismobile={isMobile}>
+            로그아웃
+          </PopupBtn>
         </Popup>
       )}
     </>

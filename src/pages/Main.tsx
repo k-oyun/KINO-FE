@@ -27,6 +27,7 @@ const VideoContainer = styled.div`
   align-items: center;
   position: relative;
   overflow: hidden;
+  background-color: black;
 `;
 
 const Video = styled.iframe`
@@ -46,7 +47,7 @@ const ListContainer = styled.div`
   height: auto;
   top: 77vh;
   overflow-x: hidden;
-  background-color: transparent;
+  background-color: black;
   margin-top: 10px;
   backdrop-filter: blur(2px);
   padding-bottom: 50px;
@@ -133,7 +134,8 @@ const SliderTypeTxt = styled.span`
   font-weight: 400;
   margin-top: 30px;
   padding-left: 60px;
-  color: ${({ theme }) => theme.textColor};
+  /* color: ${({ theme }) => theme.textColor}; */
+  color: white;
 `;
 
 const VideoHiddenContainer = styled(motion.div)<{ $image: string }>`
@@ -143,7 +145,7 @@ const VideoHiddenContainer = styled(motion.div)<{ $image: string }>`
   margin-top: 130px;
   background-image: linear-gradient(
       to bottom,
-      rgba(0, 0, 0, 1) 0%,
+      rgba(0, 0, 0, 0.9) 0%,
       rgba(0, 0, 0, 0.1) 50%,
       rgba(0, 0, 0, 0) 100%
     ),
