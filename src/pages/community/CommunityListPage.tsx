@@ -168,7 +168,7 @@ const CommunityListPage: React.FC = () => {
   const { getReviews } = useReviewsApi();
 
   const [posts, setPosts] = useState<DetailReview[]>([]);
-  const [page, setPage] = useState(1);
+  const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const [totalCount, setTotalCount] = useState(0);
   const [isLoading, setIsLoading] = useState(false);

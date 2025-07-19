@@ -244,7 +244,7 @@ const CommunityDetailPage: React.FC = () => {
       });
     } catch (e) {
       console.error("Failed to fetch post (dummy data simulation):", e);
-      setError("게시글을 불러오는데 실패했습니다. (더미 데이터 처리 오류)");
+      setError("게시글을 불러오는데 실패했습니다.");
     } finally {
       setIsLoading(false);
     }
@@ -261,8 +261,8 @@ const CommunityDetailPage: React.FC = () => {
         if (!prevPost) return null;
         return {
           ...prevPost,
-          liked: data.data.liked,
-          likeCount: data.data.liked
+          isHeart: data.data.data,
+          reviewLikeCount: data.data.data
             ? ++prevPost.reviewLikeCount
             : --prevPost.reviewLikeCount,
         };
@@ -284,6 +284,25 @@ const CommunityDetailPage: React.FC = () => {
       console.error("게시글 삭제 실패:", e);
       alert("게시글 삭제에 실패했습니다. 다시 시도해주세요.");
     }
+  };
+
+  const increaseCommentCount = () => {
+    setPost((prev) => {
+      if (!prev) return null;
+      return {
+        ...prev,
+        reviewCommentCount: prev.reviewCommentCount + 1,
+      };
+    });
+  };
+  const decreaseCommentCount = () => {
+    setPost((prev) => {
+      if (!prev) return null;
+      return {
+        ...prev,
+        reviewCommentCount: prev.reviewCommentCount - 1,
+      };
+    });
   };
 
   if (isLoading) {
@@ -376,7 +395,11 @@ const CommunityDetailPage: React.FC = () => {
           </ButtonGroup>
         </ActionGroup>
         {/* 댓글 섹션 (Comment 컴포넌트 사용) */}
-        <Comment postId={post.reviewId} />
+        <Comment
+          postId={post.reviewId}
+          onCommentAdded={increaseCommentCount}
+          onCommentDeleted={decreaseCommentCount}
+        />
       </PostDetailContainer>
     </OutContainer>
   );

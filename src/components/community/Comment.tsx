@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import { useMediaQuery } from "react-responsive";
 import useReviewsApi from "../../api/reviews";
@@ -76,15 +76,6 @@ const MaxLengthText = styled.p`
   color: #bbb;
   text-align: right;
   margin-top: 4px;
-`;
-
-const LoginPrompt = styled.div`
-  font-size: 1em;
-  color: #aaa;
-  text-align: center;
-  padding: 16px;
-  border: 1px dashed #222222;
-  border-radius: 8px;
 `;
 
 // --- 댓글 목록 UI ---
@@ -169,16 +160,23 @@ const DeleteButton = styled.img<{ $ismobile?: boolean }>`
 
 interface CommentProps {
   postId: number;
+  onCommentAdded?: (comment: CommentType) => void;
+  onCommentDeleted?: (commentId: number) => void;
 }
 
-const Comment: React.FC<CommentProps> = ({ postId }) => {
+const Comment: React.FC<CommentProps> = ({
+  postId,
+  onCommentAdded,
+  onCommentDeleted,
+}) => {
   const [comments, setComments] = useState<CommentType[]>([]);
   const [hasMore, setHasMore] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [commentContent, setCommentContent] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [page, setPage] = useState(1);
+  const [page, setPage] = useState(0);
   const pageSize = 10; // 댓글 목록 페이지당 표시할 댓글 수
+  const observerRef = React.useRef<HTMLDivElement | null>(null);
   const isMobile = useMediaQuery({ query: "(max-width: 768px)" });
   const { getComments, postComment, deleteComment } = useReviewsApi();
 
@@ -189,8 +187,8 @@ const Comment: React.FC<CommentProps> = ({ postId }) => {
     try {
       const res = getComments(postId, page, pageSize);
       res.then((data) => {
-        console.log("Fetched comments:", data.data.data);
-        const newComments = data.data.data as CommentType[];
+        console.log("Fetched comments:", data.data);
+        const newComments = data.data.data.content as CommentType[];
         setComments((prev) => [...prev, ...newComments]);
         setPage((prev) => prev + 1);
         if (data.data.last) {
@@ -207,9 +205,31 @@ const Comment: React.FC<CommentProps> = ({ postId }) => {
   };
 
   useEffect(() => {
-    setHasMore(true);
     loadMoreComments();
   }, []);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !isLoading) {
+          loadMoreComments();
+        }
+      },
+      {
+        threshold: 0.5,
+      }
+    );
+
+    if (observerRef.current) {
+      observer.observe(observerRef.current);
+    }
+
+    return () => {
+      if (observerRef.current) {
+        observer.unobserve(observerRef.current);
+      }
+    };
+  }, [hasMore, isLoading]);
 
   const handleCommentSubmit = async () => {
     if (commentContent.trim().length === 0) {
@@ -224,31 +244,33 @@ const Comment: React.FC<CommentProps> = ({ postId }) => {
       });
       res.then((data) => {
         console.log("댓글 등록 성공:", data.data);
-        setComments((prev) => [...prev, data.data.data]);
+        setComments((prev) => [data.data.data, ...prev]);
+        onCommentAdded?.(data.data.data);
       });
       setCommentContent("");
     } catch (err) {
       console.error("Failed to submit comment (dummy data simulation):", err);
-      alert("댓글 등록에 실패했습니다. (더미 오류)");
+      alert("댓글 등록에 실패했습니다.");
     }
   };
 
   const handleCommentDelete = async (commentId: number) => {
-    if (!window.confirm("정말로 이 댓글을 삭제하시겠습니까? (더미)")) {
+    if (!window.confirm("정말로 이 댓글을 삭제하시겠습니까?")) {
       return;
     }
     try {
       const res = deleteComment(commentId);
       res.then((data) => {
-        console.log("댓글 삭제 성공 (더미):", data.data);
+        console.log("댓글 삭제 성공:", data.data);
       });
       setComments((prev) =>
         prev.filter((comment) => comment.commentId !== commentId)
       ); // 현재 화면에서 바로 삭제
-      alert("댓글이 삭제되었습니다. (더미)");
+      alert("댓글이 삭제되었습니다. ");
+      onCommentDeleted?.(commentId);
     } catch (err) {
       console.error("Failed to delete comment (dummy data simulation):", err);
-      alert("댓글 삭제에 실패했습니다. (더미 오류)");
+      alert("댓글 삭제에 실패했습니다.");
     }
   };
 

@@ -132,7 +132,7 @@ const CommunityCreatePage: React.FC = () => {
         const res = updateReview(payload);
         res.then((data) => {
           console.log("게시글 수정 성공:", data.data);
-          navigate(`/community/${data.data.reviewId}`);
+          navigate(`/community/${data.data.data}`);
         });
         return;
       } else {
@@ -144,7 +144,7 @@ const CommunityCreatePage: React.FC = () => {
         const res = postReview(payload);
         res.then((data) => {
           console.log("게시글 작성 성공:", data.data);
-          navigate(`/community/${data.data.reviewId}`);
+          navigate(`/community/${data.data.data}`);
         });
       }
     } catch (e) {
