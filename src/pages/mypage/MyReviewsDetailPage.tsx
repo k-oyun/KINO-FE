@@ -1,40 +1,43 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
-import axios from 'axios';
-
-import useMyPageApi from '../../api/useMyPageApi';
-import ReviewCard from "../../components/mypage/ReviewCard";
+import DetailReviewCard from "../../components/mypage/DetailReviewCard";
+import useMypageApi from "../../api/mypage";
 import VideoBackground from '../../components/VideoBackground';
 
-export interface DetailReviewListApiResponse {
-  status: number;
-  success: boolean;
-  message: string;
-  data: {
-    reviews: Array<{
-      reviewId: number;
-      title: string;
-      content: string;
-      movieTitle: string;
-      totalViews: number;
-      createdAt: string;
-      likes: number;
-      comments: number;
-    }>;
-  };
+interface UserProfileType {
+  userId: number;
+  nickname: string;
+  image: string;
+  email: string;
+  isFirstLogin: boolean;
 }
 
 interface DetailReviewType {
-  id: string;
+  reviewId: string;
+  image: string;
+  userProfile: string;
+  userNickname: string;
   title: string;
   content: string;
-  movieTitle: string;
-  likes: number;
-  views: number;
-  comments: number;
+  mine: boolean;
+  liked: boolean;
+  likeCount: number;
+  totalViews: number;
+  commentCount: number;
   createdAt: string;
+  // reviewer?: {
+  //   id: string;
+  //   nickname: string;
+  //   image: string;
+  // };
+  reviewer: UserProfileType;
 }
+
+const parseDateString = (dateStr: string): Date => {
+  const parts = dateStr.split(/[. :]/).map(Number);
+  return new Date(parts[0], parts[1] - 1, parts[2], parts[3], parts[4]);
+};
 
 const PageContainer = styled.div`
   max-width: 1200px;
@@ -57,9 +60,12 @@ const SectionWrapper = styled.div`
   background-color: rgba(0, 0, 0, 0.7);
   padding: 25px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  border-radius: 8px;
+  margin-bottom: 25px;
 
   @media (max-width: 767px) {
     padding: 20px;
+    margin-bottom: 15px;
   }
 `;
 
@@ -128,11 +134,11 @@ const SortOptions = styled.div`
   }
 `;
 
-const SortButton = styled.button<{ $isActive: boolean }>`
+const SortButton = styled.button<{ isActive: boolean }>`
   background: none;
   border: none;
-  color: ${(props) => (props.$isActive ? "#e0e0e0" : "#888")};
-  font-weight: ${(props) => (props.$isActive ? "bold" : "normal")};
+  color: ${(props) => (props.isActive ? "#e0e0e0" : "#888")};
+  font-weight: ${(props) => (props.isActive ? "bold" : "normal")};
   cursor: pointer;
   padding: 5px 0;
   position: relative;
@@ -142,7 +148,7 @@ const SortButton = styled.button<{ $isActive: boolean }>`
   }
 
   ${(props) =>
-    props.$isActive &&
+    props.isActive &&
     `
     &::after {
       content: '';
@@ -159,10 +165,10 @@ const SortButton = styled.button<{ $isActive: boolean }>`
 const ReviewList = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  /* gap: 15px; -> DetailReviewCard의 margin-bottom으로 간격 조절 */
 
   @media (max-width: 767px) {
-    gap: 10px;
+    /* gap: 10px; */
   }
 `;
 
@@ -178,84 +184,51 @@ const EmptyState = styled.div`
   }
 `;
 
+const PinkText = styled.span`
+  color: #ff69b4;
+  font-weight: bold;
+  margin-left: 0.25em;
+`;
+
 const MyReviewsDetailPage: React.FC = () => {
   const navigate = useNavigate();
-  const { fetchMyDetailReviews } = useMyPageApi();
-
-  const [detailReviews, setDetailReviews] = useState<DetailReviewType[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
   const [sortOrder, setSortOrder] = useState<"latest" | "views" | "likes">(
     "latest"
   );
 
-  useEffect(() => {
-    const loadReviews = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const data: DetailReviewListApiResponse["data"]["reviews"] | null = await fetchMyDetailReviews();
-        if (data) {
-          const mappedReviews: DetailReviewType[] = data.map(dr => ({
-            id: String(dr.reviewId),
-            title: dr.title,
-            content: dr.content,
-            movieTitle: dr.movieTitle,
-            likes: dr.likes,
-            views: dr.totalViews,
-            comments: dr.comments,
-            createdAt: dr.createdAt,
-          }));
-          setDetailReviews(mappedReviews);
-        } else {
-          setDetailReviews([]);
-        }
-      } catch (err: any) {
-        console.error("상세 리뷰 데이터 불러오기 실패:", err);
-        if (axios.isAxiosError(err) && err.response?.status === 401) {
-          console.log("401 Unauthorized: Access token invalid or expired. Redirecting to login.");
-          localStorage.removeItem("accessToken");
-          navigate("/login");
-          return;
-        } else {
-          setError("상세 리뷰 데이터를 불러오는 데 실패했습니다.");
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
+  const { mypageReview } = useMypageApi();
+  const [detailReviews, setDetailReviews] = useState<DetailReviewType[]>([]);
 
-    loadReviews();
-  }, [fetchMyDetailReviews, navigate]);
+  useEffect(() => {
+    const myReviewGet = async () => {
+      const res = await mypageReview();
+      const review = Array.isArray(res.data.data.reviews)
+        ? res.data.data.reviews
+        : [];
+      console.log(res.data.data.reviews);
+      setDetailReviews(review);
+    };
+    myReviewGet();
+  }, []);
 
   const sortedReviews = [...detailReviews].sort((a, b) => {
     if (sortOrder === "latest") {
-      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      return (
+        parseDateString(b.createdAt).getTime() -
+        parseDateString(a.createdAt).getTime()
+      );
     } else if (sortOrder === "views") {
-      return (b.views || 0) - (a.views || 0);
+      return (b.totalViews || 0) - (a.totalViews || 0);
     } else if (sortOrder === "likes") {
-      return b.likes - a.likes;
+      return b.likeCount - a.likeCount;
     }
     return 0;
   });
 
-  if (loading) {
-    return (
-      <PageContainer>
-        <VideoBackground />
-        <EmptyState>상세 리뷰 데이터를 불러오는 중입니다...</EmptyState>
-      </PageContainer>
-    );
-  }
-
-  if (error) {
-    return (
-      <PageContainer>
-        <VideoBackground />
-        <EmptyState>{error}</EmptyState>
-      </PageContainer>
-    );
-  }
+  const handleReviewClick = (reviewId: string) => {
+    // 상세 리뷰 클릭 시 상세 페이지로 이동
+    navigate(`/reviews/detail/${reviewId}`);
+  };
 
   return (
     <PageContainer>
@@ -279,35 +252,37 @@ const MyReviewsDetailPage: React.FC = () => {
               />
             </svg>
           </BackButton>
-          <PageTitle>내가 작성한 상세 리뷰</PageTitle>
+          <PageTitle>내가 작성한 <PinkText>상세 리뷰</PinkText></PageTitle>
         </PageHeader>
         <SortOptions>
           <SortButton
-            $isActive={sortOrder === "latest"}
+            isActive={sortOrder === "latest"}
             onClick={() => setSortOrder("latest")}
           >
             최신순
           </SortButton>
           <SortButton
-            $isActive={sortOrder === "likes"}
-            onClick={() => setSortOrder("likes")}
-          >
-            좋아요순
-          </SortButton>
-          <SortButton
-            $isActive={sortOrder === "views"}
+            isActive={sortOrder === "views"}
             onClick={() => setSortOrder("views")}
           >
             조회순
           </SortButton>
+          <SortButton
+            isActive={sortOrder === "likes"}
+            onClick={() => setSortOrder("likes")}
+          >
+            좋아요순
+          </SortButton>
         </SortOptions>
         {sortedReviews && sortedReviews.length > 0 ? (
           <ReviewList>
-            {sortedReviews.map((review) => (
-              <ReviewCard
-                key={review.id}
+            {sortedReviews.map((review: DetailReviewType) => (
+              <DetailReviewCard
+                key={review.reviewId}
                 review={review}
-                type="detail"
+                isMine={true}
+                showProfile={true}
+                onClick={() => handleReviewClick(review.reviewId)}
               />
             ))}
           </ReviewList>

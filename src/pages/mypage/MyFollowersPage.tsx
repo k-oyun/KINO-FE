@@ -5,8 +5,7 @@ import axios from 'axios';
 
 import UserListItem from '../../components/mypage/UserListItem';
 import VideoBackground from '../../components/VideoBackground';
-import useMyPageApi from '../../api/useMyPageApi';
-
+import useMyPageApi from '../../api/mypage';
 
 export interface FollowerApiResponse {
   status: number;
@@ -132,14 +131,19 @@ const EmptyState = styled.div`
   }
 `;
 
+const PinkText = styled.span`
+  color: #ff69b4;
+  font-weight: bold;
+  margin-left: 0.25em;
+`;
 
 const MyFollowersPage: React.FC = () => {
   const navigate = useNavigate();
-  const { fetchMyFollowers, followUser, unfollowUser } = useMyPageApi(); 
+  const { getFollower, followUser, unfollowUser } = useMyPageApi(); 
+  
   const [followers, setFollowers] = useState<FollowerType[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-
   const myUserId = "1"; 
 
   useEffect(() => {
@@ -147,7 +151,8 @@ const MyFollowersPage: React.FC = () => {
       setLoading(true);
       setError(null);
       try {
-        const data: FollowerApiResponse["data"] | null = await fetchMyFollowers(myUserId); 
+        const res = await getFollower(Number(myUserId));
+        const data: FollowerApiResponse["data"] | null = res.data.data;
         
         if (data) {
           const mappedFollowers: FollowerType[] = data.map(follower => ({
@@ -160,7 +165,7 @@ const MyFollowersPage: React.FC = () => {
         } else {
           setFollowers([]);
         }
-      } catch (err: any) {
+      } catch (err) {
         console.error("팔로워 데이터 불러오기 실패:", err);
         if (axios.isAxiosError(err) && err.response?.status === 401) {
           console.log("401 Unauthorized: Access token invalid or expired. Redirecting to login.");
@@ -176,18 +181,18 @@ const MyFollowersPage: React.FC = () => {
     };
 
     loadFollowers();
-  }, [fetchMyFollowers, myUserId, navigate]); 
+  }, [getFollower, myUserId, navigate]); 
 
   const handleFollowToggle = async (targetUserId: string, isCurrentlyFollowing: boolean) => {
     try {
       if (isCurrentlyFollowing) {
-        await unfollowUser(targetUserId); 
+        await unfollowUser(Number(targetUserId)); 
         console.log(`User ${targetUserId} 언팔로우 성공`);
         setFollowers(prevFollowers => 
           prevFollowers.filter(follower => follower.id !== targetUserId) 
         );
       } else {
-        await followUser(targetUserId); 
+        await followUser(Number(targetUserId)); 
         console.log(`User ${targetUserId} 팔로우 성공`);
         setFollowers(prevFollowers => 
           prevFollowers.map(f => f.id === targetUserId ? { ...f, isFollowing: true } : f)
@@ -210,7 +215,7 @@ const MyFollowersPage: React.FC = () => {
               <path d="M15 5L9 12L15 19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           </BackButton>
-          <PageTitle>팔로워</PageTitle>
+          <PageTitle><PinkText>팔로워</PinkText></PageTitle>
         </PageHeader>
         {loading ? (
           <EmptyState>팔로워 목록을 불러오는 중...</EmptyState>

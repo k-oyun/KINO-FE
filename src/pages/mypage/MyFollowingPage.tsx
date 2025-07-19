@@ -5,7 +5,7 @@
 
   import UserListItem from '../../components/mypage/UserListItem';
   import VideoBackground from '../../components/VideoBackground';
-  import useMyPageApi from '../../api/useMyPageApi';
+  import useMyPageApi from '../../api/mypage';
 
   export interface FollowingApiResponse {
     status: number;
@@ -131,10 +131,16 @@
     }
   `;
 
+  const PinkText = styled.span`
+    color: #ff69b4;
+    font-weight: bold;
+    margin-left: 0.25em;
+  `;
+
 
   const MyFollowingPage: React.FC = () => {
     const navigate = useNavigate();
-    const { fetchMyFollowing, followUser, unfollowUser } = useMyPageApi(); 
+    const { getFollowing, followUser, unfollowUser } = useMyPageApi(); 
 
     const [following, setFollowing] = useState<FollowingType[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
@@ -146,8 +152,9 @@
         setLoading(true);
         setError(null);
         try {
-          const data: FollowingApiResponse["data"] | null = await fetchMyFollowing(myUserId); 
-          
+          const res = await getFollowing(Number(myUserId));
+          const data: FollowingApiResponse["data"] | null = res.data.data;
+
           if (data) {
             const mappedFollowing: FollowingType[] = data.map(followedUser => ({
               id: String(followedUser.userId), 
@@ -159,7 +166,7 @@
           } else {
             setFollowing([]);
           }
-        } catch (err: any) {
+        } catch (err) {
           console.error("팔로잉 데이터 불러오기 실패:", err);
           if (axios.isAxiosError(err) && err.response?.status === 401) {
             console.log("401 Unauthorized: Access token invalid or expired. Redirecting to login.");
@@ -175,18 +182,18 @@
       };
 
       loadFollowing();
-    }, [fetchMyFollowing, myUserId, navigate]); 
+    }, [getFollowing, myUserId, navigate]); 
 
     const handleFollowToggle = async (targetUserId: string, isCurrentlyFollowing: boolean) => {
       try {
         if (isCurrentlyFollowing) {
-          await unfollowUser(targetUserId); 
+          await unfollowUser(Number(targetUserId)); 
           console.log(`User ${targetUserId} 언팔로우 성공`);
           setFollowing(prevFollowing => 
             prevFollowing.filter(user => user.id !== targetUserId) 
           );
         } else {
-          await followUser(targetUserId);
+          await followUser(Number(targetUserId));
           console.log(`User ${targetUserId} 팔로우 성공`);
           setFollowing(prevFollowing =>
               prevFollowing.map(u => u.id === targetUserId ? { ...u, isFollowing: true } : u)
@@ -209,7 +216,7 @@
                 <path d="M15 5L9 12L15 19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </BackButton>
-            <PageTitle>팔로잉</PageTitle> 
+            <PageTitle><PinkText>팔로잉</PinkText></PageTitle> 
           </PageHeader>
           {loading ? (
             <EmptyState>팔로잉 목록을 불러오는 중...</EmptyState>
