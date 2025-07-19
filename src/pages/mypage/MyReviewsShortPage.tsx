@@ -172,7 +172,7 @@ const PinkText = styled.span`
 
 const MyReviewsShortPage: React.FC = () => {
     const navigate = useNavigate();
-    const [sortOrder, setSortOrder] = useState<"latest" | "likes">("latest");
+    const [sortOrder, setSortOrder] = useState<"latest" | "likes" | "rating">("latest");
     const { mypageShortReview } = useMypageApi();
 
     const [shortReviews, setShortReviews] = useState<ShortReviewType[]>([]);
@@ -198,6 +198,8 @@ const MyReviewsShortPage: React.FC = () => {
             );
         } else if (sortOrder === "likes") {
             return b.likes - a.likes;
+        } else if (sortOrder === "rating") {
+            return (b.rating || 0) - (a.rating || 0);
         }
         return 0;
     });
@@ -237,6 +239,12 @@ const MyReviewsShortPage: React.FC = () => {
                         onClick={() => setSortOrder("latest")}
                     >
                         최신순
+                    </SortButton>
+                    <SortButton
+                        isActive={sortOrder === "rating"}
+                        onClick={() => setSortOrder("rating")}
+                    >
+                        별점순
                     </SortButton>
                     <SortButton
                         isActive={sortOrder === "likes"}
