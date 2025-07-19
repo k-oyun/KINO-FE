@@ -14,16 +14,17 @@ interface StyleType {
 }
 
 interface Review {
-  reviewId: string;
+  id: string;
+  image: string;
   userProfile: string;
   userNickname: string;
   title: string;
   content: string;
   mine: boolean;
-  liked: boolean;
-  likeCount: number;
-  totalViews: number;
-  commentCount: number;
+  // likes: boolean;
+  likes: number;
+  views: number;
+  comments: number;
   createdAt: string;
 }
 
@@ -65,16 +66,24 @@ const Review = ({ isMobile, movieId }: ReviewProps) => {
   const { getReviews } = useMovieDetailApi();
 
   useEffect(() => {
-    try {
-      const res = getReviews(movieId);
-      res.then((data) => {
-        console.log("Fetched reviews:", data.data.data.content);
-        setReviews(data.data.data.content);
-      });
-    } catch (error: any) {
-      console.error("Error fetching reviews:", error.message);
-    }
-  }, []);
+    const fetchReviews = async () => {
+      try {
+        const res = await getReviews(movieId);
+        console.log("Fetched reviews:", res.data.data.content);
+        setReviews(res.data.data.content);
+      } catch (error: unknown) {
+        // 'any' 대신 'unknown' 사용
+        if (error instanceof Error) {
+          // 에러가 Error 타입인지 확인
+          console.error("Error fetching reviews:", error.message);
+        } else {
+          console.error("Unknown error fetching reviews:", error);
+        }
+      }
+    };
+
+    fetchReviews();
+  }, [getReviews, movieId]); // 'getReviews'와 'movieId'를 의존성 배열에 추가
 
   return (
     <ReviewContainer $ismobile={isMobile}>
@@ -85,9 +94,9 @@ const Review = ({ isMobile, movieId }: ReviewProps) => {
       {reviews &&
         reviews.map((review) => (
           <DetailReviewCard
-            key={review.reviewId}
+            key={review.id}
             review={review}
-            isMine={review.mine} // 임시로 첫 번째 리뷰어가 작성한 것으로 간주
+            isMine={review.mine}
             showProfile={true}
             isMobile={isMobile}
             onClick={() => navigate(`/community/${review.reviewId}`)}

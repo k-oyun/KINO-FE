@@ -4,8 +4,11 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios"; // axios 임포트
 
 import UserProfileSection from "../../components/mypage/UserProfileSection";
-import ReviewCard from "../../components/mypage/ReviewCard";
+import ShortReviewCard from "../../components/mypage/ReviewCard";
+import DetailReviewCard from "../../components/mypage/DetailReviewCard";
 import MovieCard from "../../components/mypage/MovieCard";
+
+import useMypageApi from "../../api/mypage";
 
 // --- 백엔드 API의 '새로운' 응답 구조에 맞는 타입 정의 ---
 interface ApiShortReview {
@@ -56,10 +59,16 @@ interface MyPageMainApiRespons {
 
 // --- 컴포넌트들이 사용하는 타입 정의 (변경 없음, 이대로 사용) ---
 interface UserProfileType {
+  userId: number;
   nickname: string;
-  profileImageUrl: string;
-  followerCount: number;
-  followingCount: number;
+  image: string;
+  email: string;
+  isFirstLogin: boolean;
+}
+
+interface Follow {
+  follower: number;
+  following: number;
 }
 
 interface ShortReviewType {
@@ -89,8 +98,8 @@ interface DetailReviewType {
 }
 
 interface FavoriteMovieType {
-  id: string;
-  title: string;
+  myPickId: string;
+  movieTitle: string;
   director: string;
   releaseDate: string;
   posterUrl: string;
@@ -120,15 +129,21 @@ const MyPageMain: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   // 정렬 기준 상태 다시 활성화
-  const [shortReviewSort, setShortReviewSort] = useState<"latest" | "views" | "likes" | "rating">("latest");
-  const [detailReviewSort, setDetailReviewSort] = useState<"latest" | "views" | "likes">("latest");
+  const [shortReviewSort, setShortReviewSort] = useState<
+    "latest" | "views" | "likes" | "rating"
+  >("latest");
+  const [detailReviewSort, setDetailReviewSort] = useState<
+    "latest" | "views" | "likes"
+  >("latest");
 
   useEffect(() => {
     const fetchMyPageData = async () => {
       setIsLoading(true);
       setError(null);
       try {
-        const response = await axios.get<MyPageMainApiRespons>('http://43.203.218.183:8080/api/mypage/main');
+        const response = await axios.get<MyPageMainApiRespons>(
+          "http://43.203.218.183:8080/api/mypage/main"
+        );
         const apiData = response.data.data;
 
         // 1. 유저 프로필 데이터 매핑
@@ -178,10 +193,11 @@ const MyPageMain: React.FC = () => {
             releaseDate: movie.releaseDate,
           }))
         );
-
       } catch (err) {
         console.error("마이페이지 메인 데이터 불러오기 실패:", err);
-        setError("데이터를 불러오는 데 실패했습니다. 잠시 후 다시 시도해주세요.");
+        setError(
+          "데이터를 불러오는 데 실패했습니다. 잠시 후 다시 시도해주세요."
+        );
       } finally {
         setIsLoading(false);
       }
@@ -195,7 +211,7 @@ const MyPageMain: React.FC = () => {
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     } else if (shortReviewSort === "likes") {
       return b.likes - a.likes;
-    } else if (shortReviewSort === 'rating') {
+    } else if (shortReviewSort === "rating") {
       return b.rating - a.rating;
     }
     return 0;
@@ -217,7 +233,7 @@ const MyPageMain: React.FC = () => {
   }
 
   if (error) {
-    return <EmptyState style={{ color: 'red' }}>{error}</EmptyState>;
+    return <EmptyState style={{ color: "red" }}>{error}</EmptyState>;
   }
 
   return (
@@ -318,7 +334,9 @@ const MyPageMain: React.FC = () => {
           </SectionTitle>
           <SortOptions>
             {/* 찜한 영화는 현재 백엔드 응답에서 정렬 옵션이 없다고 가정하고 최신순만 표시 */}
-            <SortButton isActive={true} disabled={favoriteMovies.length === 0}>최신순</SortButton>
+            <SortButton isActive={true} disabled={favoriteMovies.length === 0}>
+              최신순
+            </SortButton>
           </SortOptions>
         </SectionHeader>
         <MovieCardGrid>

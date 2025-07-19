@@ -6,6 +6,7 @@ import profileIcon from "../assets/img/profileIcon.png";
 import logoText from "../assets/img/LogoTxt.png";
 import { SearchBar } from "./SearchBar";
 import { useNavigate } from "react-router-dom";
+import useAuthApi from "../api/auth";
 
 interface styleType {
   $ismobile: boolean;
@@ -14,9 +15,10 @@ interface styleType {
 interface userImageType extends styleType {
   $image: string;
 }
-interface SearchBarProps {
+interface HeaderProps {
   keyword: string;
   setKeyword: (value: string) => void;
+  setIsNewUser: (value: boolean) => void;
 }
 
 const HeaderContainer = styled.header<styleType>`
@@ -25,9 +27,15 @@ const HeaderContainer = styled.header<styleType>`
   align-items: center;
   width: 100%;
   height: 60px;
-  background-color: ${({ theme }) => theme.backgroundColor};
+  /* background-color: ${({ theme }) => theme.backgroundColor}; */
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 1) 0%,
+    rgba(0, 0, 0, 0.7) 50%,
+    rgba(0, 0, 0, 0) 100%
+  );
   color: ${({ theme }) => theme.textColor};
-  backdrop-filter: blur(8px);
+  /* backdrop-filter: blur(8px); */
   position: fixed;
   top: 0;
   z-index: 3000;
@@ -42,7 +50,8 @@ const HeaderMenuContainer = styled.div<styleType>`
 
 const HeaderMenuBtn = styled.button<styleType>`
   text-align: center;
-  background-color: ${({ theme }) => theme.backgroundColor};
+  /* background-color: ${({ theme }) => theme.backgroundColor}; */
+  background-color: transparent;
   color: ${({ theme }) => theme.textColor};
   position: relative;
   height: 100%;
@@ -55,8 +64,9 @@ const HeaderMenuBtn = styled.button<styleType>`
   border: none;
   cursor: pointer;
   &:hover {
-    background-color: ${({ theme }) => theme.hoverColor};
+    transform: scale(1.1);
   }
+  transition: 0.1s ease-in;
 `;
 
 const UserInfoContainer = styled.div<styleType>`
@@ -162,16 +172,29 @@ const MenuPopupText = styled.span<{ $ismenupopupopen: boolean }>`
   transition: transform 0.4s ease;
   font-family: sans-serif;
 `;
+interface UserType {
+  userId: number;
+  nickname: string;
+  image: string;
+  email: string;
+  isFirstLogin: boolean;
+}
 
-const MainHeader = ({ keyword, setKeyword }: SearchBarProps) => {
-  const [nickname, setNickname] = useState("오윤");
-  const [userImg, setUserImg] = useState("");
+const MainHeader = ({ keyword, setKeyword, setIsNewUser }: HeaderProps) => {
+  const [user, setUser] = useState<UserType>({
+    userId: 0,
+    nickname: "",
+    image: "",
+    email: "",
+    isFirstLogin: false,
+  });
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [isMenuPopupOpen, setIsMenuPopupOpen] = useState(false);
   const popupRef = useRef<HTMLDivElement>(null);
   const menuPopupRef = useRef<HTMLDivElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
   const isMobile = useMediaQuery({ query: "(max-width: 767px)" });
+  const { userInfoGet, logout } = useAuthApi();
   const menuItems = [
     { label: "홈", path: "/" },
     { label: "커뮤니티", path: "/comnmuniy" },
@@ -195,6 +218,16 @@ const MainHeader = ({ keyword, setKeyword }: SearchBarProps) => {
     setIsPopupOpen(false);
     navigate("/mypage");
   };
+
+  const onClickLogout = async () => {
+    try {
+      await logout();
+    } finally {
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("refreshToken");
+      navigate("/login");
+    }
+  };
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -216,6 +249,15 @@ const MainHeader = ({ keyword, setKeyword }: SearchBarProps) => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [isPopupOpen, isMenuPopupOpen]);
+
+  useEffect(() => {
+    const userDataGet = async () => {
+      const res = await userInfoGet();
+      setUser(res.data.data);
+    };
+    userDataGet();
+    setIsNewUser(user.isFirstLogin);
+  }, []);
 
   return (
     <>
@@ -279,17 +321,17 @@ const MainHeader = ({ keyword, setKeyword }: SearchBarProps) => {
         <UserInfoContainer $ismobile={isMobile}>
           {!isMobile && <SearchBar keyword={keyword} setKeyword={setKeyword} />}
 
-          {nickname === "" ? (
-            <LoginBtn $ismobile={isMobile}>
+          {user.nickname === "" ? (
+            <LoginBtn $ismobile={isMobile} onClick={() => navigate("/login")}>
               {isMobile ? "로그인" : "로그인하러 가기"}
             </LoginBtn>
           ) : (
             <>
-              <HeaderText $ismobile={isMobile}>{nickname}</HeaderText>
+              <HeaderText $ismobile={isMobile}>{user.nickname}</HeaderText>
               <UserImageContainer
                 ref={imageRef}
                 $ismobile={isMobile}
-                $image={userImg ? userImg : profileIcon}
+                $image={user.image ? user.image : profileIcon}
                 onClick={handlePopup}
               />
             </>
@@ -306,7 +348,7 @@ const MainHeader = ({ keyword, setKeyword }: SearchBarProps) => {
           transition={{ duration: 0.3 }}
         >
           <PopupBtn onClick={onClickMypage}>마이페이지</PopupBtn>
-          <PopupBtn>로그아웃</PopupBtn>
+          <PopupBtn onClick={onClickLogout}>로그아웃</PopupBtn>
         </Popup>
       )}
     </>
