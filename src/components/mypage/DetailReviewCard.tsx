@@ -12,7 +12,6 @@ interface DetailReview {
   title: string;
   content: string;
   mine: boolean;
-  liked: boolean;
   likeCount: number;
   totalViews: number;
   commentCount: number;
@@ -279,11 +278,6 @@ const DetailReviewCard: React.FC<DetailReviewCardProps> = ({
     }
     return null;
   };
-
-  const parsedCreatedAt = parseDateString(review.createdAt);
-  const displayDate = parsedCreatedAt
-    ? formatDistanceToNow(parsedCreatedAt, { addSuffix: true, locale: ko })
-    : review.createdAt;
 
   return (
     <>

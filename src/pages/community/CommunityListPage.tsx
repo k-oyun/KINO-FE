@@ -7,6 +7,7 @@ import useReviewsApi from "../../api/reviews";
 
 interface DetailReview {
   reviewId: string;
+  image: string;
   userProfile: string;
   userNickname: string;
   title: string;
