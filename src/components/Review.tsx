@@ -90,7 +90,7 @@ const Review = ({ isMobile, movieId }: ReviewProps) => {
             isMine={review.mine} // 임시로 첫 번째 리뷰어가 작성한 것으로 간주
             showProfile={true}
             isMobile={isMobile}
-            onClick={() => navigate(`/review/${review.reviewId}`)}
+            onClick={() => navigate(`/community/${review.reviewId}`)}
           />
         ))}
     </ReviewContainer>

@@ -292,7 +292,11 @@ const DetailReviewCard: React.FC<DetailReviewCardProps> = ({
                 영화: {movieTitle}
               </DetailReviewMovieTitleText>
             )}
-            <ReviewText $ismobile={isMobile}>{review.content}</ReviewText>
+            <ReviewText
+              className="review-content"
+              dangerouslySetInnerHTML={{ __html: review.content }}
+              $ismobile={isMobile}
+            ></ReviewText>
             <DetailReviewFooter $ismobile={isMobile}>
               <MetaInfo $ismobile={isMobile}>
                 <Heart

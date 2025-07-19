@@ -1,157 +1,186 @@
-import React, { useState, useEffect } from 'react';
-import styled from 'styled-components';
-import { useParams, useNavigate } from 'react-router-dom';
-import Comment from '../../components/community/Comment';
-// import axios from 'axios';
+import React, { useState, useEffect, use } from "react";
+import styled from "styled-components";
+import { useParams, useNavigate } from "react-router-dom";
+import Comment from "../../components/community/Comment";
+import { useMediaQuery } from "react-responsive";
+import useReviewsApi from "../../api/reviews";
+import { utcToKstString } from "../../utils/date";
 
 // 필요한 타입은 이 파일 내에서 직접 정의합니다.
-interface PostType {
-  id: string;
-  title: string;
-  username: string;
-  createdAt: string;
-  views: number;
-  likeCount: number;
-  tags: string[];
-  movieId: string | null;
-  movieTitle: string | null;
+interface DetailReview {
+  movieId: number;
+  movieTitle: string;
+
+  reviewId: number;
+  reviewTitle: string;
+  reviewContent: string;
+
+  reviewLikeCount: number;
+  reviewViewCount: number;
+  reviewCommentCount: number;
+  reviewCreatedAt: string;
+  isActive: boolean;
+  isHeart: boolean;
+  isMine: boolean;
+
+  writerId: number;
+  writerUserImage: string;
+  writerUserNickname: string;
 }
 
-interface PostDetailType extends PostType {
-  content: string;
-  isLiked: boolean;
+interface styleType {
+  $ismobile?: boolean;
 }
 
-const DUMMY_POSTS: PostDetailType[] = [
-  {
-    id: "post-1",
-    title: "첫 번째 더미 게시글",
-    content: "이것은 첫 번째 게시글의 내용입니다. 더미 데이터로 테스트 중입니다. 게시글의 내용은 충분히 길어서 여러 줄로 표시될 수 있습니다. 여기에는 영화에 대한 상세한 리뷰나 개인적인 감상, 혹은 영화와 관련된 흥미로운 정보들이 포함될 수 있습니다. 사용자 경험을 위해 가독성 좋게 작성되어야 합니다.",
-    username: "더미유저1",
-    createdAt: "2024-07-16T10:00:00Z",
-    views: 5,
-    likeCount: 2,
-    isLiked: false,
-    tags: ["리뷰", "영화"],
-    movieId: "movie-1",
-    movieTitle: "인셉션",
-  },
-  {
-    id: "post-2",
-    title: "두 번째 더미 게시글",
-    content: "두 번째 게시글 내용입니다. 기능 테스트를 위해 작성되었습니다. 이 게시글은 특정 영화에 대한 팁이나 숨겨진 이스터 에그에 대한 내용일 수 있습니다. 정보 전달을 목적으로 하며, 독자들이 쉽게 이해할 수 있도록 구성됩니다.",
-    username: "더미유저2",
-    createdAt: "2024-07-15T14:30:00Z",
-    views: 12,
-    likeCount: 7,
-    isLiked: true,
-    tags: ["정보", "뉴스"],
-    movieId: "movie-2",
-    movieTitle: "인터스텔라",
-  },
-  {
-    id: "post-3",
-    title: "세 번째 테스트 게시글",
-    content: "테스트를 위한 세 번째 게시글입니다. 영화 관련 내용입니다. 이 게시글은 특정 장르의 영화 추천이나, 최근 개봉작에 대한 간략한 평가를 담을 수 있습니다. 사용자들이 다양한 관점에서 영화를 즐길 수 있도록 돕습니다.",
-    username: "더미유저3",
-    createdAt: "2024-07-14T09:15:00Z",
-    views: 8,
-    likeCount: 3,
-    isLiked: false,
-    tags: ["리뷰"],
-    movieId: "movie-1",
-    movieTitle: "인셉션",
-  },
-  {
-    id: "post-4",
-    title: "네 번째 게시글 제목",
-    content: "네 번째 게시글의 상세 내용입니다. 더미 데이터 추가. 이 게시글은 자유 게시판 성격으로, 영화와 관련 없는 일상 이야기나 질문, 혹은 다른 사용자들과의 소통을 위한 공간으로 활용될 수 있습니다.",
-    username: "더미유저1",
-    createdAt: "2024-07-13T11:00:00Z",
-    views: 20,
-    likeCount: 10,
-    isLiked: true,
-    tags: ["자유"],
-    movieId: null,
-    movieTitle: null,
-  },
-];
+const OutContainer = styled.div`
+  display: flex;
+  justify-content: center;
+  margin-top: 65px;
+`;
 
-
-const PostDetailContainer = styled.div`
-  max-width: 1200px;
-  margin: 100px auto 24px;
-  padding: 25px;
-  color: #f0f0f0;
-  background-color: #000000;
-  border-radius: 8px;
+const PostDetailContainer = styled.div<styleType>`
+  width: ${(props) => (props.$ismobile ? "90vw" : "60vw")};
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  padding: ${(props) => (props.$ismobile ? "20px" : "50px")};
+  border-radius: 8px;
   box-sizing: border-box;
-
-  @media (max-width: 767px) {
-    padding: 16px;
-  }
 `;
 
 // --- 게시글 내용 UI ---
-const ContentWrapper = styled.div`
-  color: #f0f0f0;
-  margin-bottom: 24px;
-`;
+const ContentWrapper = styled.div``;
 
-const PostHeader = styled.div`
+const HeadWrapper = styled.div<styleType>`
+  display: flex;
+  justify-content: center;
+  align-items: center;
   border-bottom: 1px solid #222222;
-  padding-bottom: 16px;
-  margin-bottom: 24px;
+  padding-bottom: ${(props) => (props.$ismobile ? "10px" : "20px")};
 `;
 
-const PostTitle = styled.h1`
-  font-size: 2em;
+const MoviePoster = styled.img<styleType>`
+  cursor: pointer;
+  width: ${(props) => (props.$ismobile ? "70px" : "120px")};
+  height: ${(props) => (props.$ismobile ? "90px" : "140px")};
+  object-fit: cover;
+  border-radius: 8px;
+  margin-right: ${(props) => (props.$ismobile ? "20px" : "80px")};
+`;
+
+const PostHeader = styled.div<styleType>`
+  padding-bottom: 10px;
+  margin-bottom: ${(props) => (props.$ismobile ? "0px" : "10px")};
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+`;
+
+const PostTitle = styled.h1<styleType>`
+  font-size: ${(props) => (props.$ismobile ? "1.3em" : "2em")};
   font-weight: bold;
   color: #fe5890;
   margin-bottom: 8px;
 `;
 
-const PostMeta = styled.div`
-  font-size: 0.9em;
-  color: #bbb;
+const MovieInfo = styled.div<styleType>`
   display: flex;
+`;
+
+const MovieTitle = styled.span<styleType>`
+  font-size: ${(props) => (props.$ismobile ? "1em" : "1.2em")};
+  font-weight: bold;
+  cursor: pointer;
+  &:hover {
+    color: #fe5890;
+  }
+`;
+
+const PostMeta = styled.div<styleType>`
+  font-size: ${(props) => (props.$ismobile ? "0.8em" : "1em")};
+  display: flex;
+  flex-direction: ${(props) => (props.$ismobile ? "column" : "row")};
   justify-content: space-between;
   align-items: center;
+  margin-top: 10px;
+  gap: ${(props) => (props.$ismobile ? "5px" : "10px")};
 `;
 
 const ContentArea = styled.div`
   font-size: 1em;
   line-height: 1.6;
-  color: #f0f0f0;
   min-height: 200px;
   white-space: pre-wrap;
+  padding: 20px;
 `;
 
 // --- 버튼 그룹 및 스타일 ---
-const ActionGroup = styled.div`
+const ActionGroup = styled.div<styleType>`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 24px;
   border-top: 1px solid #222222;
-  padding-top: 24px;
+  padding-top: 12x;
+  padding: ${(props) => (props.$ismobile ? "8px" : "10px 20px")};
+  padding-bottom: 0;
 `;
 
-const ButtonGroup = styled.div`
+const ReviewLike = styled.div<styleType>`
   display: flex;
-  gap: 8px;
+  align-items: center;
 `;
 
-const StyledButton = styled.button`
+const Heart = styled.button<{ $heartUrl: string } & styleType>`
+  width: ${(props) => (props.$ismobile ? "17px" : "24px")};
+  height: ${(props) => (props.$ismobile ? "20px" : "24px")};
+  cursor: pointer;
+  background-image: url(${(props) => props.$heartUrl});
+  background-color: transparent;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+  border: none;
+  transition: transform 0.2s ease-in-out;
+  &:hover {
+    transform: scale(1.1);
+  }
+`;
+
+const LikeCount = styled.span<styleType>`
+  margin-left: ${(props) => (props.$ismobile ? "3px" : "6px")};
+  font-size: ${(props) => (props.$ismobile ? "12px" : "16px")};
+`;
+
+const CommentImage = styled.img<styleType>`
+  width: ${(props) => (props.$ismobile ? "18px" : "20px")};
+  height: ${(props) => (props.$ismobile ? "18px" : "20px")};
+  object-fit: cover;
+  margin-left: 6px;
+`;
+
+const CommentDisplay = styled.span`
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  color: #000;
+  margin-left: 3px;
+  margin-right: auto;
+`;
+
+const ButtonGroup = styled.div<styleType>`
+  display: flex;
+  gap: ${(props) => (props.$ismobile ? "4px" : "8px")};
+`;
+
+const StyledButton = styled.button<styleType>`
   background-color: #333333;
   color: #f0f0f0;
-  border: 1px solid #222222;
+  border: none;
   border-radius: 8px;
-  padding: 8px 16px;
-  font-size: 1em;
+  padding: ${(props) => (props.$ismobile ? "3px 8px" : "7px 15px")};
+  font-size: ${(props) => (props.$ismobile ? "0.7em" : "1em")};
   cursor: pointer;
-  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+  transition: background-color 0.2s ease, border-color 0.2s ease,
+    color 0.2s ease;
 
   &:hover {
     background-color: #555555;
@@ -160,19 +189,7 @@ const StyledButton = styled.button`
   }
 `;
 
-const LikeButton = styled(StyledButton)<{ isLiked: boolean }>`
-  background-color: ${props => props.isLiked ? '#fe5890' : '#333333'};
-  color: ${props => props.isLiked ? 'black' : '#f0f0f0'};
-  border-color: ${props => props.isLiked ? '#fe5890' : '#222222'};
-
-  &:hover {
-    background-color: ${props => props.isLiked ? '#fe5890D0' : '#555555'};
-    border-color: ${props => props.isLiked ? '#fe5890' : '#fe5890'};
-    color: ${props => props.isLiked ? 'black' : '#fe5890'};
-  }
-`;
-
-const DeleteButton = styled(StyledButton)`
+const DeleteButton = styled(StyledButton)<styleType>`
   background-color: #d32f2f;
   border-color: #d32f2f;
   color: white;
@@ -183,7 +200,7 @@ const DeleteButton = styled(StyledButton)`
   }
 `;
 
-const BackButton = styled(StyledButton)`
+const BackButton = styled(StyledButton)<styleType>`
   background-color: #bbb;
   color: black;
   border-color: #bbb;
@@ -196,75 +213,76 @@ const BackButton = styled(StyledButton)`
 const LoadingState = styled.div`
   color: #aaa;
   text-align: center;
-  padding: 50px 0;
+  padding: 100px 0;
   font-size: 1.1em;
 `;
 
 const ErrorState = styled(LoadingState)``;
 
-
 const CommunityDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-
-  const [post, setPost] = useState<PostDetailType | null>(null);
+  const [post, setPost] = useState<DetailReview | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const isMobile = useMediaQuery({ query: "(max-width: 768px)" });
+  const { getReviewById, likeReview, deleteReview } = useReviewsApi();
 
-  // TODO: 실제 로그인 사용자 정보 가져오는 로직 필요 (예: Context API, Redux 등)
-  const currentLoggedInUser = { username: "더미유저1" }; // 임시 더미 데이터: '더미유저1'이 로그인했다고 가정
-
-
-  const getPost = async (loading: boolean = true) => {
-    if (loading) setIsLoading(true);
+  const getPost = async () => {
+    setIsLoading(true);
     setError(null);
     try {
       if (!id) {
         setError("게시글 ID가 없습니다.");
         return;
       }
-      // 🚨 실제 API 호출 부분 대신 더미 데이터를 사용합니다 🚨
-      const foundPost = DUMMY_POSTS.find(p => p.id === id);
-
-      if (foundPost) {
-        setPost({ ...foundPost, isLiked: foundPost.isLiked }); // isLiked 필드 유지
-      } else {
-        setError("해당 게시글을 찾을 수 없습니다.");
-      }
+      const res = getReviewById(id);
+      res.then((data) => {
+        console.log("불러온 게시글 데이터:", data.data);
+        setPost(data.data.data);
+        setIsLoading(false);
+      });
     } catch (e) {
       console.error("Failed to fetch post (dummy data simulation):", e);
       setError("게시글을 불러오는데 실패했습니다. (더미 데이터 처리 오류)");
     } finally {
-      // 실제 네트워크 지연을 시뮬레이션하기 위해 잠시 대기
-      await new Promise(resolve => setTimeout(resolve, 300));
-      if (loading) setIsLoading(false);
+      setIsLoading(false);
     }
   };
 
   useEffect(() => {
     getPost();
-  }, [id]); // id가 변경될 때마다 게시글 다시 로드
+  }, []); // id가 변경될 때마다 게시글 다시 로드
 
-  const likePost = async () => {
-    if (!post) return;
-    // 좋아요 상태를 토글하는 더미 로직
-    setPost(prevPost => {
-      if (!prevPost) return null;
-      return {
-        ...prevPost,
-        isLiked: !prevPost.isLiked,
-        likeCount: prevPost.isLiked ? prevPost.likeCount - 1 : prevPost.likeCount + 1
-      };
+  const handleLikeClick = (reviewId: number) => {
+    likeReview(reviewId).then((data) => {
+      console.log("좋아요 상태 변경:", data.data);
+      setPost((prevPost) => {
+        if (!prevPost) return null;
+        return {
+          ...prevPost,
+          liked: data.data.liked,
+          likeCount: data.data.liked
+            ? ++prevPost.reviewLikeCount
+            : --prevPost.reviewLikeCount,
+        };
+      });
     });
-    alert("좋아요 상태 변경 (더미)");
   };
 
   const deletePost = async () => {
     if (!post) return;
-    if (window.confirm("정말로 이 게시글을 삭제하시겠습니까? (더미)")) {
-      // 더미 데이터에서는 실제 삭제는 일어나지 않음
-      alert("게시글이 삭제되었습니다. (더미)");
-      navigate("/community"); // 목록 페이지로 이동
+    if (!window.confirm("정말로 이 게시글을 삭제하시겠습니까?")) return;
+    try {
+      const res = deleteReview(post.reviewId);
+      res.then((data) => {
+        console.log("게시글 삭제 성공:", data.data);
+        alert("게시글이 삭제되었습니다.");
+        navigate("/community"); // 목록 페이지로 이동
+      });
+    } catch (e) {
+      console.error("게시글 삭제 실패:", e);
+      alert("게시글 삭제에 실패했습니다. 다시 시도해주세요.");
     }
   };
 
@@ -280,51 +298,87 @@ const CommunityDetailPage: React.FC = () => {
     return <ErrorState>게시글을 찾을 수 없습니다.</ErrorState>;
   }
 
-  const createdAtDate = new Date(post.createdAt);
-  const formattedDate = !isNaN(createdAtDate.getTime())
-    ? createdAtDate.toLocaleDateString('ko-KR')
-    : '날짜 정보 없음';
-
-  // 본인 글인지 확인하는 로직 (더미유저1과 게시글 작성자 비교)
-  const isMyPost = post.username === currentLoggedInUser.username;
-
   return (
-    <PostDetailContainer>
-      {/* 게시글 상세 내용 */}
-      <ContentWrapper>
-        <PostHeader>
-          <PostTitle>{post.title}</PostTitle>
-          <PostMeta>
-            <span>작성자: {post.username}</span>
-            <span>날짜: {formattedDate}</span>
-          </PostMeta>
-        </PostHeader>
-        <ContentArea>{post.content}</ContentArea>
-      </ContentWrapper>
-
-      {/* 좋아요 및 액션 버튼 */}
-      <ActionGroup>
-        <LikeButton isLiked={post.isLiked} onClick={likePost}>
-          {post.isLiked ? '❤️ 좋아요 취소' : '🤍 좋아요'} ({post.likeCount})
-        </LikeButton>
-        <ButtonGroup>
-          {isMyPost && ( // 본인 게시글일 경우에만 수정/삭제 버튼 표시
-            <>
-              <StyledButton onClick={() => navigate(`/community/edit/${post.id}`)}>수정</StyledButton>
-              <DeleteButton onClick={deletePost}>삭제</DeleteButton>
-            </>
-          )}
-          <BackButton onClick={() => navigate("/community")}>목록으로</BackButton>
-        </ButtonGroup>
-      </ActionGroup>
-
-      {/* 댓글 섹션 (Comment 컴포넌트 사용) */}
-      <Comment
-        postId={post.id}
-        isLoggedIn={!!currentLoggedInUser.username} // 로그인 여부 (더미 유저네임 존재 여부로 판단)
-        currentUsername={currentLoggedInUser.username} // 현재 로그인한 사용자 닉네임 전달
-      />
-    </PostDetailContainer>
+    <OutContainer>
+      <PostDetailContainer $ismobile={isMobile}>
+        {/* 게시글 상세 내용 */}
+        <ContentWrapper>
+          <HeadWrapper $ismobile={isMobile}>
+            <MoviePoster
+              $ismobile={isMobile}
+              // src={post.moviePosterUrl}
+              src="https://image.tmdb.org/t/p/w500/zK2sFxZcelHJRPVr242rxy5VK4T.jpg"
+              alt="영화 포스터"
+              onClick={() => navigate(`/movie/${post.movieId}`)}
+            ></MoviePoster>
+            <PostHeader $ismobile={isMobile}>
+              <PostTitle $ismobile={isMobile}>{post.reviewTitle}</PostTitle>
+              <MovieInfo
+                $ismobile={isMobile}
+                onClick={() => navigate(`/movie/${post.movieId}`)}
+              >
+                <MovieTitle $ismobile={isMobile}>{post.movieTitle}</MovieTitle>
+              </MovieInfo>
+              <PostMeta $ismobile={isMobile}>
+                <span>작성자: {post.writerUserNickname}</span>
+                <span style={{ fontSize: "0.8em" }}>
+                  날짜: {utcToKstString(post.reviewCreatedAt)}
+                </span>
+              </PostMeta>
+            </PostHeader>
+          </HeadWrapper>
+          <ContentArea
+            className="review-content"
+            dangerouslySetInnerHTML={{ __html: post.reviewContent }}
+          />
+        </ContentWrapper>
+        {/* 좋아요 및 액션 버튼 */}
+        <ActionGroup $ismobile={isMobile}>
+          <ReviewLike $ismobile={isMobile}>
+            <Heart
+              $ismobile={isMobile}
+              $heartUrl={
+                post.isHeart
+                  ? "https://img.icons8.com/?size=100&id=V4c6yYlvXtzy&format=png&color=000000"
+                  : "https://img.icons8.com/?size=100&id=12306&format=png&color=000000"
+              }
+              onClick={() => handleLikeClick(post.reviewId)}
+            />
+            <LikeCount $ismobile={isMobile} />
+            {post.reviewLikeCount}
+          </ReviewLike>
+          <CommentImage
+            src="https://img.icons8.com/?size=100&id=61f1pL4hEqO1&format=png&color=000000"
+            alt="댓글"
+            $ismobile={isMobile}
+          ></CommentImage>
+          <CommentDisplay>{post.reviewCommentCount}</CommentDisplay>
+          <ButtonGroup $ismobile={isMobile}>
+            {post.isMine && ( // 본인 게시글일 경우에만 수정/삭제 버튼 표시
+              <>
+                <StyledButton
+                  $ismobile={isMobile}
+                  onClick={() => navigate(`/community/edit/${post.reviewId}`)}
+                >
+                  수정
+                </StyledButton>
+                <DeleteButton $ismobile={isMobile} onClick={deletePost}>
+                  삭제
+                </DeleteButton>
+              </>
+            )}
+            <BackButton
+              $ismobile={isMobile}
+              onClick={() => navigate("/community")}
+            >
+              목록으로
+            </BackButton>
+          </ButtonGroup>
+        </ActionGroup>
+        {/* 댓글 섹션 (Comment 컴포넌트 사용) */}
+        <Comment postId={post.reviewId} />
+      </PostDetailContainer>
+    </OutContainer>
   );
 };
 

@@ -67,9 +67,10 @@ const AppContents = () => {
         <Route path="/mypage/settings" element={<MySettingsPage />} />
         <Route path="/mypage/tags" element={<MyTagsPage />} />
 
-        <Route path="/community" element={<CommunityListPage />} />
+        <Route path="/comnmuniy" element={<CommunityListPage />} />
         <Route path="/community/:id" element={<CommunityDetailPage />} />
-        <Route path="/community/create" element={<CommunityCreatePage />} />
+        <Route path="/community/new" element={<CommunityCreatePage />} />
+        <Route path="/community/edit/:id" element={<CommunityCreatePage />} />
       </Routes>
     </ThemeProvider>
   );
