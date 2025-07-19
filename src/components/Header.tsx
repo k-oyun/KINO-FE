@@ -187,7 +187,7 @@ const Header = () => {
   const { userInfoGet, logout } = useAuthApi();
   const menuItems = [
     { label: "홈", path: "/" },
-    { label: "커뮤니티", path: "/comnmuniy" },
+    { label: "커뮤니티", path: "/community" },
     { label: "영화", path: "/movie" },
     { label: "내가 찜한 리스트", path: "/wish" },
   ];
