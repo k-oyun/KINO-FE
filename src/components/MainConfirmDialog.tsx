@@ -1,7 +1,8 @@
+import { AnimatePresence, motion } from "framer-motion";
 import React, { useEffect } from "react";
 import styled from "styled-components";
 
-const Overlay = styled.div`
+const Overlay = styled(motion.div)`
   position: fixed;
   inset: 0;
   background-color: rgba(0, 0, 0, 0.4);
@@ -11,7 +12,7 @@ const Overlay = styled.div`
   z-index: 5000;
 `;
 
-const Dialog = styled.div`
+const Dialog = styled(motion.div)`
   background: black;
   border-radius: 12px;
   padding: 24px;
@@ -85,29 +86,48 @@ const MainConfirmDialog: React.FC<ConfirmDialogProps> = ({
     return () => window.removeEventListener("keydown", handleEsc);
   }, [onCancel]);
 
-  if (!isOpen) return null;
-
   return (
-    <Overlay onClick={() => onCancel?.()}>
-      <Dialog onClick={(e) => e.stopPropagation()}>
-        <Title $hasMessage={!!message}>{title}</Title>
-        {message && <Message>{message}</Message>}
-        <ButtonWrapper>
-          {showCancel && (
-            <Button onClick={onCancel} $backgroundColor="#eee" color="#7C7C7C">
-              취소
-            </Button>
-          )}
-          <Button
-            onClick={onConfirm}
-            $backgroundColor={isRedButton ? "#e20000" : "#002C5F"}
-            color="#fff"
+    <AnimatePresence>
+      {isOpen && (
+        <Overlay
+          key="dialog-overlay"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.22 }}
+          onClick={() => onCancel?.()}
+        >
+          <Dialog
+            key="dialog-modal"
+            initial={{ opacity: 0, scale: 0.95, y: -40 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={{ duration: 0.2 }}
+            onClick={(e) => e.stopPropagation()}
           >
-            확인
-          </Button>
-        </ButtonWrapper>
-      </Dialog>
-    </Overlay>
+            <Title $hasMessage={!!message}>{title}</Title>
+            {message && <Message>{message}</Message>}
+            <ButtonWrapper>
+              {showCancel && (
+                <Button
+                  onClick={onCancel}
+                  $backgroundColor="#eee"
+                  color="#7C7C7C"
+                >
+                  취소
+                </Button>
+              )}
+              <Button
+                onClick={onConfirm}
+                $backgroundColor={isRedButton ? "#e20000" : "#002C5F"}
+                color="#fff"
+              >
+                확인
+              </Button>
+            </ButtonWrapper>
+          </Dialog>
+        </Overlay>
+      )}
+    </AnimatePresence>
   );
 };
 

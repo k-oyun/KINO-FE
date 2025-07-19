@@ -26,8 +26,8 @@ import KakaoCallback from "./components/KakaoCallback";
 import GoogleCallback from "./components/GoogleCallback";
 import NaverCallback from "./components/NaverCallback";
 import { DialogProvider, useDialog } from "./context/DialogContext";
-import ConfirmDialog from "./components/AdminConfirmDialog";
-import { useEffect } from "react";
+import ConfirmDialog from "./components/ConfirmDialog";
+import { useEffect, useRef } from "react";
 
 const HeaderSelector = ({ path }: { path: string }) => {
   if (path === "/Login" || path === "/login") return null;
@@ -61,25 +61,50 @@ const AppContents = () => {
   const location = useLocation();
   const path = location.pathname;
   const isAdminPage = path === "/admin";
-  const { openDialog } = useDialog();
+  const { openDialog, closeDialog } = useDialog();
   const navigate = useNavigate();
+
+  const errorTimeoutRef = useRef<number | null>(null);
+
   useEffect(() => {
     const handler = (e: Event) => {
-      let code = (e as CustomEvent).detail?.status || 401;
-      openDialog({
-        title: "알림",
-        message:
-          code === 500
-            ? "서버에 문제가 발생했습니다."
-            : "다시 로그인 해주세요!",
-        showCancel: false,
-        isRedButton: true,
-        onConfirm: () => navigate("/login"),
-      });
+      const code = (e as CustomEvent).detail?.status || 401;
+      if (code === 500) {
+        if (errorTimeoutRef.current) clearTimeout(errorTimeoutRef.current);
+        errorTimeoutRef.current = setTimeout(() => {
+          openDialog({
+            title: "서버에 문제가 발생했습니다",
+            message: "일시적인 문제일 수 있으니 잠시 후 다시 시도해주세요.",
+            showCancel: false,
+            isRedButton: true,
+            onConfirm: () => closeDialog(),
+          });
+        }, 1000);
+      }
+      if (code === 401) {
+        if (errorTimeoutRef.current) clearTimeout(errorTimeoutRef.current);
+        errorTimeoutRef.current = setTimeout(() => {
+          openDialog({
+            title: "알림",
+            message: "다시 로그인 해주세요.",
+            showCancel: false,
+            isRedButton: true,
+            onConfirm: () => {
+              closeDialog();
+              localStorage.removeItem("accessToken");
+              window.location.href = "/login";
+            },
+          });
+        }, 1000);
+      }
     };
     window.addEventListener("unauthorized", handler);
-    return () => window.removeEventListener("unauthorized", handler);
-  }, [openDialog]);
+
+    return () => {
+      window.removeEventListener("unauthorized", handler);
+      if (errorTimeoutRef.current) clearTimeout(errorTimeoutRef.current);
+    };
+  }, [openDialog, closeDialog]);
   return (
     <>
       <ThemeProvider
@@ -112,8 +137,8 @@ const AppContents = () => {
           <Route path="/mypage/settings" element={<MySettingsPage />} />
           <Route path="/mypage/tags" element={<MyTagsPage />} />
         </Routes>
+        <GlobalDialogRenderer />
       </ThemeProvider>
-      <GlobalDialogRenderer />
     </>
   );
 };
