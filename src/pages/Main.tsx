@@ -193,6 +193,42 @@ const TeaserExplainContainer = styled.div`
   margin-top: 20px;
 `;
 
+const ModalContainer = styled.div`
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 3000;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  pointer-events: none;
+`;
+
+const ModalBox = styled(motion.div)`
+  width: 70%;
+  min-height: 70%;
+  background: rgba(0, 0, 0, 0.8);
+  color: #fff;
+  border-radius: 15px;
+  padding: 28px 24px;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.45);
+  z-index: 3100;
+  pointer-events: all;
+`;
+
+const MovieTitle = styled.div`
+  font-size: 13px;
+  margin-bottom: 8px;
+`;
+
+const MovieDesc = styled.div`
+  font-size: 15px;
+  color: #bbb;
+`;
+
 interface TeaserType {
   movieId: number;
   title: string;
@@ -504,9 +540,6 @@ const Main = () => {
                           src={movie.still_cut_url}
                           alt={movie.title}
                         />
-                        {hoveredMovie?.movie_id === movie.movie_id && (
-                          <MovieInfoModal movie={hoveredMovie} />
-                        )}
                       </Movies>
                     ))
                   ) : (
@@ -518,48 +551,31 @@ const Main = () => {
           </ListContainer>
         )}
       </MainContainer>
+      <AnimatePresence>
+        {hoveredMovie && (
+          <ModalContainer>
+            <ModalBox
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 20 }}
+              transition={{ duration: 0.2 }}
+            >
+              {/* <MovieTitle>{movie.title}</MovieTitle> */}
+              <iframe
+                src={`/movie/:${hoveredMovie.movie_id}`}
+                width="100%"
+                height="800px"
+                // frameBorder="0"
+                style={{ borderRadius: "15px" }}
+                title="MovieQuickView"
+              />
+              {/* <MovieDesc>설명 혹은 평점 등등</MovieDesc> */}
+            </ModalBox>
+          </ModalContainer>
+        )}
+      </AnimatePresence>
     </>
   );
 };
 
 export default Main;
-
-const ModalBox = styled(motion.div)`
-  position: absolute;
-  left: 0%;
-  top: -5%;
-  width: 86%;
-  /* min-height: 120px; */
-  min-height: 70%;
-  background: rgba(0, 0, 0, 0.5);
-  color: #fff;
-  border-radius: 15px;
-  padding: 18px 18px 14px 18px;
-  box-shadow: 0 6px 40px rgba(0, 0, 0, 0.8);
-  z-index: 99;
-  pointer-events: none;
-  /* background-color: red; */
-`;
-
-const MovieTitle = styled.div`
-  font-size: 13px;
-  /* font-weight: bold; */
-  margin-bottom: 8px;
-`;
-const MovieDesc = styled.div`
-  font-size: 15px;
-  color: #bbb;
-`;
-
-// 필요시 MovieList 타입 확장
-const MovieInfoModal = ({ movie }: { movie: MovieList }) => (
-  <ModalBox
-    initial={{ opacity: 0, y: 20 }}
-    animate={{ opacity: 1, y: 0 }}
-    exit={{ opacity: 0, y: 20 }}
-    transition={{ duration: 0.2 }}
-  >
-    <MovieTitle>{movie.title}</MovieTitle>
-    {/* <MovieDesc>설명 혹은 평점 등등</MovieDesc> */}
-  </ModalBox>
-);
