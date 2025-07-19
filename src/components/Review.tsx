@@ -69,7 +69,7 @@ const Review = ({ isMobile, movieId }: ReviewProps) => {
     const fetchReviews = async () => {
       try {
         const res = await getReviews(movieId);
-        console.log("Fetched reviews:", res.data.data.content);
+        console.log("Fetched reviews:", res.data.data);
         setReviews(res.data.data.content);
       } catch (error: unknown) {
         // 'any' 대신 'unknown' 사용
@@ -83,7 +83,7 @@ const Review = ({ isMobile, movieId }: ReviewProps) => {
     };
 
     fetchReviews();
-  }, [getReviews, movieId]); // 'getReviews'와 'movieId'를 의존성 배열에 추가
+  }, []); // 'getReviews'와 'movieId'를 의존성 배열에 추가
 
   return (
     <ReviewContainer $ismobile={isMobile}>
@@ -99,7 +99,7 @@ const Review = ({ isMobile, movieId }: ReviewProps) => {
             isMine={review.mine}
             showProfile={true}
             isMobile={isMobile}
-            onClick={() => navigate(`/review/${review.reviewId}`)}
+            onClick={() => navigate(`/community/${review.reviewId}`)}
           />
         ))}
     </ReviewContainer>

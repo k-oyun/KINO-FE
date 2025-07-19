@@ -25,6 +25,9 @@ import Admin from "./pages/Admin";
 import KakaoCallback from "./components/KakaoCallback";
 import GoogleCallback from "./components/GoogleCallback";
 import NaverCallback from "./components/NaverCallback";
+import CommunityCreatePage from "./pages/community/CommunityCreatePage";
+import CommunityDetailPage from "./pages/community/CommunityDetailPage";
+import CommunityListPage from "./pages/community/CommunityListPage";
 import { DialogProvider, useDialog } from "./context/DialogContext";
 import ConfirmDialog from "./components/ConfirmDialog";
 import { useEffect, useRef } from "react";
@@ -118,9 +121,12 @@ const AppContents = () => {
           <Route path="/api/auth/oauth/kakao" element={<KakaoCallback />} />
           <Route path="/api/auth/oauth/google" element={<GoogleCallback />} />
           <Route path="/api/auth/oauth/naver" element={<NaverCallback />} />
+
           <Route path="/movie" element={<Movie />}></Route>
           <Route path="/movie/:id" element={<MovieDetail />}></Route>
+
           <Route path="/admin" element={<Admin />}></Route>
+
           <Route path="/mypage" element={<MyPageMain />} />
           <Route
             path="/mypage/reviews/short"
@@ -136,6 +142,11 @@ const AppContents = () => {
           />
           <Route path="/mypage/settings" element={<MySettingsPage />} />
           <Route path="/mypage/tags" element={<MyTagsPage />} />
+
+          <Route path="/comnmuniy" element={<CommunityListPage />} />
+          <Route path="/community/:id" element={<CommunityDetailPage />} />
+          <Route path="/community/new" element={<CommunityCreatePage />} />
+          <Route path="/community/edit/:id" element={<CommunityCreatePage />} />
         </Routes>
         <GlobalDialogRenderer />
       </ThemeProvider>

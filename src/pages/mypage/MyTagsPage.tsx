@@ -5,16 +5,16 @@ import UserProfileSection from "../../components/mypage/UserProfileSection";
 import useMypageApi from "../../api/mypage";
 
 interface UserProfileType {
-    userId: number;
-    nickname: string;
-    image: string;
-    email: string;
-    isFirstLogin: boolean;
+  userId: number;
+  nickname: string;
+  image: string;
+  email: string;
+  isFirstLogin: boolean;
 }
 
 interface Follow {
-    follower: number;
-    following: number;
+  follower: number;
+  following: number;
 }
 
 // const DUMMY_USER_PROFILE: UserProfileType = {
@@ -25,90 +25,87 @@ interface Follow {
 // };
 
 const PageContainer = styled.div`
-    max-width: 1200px;
-    margin: 0 auto;
-    padding-top: 300px;
-    background-color: transparent;
-    // min-height: calc(100vh - 60px);
-    max-height: 100vh;
-    color: #f0f0f0;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding-top: 300px;
+  background-color: transparent;
+  // min-height: calc(100vh - 60px);
+  max-height: 100vh;
+  color: #f0f0f0;
 
-    display: flex;
-    flex-direction: column;
+  display: flex;
+  flex-direction: column;
 
-    @media (max-width: 767px) {
-        padding: 20px 15px;
-        padding-top: 80px;
-    }
+  @media (max-width: 767px) {
+    padding: 20px 15px;
+    padding-top: 80px;
+  }
 `;
 
 const SectionWrapper = styled.section`
-    background-color: #000000;
-    padding: 25px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-    margin-bottom: 30px;
+  background-color: #000000;
+  padding: 25px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  margin-bottom: 30px;
 
-    &:last-child {
-        margin-bottom: 0;
-    }
+  &:last-child {
+    margin-bottom: 0;
+  }
 
-    @media (max-width: 767px) {
-        padding: 20px;
-    }
+  @media (max-width: 767px) {
+    padding: 20px;
+  }
 `;
 
 const MyTagsPage: React.FC = () => {
-    // const userProfile: UserProfileType = DUMMY_USER_PROFILE;
-    const { userInfoGet, getFollower, getFollowing } = useMypageApi();
+  // const userProfile: UserProfileType = DUMMY_USER_PROFILE;
+  const { userInfoGet, getFollower, getFollowing } = useMypageApi();
 
-    const [userProfile, setUserProfile] = useState<UserProfileType>();
-    const [userFollow, setUserFollow] = useState<Follow>();
+  const [userProfile, setUserProfile] = useState<UserProfileType>();
+  const [userFollow, setUserFollow] = useState<Follow>();
 
-    useEffect(() => {
-        const userDataGet = async () => {
-            const res = await userInfoGet();
-            setUserProfile(res.data.data);
+  useEffect(() => {
+    const userDataGet = async () => {
+      const res = await userInfoGet();
+      setUserProfile(res.data.data);
 
-            const userId = res.data.data.userId;
-            if (userId) {
-                console.log("userid : " + userId);
-                const [followerRes, followingRes] = await Promise.all([
-                    getFollower(userId),
-                    getFollowing(userId),
-                ]);
+      const userId = res.data.data.userId;
+      if (userId) {
+        console.log("userid : " + userId);
+        const [followerRes, followingRes] = await Promise.all([
+          getFollower(userId),
+          getFollowing(userId),
+        ]);
 
-                const followData: Follow = {
-                    follower: followerRes.data.data.length, // 혹은 followerRes.data.data.count
-                    following: followingRes.data.data.length,
-                };
-
-                console.log(followerRes.data.data);
-                console.log(followingRes.data.data);
-
-                setUserFollow(followData);
-            }
+        const followData: Follow = {
+          follower: followerRes.data.data.length, // 혹은 followerRes.data.data.count
+          following: followingRes.data.data.length,
         };
-        userDataGet();
-    }, []);
 
-    return (
-        <PageContainer>
-            {userProfile && userFollow ? (
-                <>
-                    <UserProfileSection
-                        userProfile={userProfile}
-                        follow={userFollow}
-                    />
-                    <SectionWrapper>
-                        <TagSelectionForm username={userProfile.nickname} />
-                    </SectionWrapper>
-                </>
-            ) : (
-                <div>Loading...</div>
-            )}
-            ;
-        </PageContainer>
-    );
+        console.log(followerRes.data.data);
+        console.log(followingRes.data.data);
+
+        setUserFollow(followData);
+      }
+    };
+    userDataGet();
+  }, []);
+
+  return (
+    <PageContainer>
+      {userProfile && userFollow ? (
+        <>
+          <UserProfileSection userProfile={userProfile} follow={userFollow} />
+          <SectionWrapper>
+            <TagSelectionForm username={userProfile.nickname} />
+          </SectionWrapper>
+        </>
+      ) : (
+        <div>Loading...</div>
+      )}
+      ;
+    </PageContainer>
+  );
 };
 
 export default MyTagsPage;
