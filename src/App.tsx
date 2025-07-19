@@ -1,6 +1,12 @@
 import "./App.css";
 import Header from "./components/Header";
-import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom";
+import {
+  BrowserRouter,
+  Route,
+  Routes,
+  useLocation,
+  useNavigate,
+} from "react-router-dom";
 import { darkTheme, lightTheme } from "./styles/theme";
 import { ThemeProvider } from "styled-components";
 import MyPageMain from "./pages/mypage/MyPageMain";
@@ -19,6 +25,9 @@ import Admin from "./pages/Admin";
 import KakaoCallback from "./components/KakaoCallback";
 import GoogleCallback from "./components/GoogleCallback";
 import NaverCallback from "./components/NaverCallback";
+import { DialogProvider, useDialog } from "./context/DialogContext";
+import ConfirmDialog from "./components/ConfirmDialog";
+import { useEffect, useRef } from "react";
 
 const HeaderSelector = ({ path }: { path: string }) => {
   if (path === "/Login" || path === "/login") return null;
@@ -27,49 +36,120 @@ const HeaderSelector = ({ path }: { path: string }) => {
   return <Header />;
 };
 
+const GlobalDialogRenderer = () => {
+  const { dialog, closeDialog } = useDialog();
+
+  return (
+    <ConfirmDialog
+      isOpen={dialog.isOpen}
+      title={dialog.title || ""}
+      message={dialog.message}
+      showCancel={dialog.showCancel}
+      isRedButton={dialog.isRedButton}
+      onConfirm={() => {
+        closeDialog();
+        localStorage.removeItem("accessToken");
+        window.location.href = "/login";
+      }}
+      onCancel={() => closeDialog()}
+    />
+  );
+};
+
 const AppContents = () => {
   const isDarkMode = usePreferMode();
   const location = useLocation();
   const path = location.pathname;
   const isAdminPage = path === "/admin";
+  const { openDialog, closeDialog } = useDialog();
+  const navigate = useNavigate();
 
+  const errorTimeoutRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const code = (e as CustomEvent).detail?.status || 401;
+      if (code === 500) {
+        if (errorTimeoutRef.current) clearTimeout(errorTimeoutRef.current);
+        errorTimeoutRef.current = setTimeout(() => {
+          openDialog({
+            title: "서버에 문제가 발생했습니다",
+            message: "일시적인 문제일 수 있으니 잠시 후 다시 시도해주세요.",
+            showCancel: false,
+            isRedButton: true,
+            onConfirm: () => closeDialog(),
+          });
+        }, 1000);
+      }
+      if (code === 401) {
+        if (errorTimeoutRef.current) clearTimeout(errorTimeoutRef.current);
+        errorTimeoutRef.current = setTimeout(() => {
+          openDialog({
+            title: "알림",
+            message: "다시 로그인 해주세요.",
+            showCancel: false,
+            isRedButton: true,
+            onConfirm: () => {
+              closeDialog();
+              localStorage.removeItem("accessToken");
+              window.location.href = "/login";
+            },
+          });
+        }, 1000);
+      }
+    };
+    window.addEventListener("unauthorized", handler);
+
+    return () => {
+      window.removeEventListener("unauthorized", handler);
+      if (errorTimeoutRef.current) clearTimeout(errorTimeoutRef.current);
+    };
+  }, [openDialog, closeDialog]);
   return (
-    <ThemeProvider
-      theme={isAdminPage ? lightTheme : isDarkMode ? darkTheme : lightTheme}
-    >
-      <GlobalStyle />
-      <HeaderSelector path={path} />
-      <Routes>
-        <Route path="/" element={<Main />}></Route>
-        <Route path="/login" element={<Login />}></Route>
-        <Route path="/api/auth/oauth/kakao" element={<KakaoCallback />} />
-        <Route path="/api/auth/oauth/google" element={<GoogleCallback />} />
-        <Route path="/api/auth/oauth/naver" element={<NaverCallback />} />
-        <Route path="/movie" element={<Movie />}></Route>
-        <Route path="/movie/:id" element={<MovieDetail />}></Route>
-        <Route path="/admin" element={<Admin />}></Route>
-        <Route path="/mypage" element={<MyPageMain />} />
-        <Route path="/mypage/reviews/short" element={<MyReviewsShortPage />} />
-        <Route
-          path="/mypage/reviews/detail"
-          element={<MyReviewsDetailPage />}
-        />
-        <Route
-          path="/mypage/movies/favorite"
-          element={<MyFavoriteMoviesPage />}
-        />
-        <Route path="/mypage/settings" element={<MySettingsPage />} />
-        <Route path="/mypage/tags" element={<MyTagsPage />} />
-      </Routes>
-    </ThemeProvider>
+    <>
+      <ThemeProvider
+        theme={isAdminPage ? lightTheme : isDarkMode ? darkTheme : lightTheme}
+      >
+        <GlobalStyle />
+        <HeaderSelector path={path} />
+        <Routes>
+          <Route path="/" element={<Main />}></Route>
+          <Route path="/login" element={<Login />}></Route>
+          <Route path="/api/auth/oauth/kakao" element={<KakaoCallback />} />
+          <Route path="/api/auth/oauth/google" element={<GoogleCallback />} />
+          <Route path="/api/auth/oauth/naver" element={<NaverCallback />} />
+          <Route path="/movie" element={<Movie />}></Route>
+          <Route path="/movie/:id" element={<MovieDetail />}></Route>
+          <Route path="/admin" element={<Admin />}></Route>
+          <Route path="/mypage" element={<MyPageMain />} />
+          <Route
+            path="/mypage/reviews/short"
+            element={<MyReviewsShortPage />}
+          />
+          <Route
+            path="/mypage/reviews/detail"
+            element={<MyReviewsDetailPage />}
+          />
+          <Route
+            path="/mypage/movies/favorite"
+            element={<MyFavoriteMoviesPage />}
+          />
+          <Route path="/mypage/settings" element={<MySettingsPage />} />
+          <Route path="/mypage/tags" element={<MyTagsPage />} />
+        </Routes>
+        <GlobalDialogRenderer />
+      </ThemeProvider>
+    </>
   );
 };
 
 function App() {
   return (
-    <BrowserRouter>
-      <AppContents />
-    </BrowserRouter>
+    <DialogProvider>
+      <BrowserRouter>
+        <AppContents />
+      </BrowserRouter>
+    </DialogProvider>
   );
 }
 

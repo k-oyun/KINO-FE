@@ -1,6 +1,6 @@
+import { AnimatePresence, motion } from "framer-motion";
 import React, { useEffect } from "react";
 import styled from "styled-components";
-import { motion, AnimatePresence } from "framer-motion";
 
 const Overlay = styled(motion.div)`
   position: fixed;
@@ -13,7 +13,7 @@ const Overlay = styled(motion.div)`
 `;
 
 const Dialog = styled(motion.div)`
-  background-color: ${({ theme }) => theme.backgroundColor};
+  background: black;
   border-radius: 12px;
   padding: 24px;
   width: 360px;
@@ -22,12 +22,13 @@ const Dialog = styled(motion.div)`
 
 const Title = styled.h2<{ $hasMessage: boolean }>`
   font-size: 18px;
+  color: white;
   margin-bottom: ${({ $hasMessage }) => ($hasMessage ? "12px" : "0")};
 `;
 
 const Message = styled.p`
   font-size: 14px;
-  color: ${({ theme }) => theme.modalTextColor};
+  color: #d9d9d9;
   margin-bottom: 24px;
 `;
 
@@ -66,7 +67,7 @@ interface ConfirmDialogProps {
   isRedButton?: boolean;
 }
 
-const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
+const MainConfirmDialog: React.FC<ConfirmDialogProps> = ({
   isOpen,
   title,
   message,
@@ -130,4 +131,4 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
   );
 };
 
-export default ConfirmDialog;
+export default MainConfirmDialog;
