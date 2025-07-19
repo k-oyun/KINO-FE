@@ -47,6 +47,7 @@ const ReviewText = styled.p<styleType>`
   overflow: hidden;
   text-overflow: ellipsis;
   padding: 0 10px;
+  // 3줄까지만 보이도록 설정
   display: -webkit-box;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
@@ -85,12 +86,10 @@ const CommentImage = styled.img<styleType>`
 `;
 
 const CommentDisplay = styled.span`
->>>>>>> origin/main
   display: flex;
   align-items: center;
   gap: 3px;
   color: #000;
-
   margin-right: 5px;
 `;
 
@@ -189,12 +188,6 @@ const DetailReviewFooter = styled.div<styleType>`
   padding-top: 10px;
 `;
 
-// const DetailReviewMetaInfoWrapper = styled.div`
-//   display: flex;
-//   gap: 15px; /* 좋아요, 조회수, 댓글수 사이 간격 */
-//   align-items: center;
-// `;
-
 interface DetailReviewCardProps {
   review: DetailReview;
   isMine?: boolean;
@@ -244,11 +237,12 @@ const MenuItemReport = styled.li<styleType>`
 
 const DetailReviewCard: React.FC<DetailReviewCardProps> = ({
   review,
-  // isMine,
+  isMine,
   showProfile,
   movieTitle,
   isMobile,
-  onClick,}) => {
+  onClick,
+}) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const handleMenuClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -298,7 +292,11 @@ const DetailReviewCard: React.FC<DetailReviewCardProps> = ({
                 영화: {movieTitle}
               </DetailReviewMovieTitleText>
             )}
-            <ReviewText $ismobile={isMobile}>{review.content}</ReviewText>
+            <ReviewText
+              className="review-content"
+              dangerouslySetInnerHTML={{ __html: review.content }}
+              $ismobile={isMobile}
+            ></ReviewText>
             <DetailReviewFooter $ismobile={isMobile}>
               <MetaInfo $ismobile={isMobile}>
                 <Heart
