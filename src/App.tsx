@@ -28,6 +28,7 @@ import NaverCallback from "./components/NaverCallback";
 import { DialogProvider, useDialog } from "./context/DialogContext";
 import ConfirmDialog from "./components/ConfirmDialog";
 import { useEffect, useRef } from "react";
+import { useMediaQuery } from "react-responsive";
 
 const HeaderSelector = ({ path }: { path: string }) => {
   if (path === "/Login" || path === "/login") return null;
@@ -59,7 +60,7 @@ const AppContents = () => {
   const isAdminPage = path === "/admin";
   const { openDialog, closeDialog } = useDialog();
   const errorTimeoutRef = useRef<number | null>(null);
-
+  const isMobile = useMediaQuery({ query: "(max-width: 767px)" });
   useEffect(() => {
     const handler = (e: Event) => {
       const code = (e as CustomEvent).detail?.status || 401;
@@ -68,7 +69,9 @@ const AppContents = () => {
         errorTimeoutRef.current = setTimeout(() => {
           openDialog({
             title: "서버에 문제가 발생했습니다",
-            message: "일시적인 문제일 수 있으니 잠시 후 다시 시도해주세요.",
+            message: isMobile
+              ? "잠시 후 다시 시도해주세요."
+              : "일시적인 문제일 수 있으니 잠시 후 다시 시도해주세요.",
             showCancel: false,
             isRedButton: true,
             onConfirm: () => closeDialog(),
