@@ -10,7 +10,6 @@ function KakaoCallback() {
     try {
       const res = await loginWithKakao(code);
       console.log("로그인", res);
-
       localStorage.setItem("accessToken", res.data.data.accessToken);
       localStorage.setItem("refreshToken", res.data.data.refreshToken);
     } catch (error: any) {
@@ -21,8 +20,9 @@ function KakaoCallback() {
     const code = searchParams.get("code");
     if (code) {
       console.log("code 가져옴:", code);
-      handleLogin(code);
-      navigate("/");
+      handleLogin(code).then(() => {
+        window.location.href = "/";
+      });
     }
   }, [searchParams, navigate]);
 

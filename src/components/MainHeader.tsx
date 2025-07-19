@@ -7,6 +7,7 @@ import logoText from "../assets/img/LogoTxt.png";
 import { SearchBar } from "./SearchBar";
 import { useNavigate } from "react-router-dom";
 import useAuthApi from "../api/auth";
+import MainConfirmDialog from "./MainConfirmDialog";
 
 interface styleType {
   $ismobile: boolean;
@@ -214,6 +215,7 @@ const MainHeader = ({ keyword, setKeyword, setIsNewUser }: HeaderProps) => {
   const imageRef = useRef<HTMLImageElement>(null);
   const isMobile = useMediaQuery({ query: "(max-width: 767px)" });
   const { userInfoGet, logout } = useAuthApi();
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const menuItems = [
     { label: "홈", path: "/" },
     { label: "커뮤니티", path: "/comnmuniy" },
@@ -242,9 +244,9 @@ const MainHeader = ({ keyword, setKeyword, setIsNewUser }: HeaderProps) => {
     try {
       await logout();
     } finally {
+      setIsModalOpen(true);
       localStorage.removeItem("accessToken");
       localStorage.removeItem("refreshToken");
-      navigate("/login");
     }
   };
   const navigate = useNavigate();
@@ -378,6 +380,16 @@ const MainHeader = ({ keyword, setKeyword, setIsNewUser }: HeaderProps) => {
           </PopupBtn>
         </Popup>
       )}
+      <MainConfirmDialog
+        isOpen={isModalOpen}
+        title="알림"
+        message={"로그아웃 되었습니다!"}
+        onConfirm={() => {
+          navigate("/login");
+        }}
+        showCancel={false}
+        isRedButton={true}
+      />
     </>
   );
 };

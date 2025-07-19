@@ -16,10 +16,14 @@ AxiosInstance.interceptors.request.use((config) => {
 AxiosInstance.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
-      console.log(error.response);
-      localStorage.removeItem("accessToken");
-      // window.location.href = "/login";
+    if (error.response?.status === 401 || error.response?.status === 500) {
+      // 이벤트 전송 후 app.tsx에서 처리합니다!
+      window.dispatchEvent(
+        new CustomEvent("unauthorized", {
+          detail: { status: error.response.status },
+        })
+      );
+      console.log(error.response?.status);
     }
     return Promise.reject(error);
   }

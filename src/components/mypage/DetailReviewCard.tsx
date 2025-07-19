@@ -4,22 +4,19 @@ import { formatDistanceToNow } from "date-fns";
 import { ko } from "date-fns/locale";
 import ReportModal from "../ReportModal";
 
-interface Reviewer {
-  id: string;
-  nickname: string;
-  image: string;
-}
-
 interface DetailReview {
-  id: string;
-  title: string;
+  reviewId: string;
   image: string;
+  userProfile: string;
+  userNickname: string;
+  title: string;
   content: string;
-  likes: number;
-  views: number;
-  comments: number;
+  mine: boolean;
+  liked: boolean;
+  likeCount: number;
+  totalViews: number;
+  commentCount: number;
   createdAt: string;
-  reviewer?: Reviewer;
 }
 
 interface DetailReviewCardProps {
@@ -167,13 +164,13 @@ const ContentWrapper = styled.div<styleType>`
       : "calc(100% - 150px - 20px)"}; /* 이미지 너비(150px) + gap(20px) */
 `;
 
-const DetailMoviePoster = styled.img<styleType>`
-  width: ${(props) => (props.$ismobile ? "80px" : "150px")};
-  height: ${(props) => (props.$ismobile ? "110px" : "220px")};
-  object-fit: cover;
-  border-radius: 4px;
-  flex-shrink: 0;
-`;
+// const DetailMoviePoster = styled.img<styleType>`
+//     width: ${(props) => (props.$ismobile ? "80px" : "150px")};
+//     height: ${(props) => (props.$ismobile ? "110px" : "220px")};
+//     object-fit: cover;
+//     border-radius: 4px;
+//     flex-shrink: 0;
+// `;
 
 const DetailReviewContentWrapper = styled.div`
   display: flex;
@@ -291,22 +288,22 @@ const DetailReviewCard: React.FC<DetailReviewCardProps> = ({
   return (
     <>
       <DetailReviewCardContainer $ismobile={isMobile} onClick={onClick}>
-        <DetailMoviePoster
+        {/* <DetailMoviePoster
           $ismobile={isMobile}
           src={review.image}
           alt={review.title || "리뷰 첨부 이미지"}
-        />
+        /> */}
         <ContentWrapper $ismobile={isMobile}>
-          {showProfile && review.reviewer && (
+          {showProfile && (
             <UserProfile $ismobile={isMobile}>
               <UserImage
                 $ismobile={isMobile}
-                src={review.reviewer.image}
-                alt={review.reviewer.nickname}
+                src={review.userProfile}
+                alt={review.userNickname}
               />
               <UserText $ismobile={isMobile}>
                 <UserNickname $ismobile={isMobile}>
-                  {review.reviewer.nickname}
+                  {review.userNickname}
                 </UserNickname>
               </UserText>
             </UserProfile>
@@ -328,15 +325,13 @@ const DetailReviewCard: React.FC<DetailReviewCardProps> = ({
                   alt="좋아요"
                   $ismobile={isMobile}
                 ></Heart>
-                <LikesDisplay>{review.likes}</LikesDisplay>
+                <LikesDisplay>{review.likeCount}</LikesDisplay>
                 <CommentImage
                   src="https://img.icons8.com/?size=100&id=61f1pL4hEqO1&format=png&color=000000"
                   alt="댓글"
                   $ismobile={isMobile}
                 ></CommentImage>
-                <CommentDisplay>{review.comments}</CommentDisplay>
-                <span>👁️ {review.views}</span>
-                <span style={{ marginLeft: "auto" }}>{displayDate}</span>
+                <CommentDisplay>{review.commentCount}</CommentDisplay>
               </MetaInfo>
             </DetailReviewFooter>
           </DetailReviewContentWrapper>

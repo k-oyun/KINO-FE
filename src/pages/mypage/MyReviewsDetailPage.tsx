@@ -1,87 +1,101 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
 import DetailReviewCard from "../../components/mypage/DetailReviewCard";
+import useMypageApi from "../../api/mypage";
 
-interface DetailReviewType {
-  id: string;
-  title: string;
+interface UserProfileType {
+  userId: number;
+  nickname: string;
   image: string;
-  content: string;
-  likes: number;
-  views: number;
-  comments: number;
-  createdAt: string;
-  reviewer?: {
-    id: string;
-    nickname: string;
-    image: string;
-  };
+  email: string;
+  isFirstLogin: boolean;
 }
 
-const DUMMY_DETAIL_REVIEWS: DetailReviewType[] = [
-  {
-    id: "dr1",
-    title: "엘리오 내용 평가 4.0",
-    image: "https://sitem.ssgcdn.com/72/10/00/item/1000569001072_i1_750.jpg",
-    content:
-      "엘리오는 영화 (콜 미 바이 유어 네임) 속에서 섬세하고 감성적인 소년으로 그려진다. 그는 이탈리아의 한적한 시골 마을에서 가족과 함께 지내며 지적이고 조용한 삶을 살고 있지만, 여름 방학 동안 올리버를 만나면서 그의 일상은 서서히 변화하기 시작한다. 처음에는 올리버에게 낯섦과 경계심을 느끼지만, 시간이 흐를수록 그들은 서로에게 깊은 감정을 느끼게 된다. 그 감정은 삶에 대한 새로운 통찰과 함께 서로에게 변화를 가져다준다. 시간이 흐를수록 그는 모든 것을 올리버에게 걸게 된다.",
-    likes: 15,
-    createdAt: "2024.07.18 11:00",
-    views: 217,
-    comments: 3,
-    reviewer: {
-      id: "user1",
-      nickname: "영화평론가1",
-      image: "https://via.placeholder.com/50/FF69B4/FFFFFF?text=R1",
-    },
-  },
-  {
-    id: "dr2",
-    title: "2025년 7/10 박스오피스",
-    image: "https://via.placeholder.com/200x300/9b59b6/ffffff?text=BoxOffice",
-    content: "매트릭스를 보고, 나라면 빨간약과 파란약 중에... (중략)",
-    likes: 10,
-    createdAt: "2023.09.01 10:00",
-    views: 500,
-    comments: 2,
-    reviewer: {
-      id: "user2",
-      nickname: "영화광2",
-      image: "https://via.placeholder.com/50/00CED1/FFFFFF?text=R2",
-    },
-  },
-  {
-    id: "dr3",
-    title: "2025년 7/10 박스오피스",
-    image: "https://via.placeholder.com/200x300/9b59b6/ffffff?text=BoxOffice",
-    content: "매트릭스를 보고, 나라면 빨간약과 파란약 중에... (중략)",
-    likes: 10,
-    createdAt: "2023.09.01 10:00",
-    views: 500,
-    comments: 21,
-    reviewer: {
-      id: "user3",
-      nickname: "무비마스터",
-      image: "https://via.placeholder.com/50/FFD700/FFFFFF?text=R3",
-    },
-  },
-  {
-    id: "dr4",
-    title: "2025년 7/10 박스오피스",
-    image: "https://via.placeholder.com/200x300/9b59b6/ffffff?text=BoxOffice",
-    content: "매트릭스를 보고, 나라면 빨간약과 파란약 중에... (중략)",
-    likes: 10,
-    createdAt: "2023.09.01 10:00",
-    views: 500,
-    comments: 12,
-    reviewer: {
-      id: "user4",
-      nickname: "비평가",
-      image: "https://via.placeholder.com/50/3498DB/FFFFFF?text=R4",
-    },
-  },
-];
+interface DetailReviewType {
+  reviewId: string;
+  image: string;
+  userProfile: string;
+  userNickname: string;
+  title: string;
+  content: string;
+  mine: boolean;
+  liked: boolean;
+  likeCount: number;
+  totalViews: number;
+  commentCount: number;
+  createdAt: string;
+  // reviewer?: {
+  //   id: string;
+  //   nickname: string;
+  //   image: string;
+  // };
+  reviewer: UserProfileType;
+}
+
+// const DUMMY_DETAIL_REVIEWS: DetailReviewType[] = [
+//   {
+//     id: "dr1",
+//     title: "엘리오 내용 평가 4.0",
+//     image: "https://sitem.ssgcdn.com/72/10/00/item/1000569001072_i1_750.jpg",
+//     content:
+//       "엘리오는 영화 (콜 미 바이 유어 네임) 속에서 섬세하고 감성적인 소년으로 그려진다. 그는 이탈리아의 한적한 시골 마을에서 가족과 함께 지내며 지적이고 조용한 삶을 살고 있지만, 여름 방학 동안 올리버를 만나면서 그의 일상은 서서히 변화하기 시작한다. 처음에는 올리버에게 낯섦과 경계심을 느끼지만, 시간이 흐를수록 그들은 서로에게 깊은 감정을 느끼게 된다. 그 감정은 삶에 대한 새로운 통찰과 함께 서로에게 변화를 가져다준다. 시간이 흐를수록 그는 모든 것을 올리버에게 걸게 된다.",
+//     likes: 15,
+//     createdAt: "2024.07.18 11:00",
+//     views: 217,
+//     comments: 3,
+//     reviewer: {
+//       id: "user1",
+//       nickname: "영화평론가1",
+//       image: "https://via.placeholder.com/50/FF69B4/FFFFFF?text=R1",
+//     },
+//   },
+//   {
+//     id: "dr2",
+//     title: "2025년 7/10 박스오피스",
+//     image: "https://via.placeholder.com/200x300/9b59b6/ffffff?text=BoxOffice",
+//     content: "매트릭스를 보고, 나라면 빨간약과 파란약 중에... (중략)",
+//     likes: 10,
+//     createdAt: "2023.09.01 10:00",
+//     views: 500,
+//     comments: 2,
+//     reviewer: {
+//       id: "user2",
+//       nickname: "영화광2",
+//       image: "https://via.placeholder.com/50/00CED1/FFFFFF?text=R2",
+//     },
+//   },
+//   {
+//     id: "dr3",
+//     title: "2025년 7/10 박스오피스",
+//     image: "https://via.placeholder.com/200x300/9b59b6/ffffff?text=BoxOffice",
+//     content: "매트릭스를 보고, 나라면 빨간약과 파란약 중에... (중략)",
+//     likes: 10,
+//     createdAt: "2023.09.01 10:00",
+//     views: 500,
+//     comments: 21,
+//     reviewer: {
+//       id: "user3",
+//       nickname: "무비마스터",
+//       image: "https://via.placeholder.com/50/FFD700/FFFFFF?text=R3",
+//     },
+//   },
+//   {
+//     id: "dr4",
+//     title: "2025년 7/10 박스오피스",
+//     image: "https://via.placeholder.com/200x300/9b59b6/ffffff?text=BoxOffice",
+//     content: "매트릭스를 보고, 나라면 빨간약과 파란약 중에... (중략)",
+//     likes: 10,
+//     createdAt: "2023.09.01 10:00",
+//     views: 500,
+//     comments: 12,
+//     reviewer: {
+//       id: "user4",
+//       nickname: "비평가",
+//       image: "https://via.placeholder.com/50/3498DB/FFFFFF?text=R4",
+//     },
+//   },
+// ];
 
 // Helper function to parse "YYYY.MM.DD HH:MM" string to Date object
 // DUMMY_DETAIL_REVIEWS의 createdAt 형식에 맞춰 필요
@@ -240,7 +254,22 @@ const MyReviewsDetailPage: React.FC = () => {
   const [sortOrder, setSortOrder] = useState<"latest" | "views" | "likes">(
     "latest"
   );
-  const detailReviews: DetailReviewType[] = DUMMY_DETAIL_REVIEWS;
+
+  const { mypageReview } = useMypageApi();
+  const [detailReviews, setDetailReviews] = useState<DetailReviewType[]>([]);
+  // const detailReviews: DetailReviewType[] = DUMMY_DETAIL_REVIEWS;
+
+  useEffect(() => {
+    const myReviewGet = async () => {
+      const res = await mypageReview();
+      const review = Array.isArray(res.data.data.reviews)
+        ? res.data.data.reviews
+        : [];
+      console.log(res.data.data.reviews);
+      setDetailReviews(review);
+    };
+    myReviewGet();
+  }, []);
 
   const sortedReviews = [...detailReviews].sort((a, b) => {
     if (sortOrder === "latest") {
@@ -249,9 +278,9 @@ const MyReviewsDetailPage: React.FC = () => {
         parseDateString(a.createdAt).getTime()
       );
     } else if (sortOrder === "views") {
-      return (b.views || 0) - (a.views || 0);
+      return (b.totalViews || 0) - (a.totalViews || 0);
     } else if (sortOrder === "likes") {
-      return b.likes - a.likes;
+      return b.likeCount - a.likeCount;
     }
     return 0;
   });
@@ -308,11 +337,11 @@ const MyReviewsDetailPage: React.FC = () => {
           <ReviewList>
             {sortedReviews.map((review: DetailReviewType) => (
               <DetailReviewCard
-                key={review.id}
+                key={review.reviewId}
                 review={review}
                 isMine={true}
                 showProfile={true}
-                onClick={() => handleReviewClick(review.id)}
+                onClick={() => handleReviewClick(review.reviewId)}
                 // isMobile prop은 필요하다면 여기에 추가 (예: useMediaQuery 훅 사용)
               />
             ))}
