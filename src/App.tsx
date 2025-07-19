@@ -46,11 +46,7 @@ const GlobalDialogRenderer = () => {
       message={dialog.message}
       showCancel={dialog.showCancel}
       isRedButton={dialog.isRedButton}
-      onConfirm={() => {
-        closeDialog();
-        localStorage.removeItem("accessToken");
-        window.location.href = "/login";
-      }}
+      onConfirm={dialog.onConfirm ?? (() => {})}
       onCancel={() => closeDialog()}
     />
   );
@@ -62,8 +58,6 @@ const AppContents = () => {
   const path = location.pathname;
   const isAdminPage = path === "/admin";
   const { openDialog, closeDialog } = useDialog();
-  const navigate = useNavigate();
-
   const errorTimeoutRef = useRef<number | null>(null);
 
   useEffect(() => {
@@ -85,14 +79,15 @@ const AppContents = () => {
         if (errorTimeoutRef.current) clearTimeout(errorTimeoutRef.current);
         errorTimeoutRef.current = setTimeout(() => {
           openDialog({
-            title: "알림",
+            title: "인증 시간이 만료되었습니다.",
             message: "다시 로그인 해주세요.",
             showCancel: false,
             isRedButton: true,
             onConfirm: () => {
-              closeDialog();
               localStorage.removeItem("accessToken");
+              localStorage.removeItem("refreshToken");
               window.location.href = "/login";
+              closeDialog();
             },
           });
         }, 1000);
