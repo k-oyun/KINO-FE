@@ -14,17 +14,17 @@ interface StyleType {
 }
 
 interface Review {
-  id: string;
+  reviewId: string;
   image: string;
   userProfile: string;
   userNickname: string;
   title: string;
   content: string;
   mine: boolean;
-  // likes: boolean;
-  likes: number;
-  views: number;
-  comments: number;
+  liked: boolean;
+  likeCount: number;
+  totalViews: number;
+  commentCount: number;
   createdAt: string;
 }
 
@@ -94,7 +94,7 @@ const Review = ({ isMobile, movieId }: ReviewProps) => {
       {reviews &&
         reviews.map((review) => (
           <DetailReviewCard
-            key={review.id}
+            key={review.reviewId}
             review={review}
             isMine={review.mine}
             showProfile={true}

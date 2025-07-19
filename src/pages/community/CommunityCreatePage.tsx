@@ -211,7 +211,7 @@ const CommunityCreatePage: React.FC = () => {
           <FormGroup>
             <EditorWrapper $ismobile={isMobile}>
               <CKEditor
-                editor={ClassicEditor}
+                editor={ClassicEditor as any}
                 data={content}
                 onChange={(_, editor) => {
                   setContent(editor.getData()); // HTML string 저장
@@ -221,10 +221,6 @@ const CommunityCreatePage: React.FC = () => {
                   licenseKey: "GPL",
                   simpleUpload: {
                     uploadUrl: "http://43.203.218.183:8080/api/img",
-                    // Enable the XMLHttpRequest.withCredentials property.
-                    // withCredentials: true,
-
-                    // Headers sent along with the XMLHttpRequest to the upload server.
                     headers: {
                       Authorization:
                         "Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiI1NSIsInR5cGUiOiJBQ0NFU1MiLCJhdXRoIjoiUk9MRV9VU0VSIiwiaWF0IjoxNzUyODk5Nzg4LCJleHAiOjE3NTI5MDMzODh9.vE6HLt2KQO13onSQQNKL_cw9WMetCgfl6k5YHSWDrE2bPhpX91Os0fUTE_KcGKOJprd9Ybvt9BRym5pvE0GhJA",

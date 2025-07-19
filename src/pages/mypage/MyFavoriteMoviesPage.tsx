@@ -30,8 +30,8 @@ interface FavoriteMoviesApiResponse {
 // --- 컴포넌트들이 사용하는 타입 정의 (매핑 후의 최종 형태) ---
 // MovieCard에 전달되는 FavoriteMovieType
 interface FavoriteMovieType {
-  id: string; // API의 number id를 string으로 변환
-  title: string; // movieTitle을 title로 매핑
+  myPickId: string; // API의 number id를 string으로 변환
+  movieTitle: string; // movieTitle을 title로 매핑
   director: string;
   releaseDate: string;
   posterUrl: string;
@@ -280,8 +280,8 @@ const MyFavoriteMoviesPage: React.FC = () => {
 
       setFavoriteMovies(
         apiData.myPickMovies.map((movie) => ({
-          id: movie.myPickId.toString(), // API id는 number, 컴포넌트 id는 string
-          title: movie.movieTitle, // movieTitle을 title로 매핑
+          myPickId: movie.myPickId.toString(), // API id는 number, 컴포넌트 id는 string
+          movieTitle: movie.movieTitle, // movieTitle을 title로 매핑
           director: movie.director,
           releaseDate: movie.releaseDate,
           posterUrl: movie.posterUrl,
@@ -343,7 +343,7 @@ const MyFavoriteMoviesPage: React.FC = () => {
         {favoriteMovies && favoriteMovies.length > 0 ? (
           <MovieCardGrid>
             {favoriteMovies.map((movie: FavoriteMovieType) => (
-              <MovieCard key={movie.id} movie={movie} />
+              <MovieCard key={movie.myPickId} movie={movie} />
             ))}
           </MovieCardGrid>
         ) : (

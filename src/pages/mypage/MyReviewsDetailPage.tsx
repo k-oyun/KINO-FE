@@ -1,52 +1,109 @@
-import React, { useState, useEffect } from "react"; // useEffect 임포트
+import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
-import axios from "axios"; // axios 임포트
-import ReviewCard from "../../components/mypage/ReviewCard";
+import DetailReviewCard from "../../components/mypage/DetailReviewCard";
+import useMypageApi from "../../api/mypage";
 
-// --- 백엔드 API 응답 구조에 맞는 타입 정의 ---
-// 이 타입은 백엔드 응답의 'detailReviews' 배열 내 개별 객체와 일치해야 합니다.
-interface ApiDetailReview {
-  reviewId: number; // reviewId 대신 id로 통일 가정
-  title: string;
-  image: string; // 이미지 URL
-  content: string;
-  likes: number;
-  views: number;
-  comments: number;
-  createdAt: string; // ISO 8601 형식의 날짜/시간 문자열
-  // 만약 API 응답에 사용자 정보가 있다면 여기에 추가
-  // reviewerNickname?: string;
-  // reviewerProfileImage?: string;
-}
-
-// 전체 API 응답 구조를 정의합니다.
-interface DetailReviewsApiResponseData {
-  // 페이지네이션이 없으므로 totalCount, currentPage, pageSize는 제거합니다.
-  detailReviews: ApiDetailReview[];
-}
-
-interface DetailReviewsApiResponse {
-  status: number;
-  success: boolean;
-  message: string;
-  data: DetailReviewsApiResponseData;
-}
-
-// --- 컴포넌트들이 사용하는 타입 정의 (매핑 후의 최종 형태) ---
-// ReviewCard에 전달되는 DetailReviewType
-interface DetailReviewType {
-  id: string; // API의 number id를 string으로 변환
-  title: string;
+interface UserProfileType {
+  userId: number;
+  nickname: string;
   image: string;
-  content: string;
-  likes: number;
-  views: number;
-  comments: number;
-  createdAt: string;
+  email: string;
+  isFirstLogin: boolean;
 }
 
-// --- 스타일 컴포넌트들은 변경 없음 (생략) ---
+interface DetailReviewType {
+  reviewId: string;
+  image: string;
+  userProfile: string;
+  userNickname: string;
+  title: string;
+  content: string;
+  mine: boolean;
+  liked: boolean;
+  likeCount: number;
+  totalViews: number;
+  commentCount: number;
+  createdAt: string;
+  // reviewer?: {
+  //   id: string;
+  //   nickname: string;
+  //   image: string;
+  // };
+  reviewer: UserProfileType;
+}
+
+// const DUMMY_DETAIL_REVIEWS: DetailReviewType[] = [
+//   {
+//     id: "dr1",
+//     title: "엘리오 내용 평가 4.0",
+//     image: "https://sitem.ssgcdn.com/72/10/00/item/1000569001072_i1_750.jpg",
+//     content:
+//       "엘리오는 영화 (콜 미 바이 유어 네임) 속에서 섬세하고 감성적인 소년으로 그려진다. 그는 이탈리아의 한적한 시골 마을에서 가족과 함께 지내며 지적이고 조용한 삶을 살고 있지만, 여름 방학 동안 올리버를 만나면서 그의 일상은 서서히 변화하기 시작한다. 처음에는 올리버에게 낯섦과 경계심을 느끼지만, 시간이 흐를수록 그들은 서로에게 깊은 감정을 느끼게 된다. 그 감정은 삶에 대한 새로운 통찰과 함께 서로에게 변화를 가져다준다. 시간이 흐를수록 그는 모든 것을 올리버에게 걸게 된다.",
+//     likes: 15,
+//     createdAt: "2024.07.18 11:00",
+//     views: 217,
+//     comments: 3,
+//     reviewer: {
+//       id: "user1",
+//       nickname: "영화평론가1",
+//       image: "https://via.placeholder.com/50/FF69B4/FFFFFF?text=R1",
+//     },
+//   },
+//   {
+//     id: "dr2",
+//     title: "2025년 7/10 박스오피스",
+//     image: "https://via.placeholder.com/200x300/9b59b6/ffffff?text=BoxOffice",
+//     content: "매트릭스를 보고, 나라면 빨간약과 파란약 중에... (중략)",
+//     likes: 10,
+//     createdAt: "2023.09.01 10:00",
+//     views: 500,
+//     comments: 2,
+//     reviewer: {
+//       id: "user2",
+//       nickname: "영화광2",
+//       image: "https://via.placeholder.com/50/00CED1/FFFFFF?text=R2",
+//     },
+//   },
+//   {
+//     id: "dr3",
+//     title: "2025년 7/10 박스오피스",
+//     image: "https://via.placeholder.com/200x300/9b59b6/ffffff?text=BoxOffice",
+//     content: "매트릭스를 보고, 나라면 빨간약과 파란약 중에... (중략)",
+//     likes: 10,
+//     createdAt: "2023.09.01 10:00",
+//     views: 500,
+//     comments: 21,
+//     reviewer: {
+//       id: "user3",
+//       nickname: "무비마스터",
+//       image: "https://via.placeholder.com/50/FFD700/FFFFFF?text=R3",
+//     },
+//   },
+//   {
+//     id: "dr4",
+//     title: "2025년 7/10 박스오피스",
+//     image: "https://via.placeholder.com/200x300/9b59b6/ffffff?text=BoxOffice",
+//     content: "매트릭스를 보고, 나라면 빨간약과 파란약 중에... (중략)",
+//     likes: 10,
+//     createdAt: "2023.09.01 10:00",
+//     views: 500,
+//     comments: 12,
+//     reviewer: {
+//       id: "user4",
+//       nickname: "비평가",
+//       image: "https://via.placeholder.com/50/3498DB/FFFFFF?text=R4",
+//     },
+//   },
+// ];
+
+// Helper function to parse "YYYY.MM.DD HH:MM" string to Date object
+// DUMMY_DETAIL_REVIEWS의 createdAt 형식에 맞춰 필요
+const parseDateString = (dateStr: string): Date => {
+  const parts = dateStr.split(/[. :]/).map(Number);
+  return new Date(parts[0], parts[1] - 1, parts[2], parts[3], parts[4]);
+};
+
 const PageContainer = styled.div`
   max-width: 1200px;
   margin: 0 auto;
@@ -68,9 +125,12 @@ const SectionWrapper = styled.div`
   background-color: #000000;
   padding: 25px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  border-radius: 8px;
+  margin-bottom: 25px;
 
   @media (max-width: 767px) {
     padding: 20px;
+    margin-bottom: 15px;
   }
 `;
 
@@ -170,10 +230,10 @@ const SortButton = styled.button<{ isActive: boolean }>`
 const ReviewList = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  /* gap: 15px; -> DetailReviewCard의 margin-bottom으로 간격 조절 */
 
   @media (max-width: 767px) {
-    gap: 10px;
+    /* gap: 10px; */
   }
 `;
 
@@ -191,69 +251,44 @@ const EmptyState = styled.div`
 
 const MyReviewsDetailPage: React.FC = () => {
   const navigate = useNavigate();
-  const [detailReviews, setDetailReviews] = useState<DetailReviewType[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [sortOrder, setSortOrder] = useState<"latest" | "views" | "likes">(
     "latest"
   );
 
-  const fetchDetailReviews = async (sort: string) => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      // 백엔드 API가 모든 데이터를 정렬하여 반환한다고 가정합니다.
-      const response = await axios.get<DetailReviewsApiResponse>(
-        `http://43.203.218.183:8080/api/mypage/review?sort=${sort}` // 상세 리뷰 API 엔드포인트: /api/mypage/review
-      );
-      const apiData = response.data.data;
-
-      setDetailReviews(
-        apiData.detailReviews.map((review) => ({
-          id: review.reviewId.toString(), // API id는 number, 컴포넌트 id는 string
-          title: review.title,
-          image: review.image,
-          content: review.content,
-          likes: review.likes,
-          views: review.views,
-          comments: review.comments,
-          createdAt: review.createdAt,
-        }))
-      );
-    } catch (err) {
-      console.error("상세 리뷰 데이터를 불러오는 데 실패했습니다:", err);
-      setError(
-        "상세 리뷰를 불러오는 데 실패했습니다. 잠시 후 다시 시도해주세요."
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const { mypageReview } = useMypageApi();
+  const [detailReviews, setDetailReviews] = useState<DetailReviewType[]>([]);
+  // const detailReviews: DetailReviewType[] = DUMMY_DETAIL_REVIEWS;
 
   useEffect(() => {
-    // 컴포넌트 마운트 시, 또는 정렬 순서 변경 시 데이터 호출
-    fetchDetailReviews(sortOrder);
-  }, [sortOrder]); // sortOrder가 변경될 때마다 데이터를 다시 불러옵니다.
+    const myReviewGet = async () => {
+      const res = await mypageReview();
+      const review = Array.isArray(res.data.data.reviews)
+        ? res.data.data.reviews
+        : [];
+      console.log(res.data.data.reviews);
+      setDetailReviews(review);
+    };
+    myReviewGet();
+  }, []);
 
-  // 클라이언트 측 정렬 (API에서 이미 정렬된 데이터를 받는다면 불필요할 수 있으나, 혹시 모를 상황 대비하여 유지)
   const sortedReviews = [...detailReviews].sort((a, b) => {
     if (sortOrder === "latest") {
-      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      return (
+        parseDateString(b.createdAt).getTime() -
+        parseDateString(a.createdAt).getTime()
+      );
     } else if (sortOrder === "views") {
-      return b.views - a.views; // 조회순은 보통 내림차순 (높은 조회수가 위로)
+      return (b.totalViews || 0) - (a.totalViews || 0);
     } else if (sortOrder === "likes") {
-      return b.likes - a.likes; // 좋아요순은 보통 내림차순
+      return b.likeCount - a.likeCount;
     }
     return 0;
   });
 
-  if (isLoading) {
-    return <EmptyState>상세 리뷰 데이터를 불러오는 중입니다...</EmptyState>;
-  }
-
-  if (error) {
-    return <EmptyState style={{ color: "red" }}>{error}</EmptyState>;
-  }
+  const handleReviewClick = (reviewId: string) => {
+    // 상세 리뷰 클릭 시 상세 페이지로 이동
+    navigate(`/reviews/detail/${reviewId}`);
+  };
 
   return (
     <PageContainer>
@@ -298,14 +333,16 @@ const MyReviewsDetailPage: React.FC = () => {
             좋아요순
           </SortButton>
         </SortOptions>
-        {/* 데이터가 비어있지 않고, 불러온 detailReviews를 기반으로 정렬된 데이터를 보여줍니다. */}
-        {detailReviews && detailReviews.length > 0 ? (
+        {sortedReviews && sortedReviews.length > 0 ? (
           <ReviewList>
             {sortedReviews.map((review: DetailReviewType) => (
-              <ReviewCard
-                key={review.id}
-                review={review} // 이제 ReviewType 캐스팅 불필요
-                type="detail"
+              <DetailReviewCard
+                key={review.reviewId}
+                review={review}
+                isMine={true}
+                showProfile={true}
+                onClick={() => handleReviewClick(review.reviewId)}
+                // isMobile prop은 필요하다면 여기에 추가 (예: useMediaQuery 훅 사용)
               />
             ))}
           </ReviewList>
