@@ -305,6 +305,10 @@ const Main = () => {
 
   const [showIframe, setShowIframe] = useState(false);
 
+  const [hoveredMovie, setHoveredMovie] = useState<MovieList | null>(null);
+  useEffect(() => {
+    console.log(hoveredMovie);
+  }, [hoveredMovie]);
   return (
     <>
       {isNewUser && <SurveyModal setIsNewUser={setIsNewUser} />}
@@ -493,11 +497,16 @@ const Main = () => {
                         onClick={() => {
                           navigate(`/movie/${movie.movie_id}`);
                         }}
+                        onMouseEnter={() => setHoveredMovie(movie)}
+                        onMouseLeave={() => setHoveredMovie(null)}
                       >
                         <MoviePosterImg
                           src={movie.still_cut_url}
                           alt={movie.title}
                         />
+                        {hoveredMovie?.movie_id === movie.movie_id && (
+                          <MovieInfoModal movie={hoveredMovie} />
+                        )}
                       </Movies>
                     ))
                   ) : (
@@ -514,3 +523,43 @@ const Main = () => {
 };
 
 export default Main;
+
+const ModalBox = styled(motion.div)`
+  position: absolute;
+  left: 0%;
+  top: -5%;
+  width: 86%;
+  /* min-height: 120px; */
+  min-height: 70%;
+  background: rgba(0, 0, 0, 0.5);
+  color: #fff;
+  border-radius: 15px;
+  padding: 18px 18px 14px 18px;
+  box-shadow: 0 6px 40px rgba(0, 0, 0, 0.8);
+  z-index: 99;
+  pointer-events: none;
+  /* background-color: red; */
+`;
+
+const MovieTitle = styled.div`
+  font-size: 13px;
+  /* font-weight: bold; */
+  margin-bottom: 8px;
+`;
+const MovieDesc = styled.div`
+  font-size: 15px;
+  color: #bbb;
+`;
+
+// 필요시 MovieList 타입 확장
+const MovieInfoModal = ({ movie }: { movie: MovieList }) => (
+  <ModalBox
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    exit={{ opacity: 0, y: 20 }}
+    transition={{ duration: 0.2 }}
+  >
+    <MovieTitle>{movie.title}</MovieTitle>
+    {/* <MovieDesc>설명 혹은 평점 등등</MovieDesc> */}
+  </ModalBox>
+);
