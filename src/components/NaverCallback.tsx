@@ -21,8 +21,9 @@ function NaverCallback() {
     const code = searchParams.get("code");
     if (code) {
       console.log("code 가져옴:", code);
-      handleLogin(code);
-      navigate("/");
+      handleLogin(code).then(() => {
+        window.location.href = "/";
+      });
     }
   }, [searchParams, navigate]);
 

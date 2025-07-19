@@ -27,6 +27,7 @@ const VideoContainer = styled.div`
   align-items: center;
   position: relative;
   overflow: hidden;
+  background-color: black;
 `;
 
 const Video = styled.iframe`
@@ -46,7 +47,7 @@ const ListContainer = styled.div`
   height: auto;
   top: 77vh;
   overflow-x: hidden;
-  background-color: transparent;
+  background-color: black;
   margin-top: 10px;
   backdrop-filter: blur(2px);
   padding-bottom: 50px;
@@ -133,7 +134,8 @@ const SliderTypeTxt = styled.span`
   font-weight: 400;
   margin-top: 30px;
   padding-left: 60px;
-  color: ${({ theme }) => theme.textColor};
+  /* color: ${({ theme }) => theme.textColor}; */
+  color: white;
 `;
 
 const VideoHiddenContainer = styled(motion.div)<{ $image: string }>`
@@ -143,7 +145,7 @@ const VideoHiddenContainer = styled(motion.div)<{ $image: string }>`
   margin-top: 130px;
   background-image: linear-gradient(
       to bottom,
-      rgba(0, 0, 0, 1) 0%,
+      rgba(0, 0, 0, 0.9) 0%,
       rgba(0, 0, 0, 0.1) 50%,
       rgba(0, 0, 0, 0) 100%
     ),
@@ -191,6 +193,127 @@ const TeaserExplainContainer = styled.div`
   margin-top: 20px;
 `;
 
+const ModalContainer = styled.div`
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 3000;
+  width: 30vw;
+  height: 30vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  pointer-events: all;
+`;
+const ModalBox = styled(motion.div)`
+  display: flex;
+  width: 590px;
+  /* height: 500px; */
+  background-color: rgba(0, 0, 0, 0.7);
+  border: 1.5px solid rgba(240, 98, 146, 0.4);
+  border-radius: 20px;
+  box-shadow: 0 12px 48px 0 rgba(0, 0, 0, 0.53),
+    0 0 0 2px rgba(229, 132, 165, 0.07);
+  backdrop-filter: blur(12px) saturate(125%);
+  padding: 38px 38px 34px 40px;
+  gap: 36px;
+  transition: box-shadow 0.22s cubic-bezier(0.44, 0.06, 0.36, 1);
+`;
+
+const MoviePoster = styled.img`
+  width: 140px;
+  min-width: 140px;
+  max-width: 140px;
+  height: 200px;
+  object-fit: cover;
+  border-radius: 14px;
+  box-shadow: 0 8px 32px 0 rgba(240, 98, 146, 1), 0 2px 14px 0 rgba(0, 0, 0, 1);
+  background: #19191b;
+  margin-right: 8px;
+`;
+
+const InfoSection = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-top: 3px;
+  min-width: 0;
+  width: 315px;
+`;
+
+const MovieTitle = styled.div`
+  font-size: 22px;
+  font-weight: 800;
+  margin-bottom: 4px;
+  letter-spacing: 0.32px;
+  color: #fff;
+  word-break: keep-all;
+`;
+
+const MovieGenre = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  margin-bottom: 3px;
+`;
+
+const GenreTag = styled.span`
+  background: rgba(240, 98, 146, 0.18);
+  border-radius: 50px;
+  padding: 3px 13px 2px 13px;
+  font-size: 16px;
+  color: #f06292;
+  font-weight: 700;
+  letter-spacing: 0.16px;
+  box-shadow: 0 2px 6px 0 rgba(240, 98, 146, 0.1);
+  transition: background-color 0.18s;
+  &:hover {
+    background: rgba(240, 98, 146, 0.3);
+  }
+`;
+
+const MoviePlot = styled.div`
+  font-size: 16px;
+  color: #eaeaea;
+  line-height: 1.56;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  word-break: keep-all;
+  margin-bottom: 8px;
+`;
+
+const MovieMeta = styled.div`
+  font-size: 15px;
+  color: #b6b6b6;
+  display: flex;
+  gap: 22px;
+  align-items: center;
+  margin-top: 3px;
+`;
+
+const MoreBtn = styled.button`
+  background: linear-gradient(90deg, #f06292 60%, #ff9f80 100%);
+  color: #fff;
+  font-weight: bold;
+  border: none;
+  border-radius: 22px;
+  padding: 7px 23px;
+  font-size: 17px;
+  box-shadow: 0 3px 10px rgba(240, 98, 146, 0.11);
+  cursor: pointer;
+  margin-top: 16px;
+  margin-left: auto;
+  transition: filter 0.16s, transform 0.12s;
+  &:hover {
+    filter: brightness(94%);
+    transform: scale(1.05);
+  }
+`;
+
 interface TeaserType {
   movieId: number;
   title: string;
@@ -211,6 +334,11 @@ interface MovieList {
   title: string;
   movie_id: number;
   still_cut_url: string;
+  poster_url: string;
+  release_date: string;
+  plot: string;
+  running_time: number;
+  genres: string[];
 }
 
 const Main = () => {
@@ -303,6 +431,16 @@ const Main = () => {
 
   const [showIframe, setShowIframe] = useState(false);
 
+  const [hoveredMovie, setHoveredMovie] = useState<MovieList | null>(null);
+  useEffect(() => {
+    console.log(hoveredMovie);
+  }, [hoveredMovie]);
+
+  useEffect(() => {
+    if (hoveredMovie) {
+      console.log("hoveredMovie.genre:", hoveredMovie);
+    }
+  }, [hoveredMovie]);
   return (
     <>
       {isNewUser && <SurveyModal setIsNewUser={setIsNewUser} />}
@@ -474,9 +612,9 @@ const Main = () => {
                       />
                     ))
                   ) : movieLists[idx] && movieLists[idx].length > 0 ? (
-                    movieLists[idx].map((movie, i) => (
+                    movieLists[idx].map((movie) => (
                       <Movies
-                        key={movie.movie_id ?? i}
+                        key={movie.movie_id}
                         whileHover={{
                           scale: 1.1,
                           boxShadow: "0 30px 30px rgba(0,0,0,0.25)",
@@ -491,6 +629,8 @@ const Main = () => {
                         onClick={() => {
                           navigate(`/movie/${movie.movie_id}`);
                         }}
+                        onMouseEnter={() => setHoveredMovie(movie)}
+                        onMouseLeave={() => setHoveredMovie(null)}
                       >
                         <MoviePosterImg
                           src={movie.still_cut_url}
@@ -507,6 +647,53 @@ const Main = () => {
           </ListContainer>
         )}
       </MainContainer>
+      <AnimatePresence>
+        {hoveredMovie && (
+          <ModalContainer
+            onMouseEnter={() => setHoveredMovie(hoveredMovie)}
+            onMouseLeave={() => setHoveredMovie(null)}
+          >
+            <ModalBox
+              initial={{ opacity: 0, y: 32 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 32 }}
+              transition={{
+                duration: 0.22,
+                ease: [0.44, 0.06, 0.36, 1],
+              }}
+            >
+              <MoviePoster
+                src={hoveredMovie.poster_url}
+                alt={hoveredMovie.title}
+              />
+              <InfoSection>
+                <MovieTitle>{hoveredMovie.title}</MovieTitle>
+                <MovieGenre>
+                  {(Array.isArray(hoveredMovie.genres)
+                    ? hoveredMovie.genres
+                    : []
+                  ).map((g: string, idx: number) => (
+                    <GenreTag key={g + idx}>{g.trim()}</GenreTag>
+                  ))}
+                </MovieGenre>
+                <MoviePlot>{hoveredMovie.plot}</MoviePlot>
+                <MovieMeta>
+                  <span>개봉일: {hoveredMovie.release_date}</span>
+                  <span>러닝 타임: {hoveredMovie.running_time}분</span>
+                </MovieMeta>
+                <MoreBtn
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate(`/movie/${hoveredMovie.movie_id}`);
+                  }}
+                >
+                  상세보기
+                </MoreBtn>
+              </InfoSection>
+            </ModalBox>
+          </ModalContainer>
+        )}
+      </AnimatePresence>
     </>
   );
 };

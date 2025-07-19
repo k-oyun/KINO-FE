@@ -6,11 +6,13 @@ import ReportModal from "../ReportModal";
 
 interface DetailReview {
   reviewId: string;
+  image: string;
   userProfile: string;
   userNickname: string;
   title: string;
   content: string;
   mine: boolean;
+  liked: boolean;
   likeCount: number;
   totalViews: number;
   commentCount: number;
@@ -287,7 +289,6 @@ const DetailReviewCard: React.FC<DetailReviewCardProps> = ({
     <>
       <DetailReviewCardContainer $ismobile={isMobile} onClick={onClick}>
         {/* <DetailMoviePoster
-
           $ismobile={isMobile}
           src={review.image}
           alt={review.title || "리뷰 첨부 이미지"}
