@@ -2,9 +2,9 @@ import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
 
 interface Movie {
-  id: number;
+  movieId: number;
   title: string;
-  poster_path: string;
+  posterUrl: string;
 }
 
 interface MovieListProps {
@@ -58,8 +58,8 @@ const MovieList = ({ isMobile, movies }: MovieListProps) => {
       {movies.map((movie) => (
         <MovieItem
           $ismobile={isMobile}
-          key={movie.id}
-          onClick={() => handleMovieClick(movie.id)}
+          key={movie.movieId}
+          onClick={() => handleMovieClick(movie.movieId)}
         >
           <MoviePosters
             $ismobile={isMobile}
