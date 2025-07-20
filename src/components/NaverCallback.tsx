@@ -22,7 +22,7 @@ function NaverCallback() {
     if (code) {
       console.log("code 가져옴:", code);
       handleLogin(code).then(() => {
-        window.location.href = "/main";
+        window.location.href = "/home";
       });
     }
   }, [searchParams, navigate]);
