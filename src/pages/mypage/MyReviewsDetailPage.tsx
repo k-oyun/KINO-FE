@@ -19,7 +19,7 @@ interface DetailReviewType {
   userNickname: string;
   title: string;
   content: string;
-  mine: boolean;
+  isMine: boolean;
   liked: boolean;
   likeCount: number;
   totalViews: number;

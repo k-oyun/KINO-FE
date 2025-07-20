@@ -12,7 +12,7 @@ interface DetailReview {
   userNickname: string;
   title: string;
   content: string;
-  mine: boolean;
+  isMine: boolean;
   likeCount: number;
   totalViews: number;
   commentCount: number;
@@ -66,6 +66,9 @@ const ReviewText = styled.div<styleType>`
 
   img {
     max-width: 100%;
+    max-height: ${(props) => (props.$ismobile ? "100px" : "200px")};
+    object-fit: cover;
+    border-radius: 8px;
     height: auto;
     display: block;
   }

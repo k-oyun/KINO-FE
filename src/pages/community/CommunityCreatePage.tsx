@@ -170,11 +170,11 @@ const CommunityCreatePage: React.FC = () => {
     }
   }, [id]);
 
-  const customUploadAdapter = (loader) => {
+  const customUploadAdapter = (loader: any) => {
     return {
       upload() {
         return new Promise((resolve, reject) => {
-          loader.file.then((file) => {
+          loader.file.then((file: any) => {
             const res = uploadImage(file);
             res
               .then((res) => {
@@ -189,8 +189,10 @@ const CommunityCreatePage: React.FC = () => {
     };
   };
 
-  function uploadPlugin(editor) {
-    editor.plugins.get("FileRepository").createUploadAdapter = (loader) => {
+  function uploadPlugin(editor: any) {
+    editor.plugins.get("FileRepository").createUploadAdapter = (
+      loader: any
+    ) => {
       return customUploadAdapter(loader);
     };
   }

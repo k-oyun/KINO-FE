@@ -20,7 +20,7 @@ interface Review {
   userNickname: string;
   title: string;
   content: string;
-  mine: boolean;
+  isMine: boolean;
   liked: boolean;
   likeCount: number;
   totalViews: number;
@@ -101,7 +101,7 @@ const Review = ({ isMobile, movieId }: ReviewProps) => {
           <DetailReviewCard
             key={review.reviewId}
             review={review}
-            isMine={review.mine}
+            isMine={review.isMine}
             showProfile={true}
             isMobile={isMobile}
             onClick={() => navigate(`/community/${review.reviewId}`)}
