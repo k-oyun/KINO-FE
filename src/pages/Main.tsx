@@ -124,7 +124,7 @@ const VideoHiddenContainer = styled(motion.div)<{
   background-image: linear-gradient(
       to bottom,
       rgba(0, 0, 0, 0.9) 0%,
-      rgba(0, 0, 0, 0.1) 50%,
+      rgba(0, 0, 0, 0.5) 50%,
       rgba(0, 0, 0, 0) 100%
     ),
     url(${(props) => props.$image});
@@ -165,11 +165,19 @@ const TeaserTitleContainer = styled.div<styleType>`
 `;
 
 const TeaserExplainContainer = styled.div<styleType>`
-  display: flex;
-  align-items: center;
+  display: -webkit-box;
+  -webkit-line-clamp: ${(props) => (props.$ismobile ? 1 : 3)};
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: normal;
   padding-left: 20px;
-  font-size: ${(props) => (props.$ismobile ? "11px" : "20px")};
+  font-size: ${(props) => (props.$ismobile ? "10px" : "20px")};
   margin-top: ${(props) => (props.$ismobile ? "5px" : "20px")};
+  width: ${(props) => (props.$ismobile ? "88vw" : "640px")};
+  max-width: 95vw;
+  word-break: break-word;
+  overflow-wrap: break-word;
 `;
 
 const ModalContainer = styled.div`
@@ -237,11 +245,12 @@ const MovieGenre = styled.div`
   margin-bottom: 3px;
 `;
 
-const GenreTag = styled.span`
+const GenreTag = styled.span<styleType>`
   background: rgba(240, 98, 146, 0.18);
   border-radius: 50px;
-  padding: 3px 13px 2px 13px;
-  font-size: 16px;
+  padding: ${(props) =>
+    props.$ismobile ? "2px 6px 2px 6px" : "3px 13px 2px 13px"};
+  font-size: ${(props) => (props.$ismobile ? "5px" : "16px")};
   color: #f06292;
   font-weight: 700;
   letter-spacing: 0.16px;
@@ -295,13 +304,13 @@ const MoreBtn = styled.button`
   }
 `;
 
-const TeaserMetaContainer = styled.div<{ $ismobile?: boolean }>`
+const TeaserMetaContainer = styled.div<styleType>`
   display: flex;
-  flex-direction: ${({ $ismobile }) => ($ismobile ? "column" : "row")};
+  flex-direction: row;
   align-items: center;
   gap: 18px;
-  margin: ${({ $ismobile }) => ($ismobile ? "15px 0 0 20px" : "26px 0 0 20px")};
-  font-size: ${({ $ismobile }) => ($ismobile ? "15px" : "18px")};
+  margin: ${({ $ismobile }) => ($ismobile ? "6px 0 0 20px" : "26px 0 0 20px")};
+  font-size: ${({ $ismobile }) => ($ismobile ? "6px" : "18px")};
   color: #c6c6c6;
 `;
 
@@ -310,7 +319,7 @@ const TeaserGenre = styled.div`
   gap: 8px;
 `;
 
-const TeaserBtnContainer = styled.div<{ $ismobile?: boolean }>`
+const TeaserBtnContainer = styled.div<styleType>`
   width: 100%;
   height: 100%;
   top: 82%;
@@ -318,22 +327,21 @@ const TeaserBtnContainer = styled.div<{ $ismobile?: boolean }>`
   position: absolute;
   color: #c6c6c6;
   z-index: 5000;
-  /* background-color: red; */
 `;
 
-const TeaserDetailBtn = styled(motion.button)<{ $ismobile?: boolean }>`
+const TeaserDetailBtn = styled(motion.button)<styleType>`
   background: linear-gradient(90deg, #f06292 60%, #ff9f80 100%);
   color: white;
   font-weight: 700;
   border: none;
-  border-radius: 15px;
-  width: 100px;
-  height: 40px;
+  border-radius: ${(props) => (props.$ismobile ? "4px" : "15px")};
+  width: ${(props) => (props.$ismobile ? "30px" : "100px")};
+  height: ${(props) => (props.$ismobile ? "14px" : "40px")};
   position: absolute;
-  top: 10px;
-  right: 170px;
-  padding: ${({ $ismobile }) => ($ismobile ? "7px 16px" : "7px 26px")};
-  font-size: ${({ $ismobile }) => ($ismobile ? "15px" : "13px")};
+  top: ${(props) => (props.$ismobile ? "20px" : "10px")};
+  right: ${(props) => (props.$ismobile ? "35px" : "170px")};
+  padding: ${({ $ismobile }) => ($ismobile ? "2px 6px" : "7px 26px")};
+  font-size: ${({ $ismobile }) => ($ismobile ? "4px" : "13px")};
   cursor: pointer;
   overflow: hidden;
   z-index: 10;
@@ -508,8 +516,15 @@ const Main = () => {
                   </TeaserTitleContainer>
 
                   <TeaserExplainContainer $ismobile={isMobile}>
-                    {teaser.plot}
+                    {isMobile
+                      ? teaser.plot.length > 30
+                        ? teaser.plot.slice(0, 30) + "..."
+                        : teaser.plot
+                      : teaser.plot.length > 120
+                      ? teaser.plot.slice(0, 120) + "..."
+                      : teaser.plot}
                   </TeaserExplainContainer>
+
                   <TeaserMetaContainer $ismobile={isMobile}>
                     <span>개봉일: {teaser.releaseDate || "개봉 예정"}</span>
                     <span>
@@ -519,14 +534,17 @@ const Main = () => {
                         : " 개봉 예정"}
                     </span>
                   </TeaserMetaContainer>
-                  <TeaserMetaContainer>
+                  <TeaserMetaContainer $ismobile={isMobile}>
                     <TeaserGenre>
                       {teaser.genres.map((g) => (
-                        <GenreTag key={g}>{g} </GenreTag>
+                        <GenreTag $ismobile={isMobile} key={g}>
+                          {g}{" "}
+                        </GenreTag>
                       ))}
                     </TeaserGenre>
                   </TeaserMetaContainer>
                   <TeaserBtnContainer
+                    $ismobile={isMobile}
                     onMouseEnter={() => {
                       setShowIframe(false);
                     }}
@@ -761,7 +779,9 @@ const Main = () => {
                     ? hoveredMovie.genres
                     : []
                   ).map((g: string, idx: number) => (
-                    <GenreTag key={g + idx}>{g.trim()}</GenreTag>
+                    <GenreTag $ismobile={isMobile} key={g + idx}>
+                      {g.trim()}
+                    </GenreTag>
                   ))}
                 </MovieGenre>
                 <MoviePlot>{hoveredMovie.plot}</MoviePlot>
