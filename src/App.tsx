@@ -31,10 +31,11 @@ import CommunityListPage from "./pages/community/CommunityListPage";
 import { DialogProvider, useDialog } from "./context/DialogContext";
 import ConfirmDialog from "./components/ConfirmDialog";
 import { useEffect, useRef } from "react";
+import { useMediaQuery } from "react-responsive";
 
 const HeaderSelector = ({ path }: { path: string }) => {
-  if (path === "/Login" || path === "/login") return null;
   if (path === "/") return null;
+  if (path === "/Home" || path === "/home") return null;
 
   return <Header />;
 };
@@ -49,11 +50,7 @@ const GlobalDialogRenderer = () => {
       message={dialog.message}
       showCancel={dialog.showCancel}
       isRedButton={dialog.isRedButton}
-      onConfirm={() => {
-        closeDialog();
-        localStorage.removeItem("accessToken");
-        window.location.href = "/login";
-      }}
+      onConfirm={dialog.onConfirm ?? (() => {})}
       onCancel={() => closeDialog()}
     />
   );
@@ -65,10 +62,8 @@ const AppContents = () => {
   const path = location.pathname;
   const isAdminPage = path === "/admin";
   const { openDialog, closeDialog } = useDialog();
-  const navigate = useNavigate();
-
   const errorTimeoutRef = useRef<number | null>(null);
-
+  const isMobile = useMediaQuery({ query: "(max-width: 767px)" });
   useEffect(() => {
     const handler = (e: Event) => {
       const code = (e as CustomEvent).detail?.status || 401;
@@ -77,7 +72,9 @@ const AppContents = () => {
         errorTimeoutRef.current = setTimeout(() => {
           openDialog({
             title: "서버에 문제가 발생했습니다",
-            message: "일시적인 문제일 수 있으니 잠시 후 다시 시도해주세요.",
+            message: isMobile
+              ? "잠시 후 다시 시도해주세요."
+              : "일시적인 문제일 수 있으니 잠시 후 다시 시도해주세요.",
             showCancel: false,
             isRedButton: true,
             onConfirm: () => closeDialog(),
@@ -88,14 +85,15 @@ const AppContents = () => {
         if (errorTimeoutRef.current) clearTimeout(errorTimeoutRef.current);
         errorTimeoutRef.current = setTimeout(() => {
           openDialog({
-            title: "알림",
+            title: "인증 시간이 만료되었습니다.",
             message: "다시 로그인 해주세요.",
             showCancel: false,
             isRedButton: true,
             onConfirm: () => {
-              closeDialog();
               localStorage.removeItem("accessToken");
-              window.location.href = "/login";
+              localStorage.removeItem("refreshToken");
+              window.location.href = "/";
+              closeDialog();
             },
           });
         }, 1000);
@@ -116,8 +114,8 @@ const AppContents = () => {
         <GlobalStyle />
         <HeaderSelector path={path} />
         <Routes>
-          <Route path="/" element={<Main />}></Route>
-          <Route path="/login" element={<Login />}></Route>
+          <Route path="/" element={<Login />}></Route>
+          <Route path="/home" element={<Main />}></Route>
           <Route path="/api/auth/oauth/kakao" element={<KakaoCallback />} />
           <Route path="/api/auth/oauth/google" element={<GoogleCallback />} />
           <Route path="/api/auth/oauth/naver" element={<NaverCallback />} />
