@@ -223,7 +223,7 @@ const MainHeader = ({ keyword, setKeyword, setIsNewUser }: HeaderProps) => {
   const { userInfoGet, logout } = useAuthApi();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const menuItems = [
-    { label: "홈", path: "/" },
+    { label: "홈", path: "/home" },
     { label: "커뮤니티", path: "/community" },
     { label: "영화", path: "/movie" },
     { label: "내가 찜한 리스트", path: "/wish" },
@@ -297,7 +297,7 @@ const MainHeader = ({ keyword, setKeyword, setIsNewUser }: HeaderProps) => {
           $ismobile={isMobile}
           src={logoText}
           alt="로고 이미지"
-          onClick={() => navigate("/")}
+          onClick={() => navigate("/home")}
         />
         <HeaderMenuContainer $ismobile={isMobile}>
           {isMobile ? (

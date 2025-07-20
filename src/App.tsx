@@ -32,7 +32,7 @@ import { useMediaQuery } from "react-responsive";
 
 const HeaderSelector = ({ path }: { path: string }) => {
   if (path === "/") return null;
-  if (path === "/Main" || path === "/main") return null;
+  if (path === "/Home" || path === "/home") return null;
 
   return <Header />;
 };
@@ -111,8 +111,8 @@ const AppContents = () => {
         <GlobalStyle />
         <HeaderSelector path={path} />
         <Routes>
-          <Route path="/main" element={<Main />}></Route>
           <Route path="/" element={<Login />}></Route>
+          <Route path="/home" element={<Main />}></Route>
           <Route path="/api/auth/oauth/kakao" element={<KakaoCallback />} />
           <Route path="/api/auth/oauth/google" element={<GoogleCallback />} />
           <Route path="/api/auth/oauth/naver" element={<NaverCallback />} />

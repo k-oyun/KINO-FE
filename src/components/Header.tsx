@@ -186,7 +186,7 @@ const Header = () => {
   const isMobile = useMediaQuery({ query: "(max-width: 767px)" });
   const { userInfoGet, logout } = useAuthApi();
   const menuItems = [
-    { label: "홈", path: "/" },
+    { label: "홈", path: "/home" },
     { label: "커뮤니티", path: "/community" },
     { label: "영화", path: "/movie" },
     { label: "내가 찜한 리스트", path: "/wish" },
@@ -261,7 +261,7 @@ const Header = () => {
           $ismobile={isMobile}
           src={logoText}
           alt="로고 이미지"
-          onClick={() => navigate("/")}
+          onClick={() => navigate("/home")}
         />
         <HeaderMenuContainer $ismobile={isMobile}>
           {isMobile ? (
