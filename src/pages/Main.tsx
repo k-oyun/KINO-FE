@@ -276,7 +276,7 @@ const MovieMeta = styled.div`
 
 const MoreBtn = styled.button`
   background: linear-gradient(90deg, #f06292 60%, #ff9f80 100%);
-  color: #fff;
+  color: white;
   font-weight: bold;
   border: none;
   border-radius: 22px;
@@ -293,12 +293,64 @@ const MoreBtn = styled.button`
   }
 `;
 
+const TeaserMetaContainer = styled.div<{ $ismobile?: boolean }>`
+  display: flex;
+  flex-direction: ${({ $ismobile }) => ($ismobile ? "column" : "row")};
+  align-items: center;
+  gap: 18px;
+  margin: ${({ $ismobile }) => ($ismobile ? "15px 0 0 20px" : "26px 0 0 20px")};
+  font-size: ${({ $ismobile }) => ($ismobile ? "15px" : "18px")};
+  color: #c6c6c6;
+`;
+
+const TeaserGenre = styled.div`
+  display: flex;
+  gap: 8px;
+`;
+
+const TeaserBtnContainer = styled.div<{ $ismobile?: boolean }>`
+  width: 100%;
+  height: 100%;
+  top: 82%;
+  left: 0px;
+  position: absolute;
+  color: #c6c6c6;
+  z-index: 5000;
+  /* background-color: red; */
+`;
+
+const TeaserDetailBtn = styled(motion.button)<{ $ismobile?: boolean }>`
+  background: linear-gradient(90deg, #f06292 60%, #ff9f80 100%);
+  color: white;
+  font-weight: 700;
+  border: none;
+  border-radius: 15px;
+  width: 100px;
+  height: 40px;
+  position: absolute;
+  top: 10px;
+  right: 170px;
+  padding: ${({ $ismobile }) => ($ismobile ? "7px 16px" : "7px 26px")};
+  font-size: ${({ $ismobile }) => ($ismobile ? "15px" : "13px")};
+  backdrop-filter: blur(16px) saturate(130%);
+  box-shadow: 0 2px 18px 3px rgba(240, 98, 146, 0.1),
+    0 0 16px 4px rgba(240, 98, 146, 0.22),
+    0 1.5px 12px 2px rgba(255, 159, 128, 0.12);
+  border: 1.2px solid rgba(255, 255, 255, 0.16);
+  cursor: pointer;
+  overflow: hidden;
+  z-index: 10;
+`;
+
 interface TeaserType {
   movieId: number;
   title: string;
   teaserUrl: string;
   plot: string;
   stillCutUrl: string;
+  releaseDate: string;
+  runningTime: number;
+  genres: string[];
 }
 
 interface TopLikeReviewListType {
@@ -335,6 +387,9 @@ const Main = () => {
     teaserUrl: "",
     plot: "",
     stillCutUrl: "",
+    releaseDate: "",
+    runningTime: 0,
+    genres: [],
   });
 
   const [topLikeReviewList, setTopLikeReviewList] = useState<
@@ -350,14 +405,14 @@ const Main = () => {
   const [recommendedMovieList, setRecommendedMovieList] = useState<MovieList[]>(
     []
   );
-
   const [searchedMovieList, setSearchedMovieList] = useState<MovieList[]>([]);
+  const [showIframe, setShowIframe] = useState(false);
+  const [hoveredMovie, setHoveredMovie] = useState<MovieList | null>(null);
 
   const getHomeData = async () => {
     setIsReviewLoading(true);
     setIsMovieLoading(true);
     const res = await getHomeApi();
-
     setTeaser(res.data.data.teaser);
     setTopLikeReviewList(res.data.data.topLikeReviewList);
     setTopPickMovieList(res.data.data.topPickMovieList);
@@ -408,18 +463,6 @@ const Main = () => {
     recommendedMovieList, // 추천 TOP 10 영화 (필요하다면 추가)
   ];
 
-  const [showIframe, setShowIframe] = useState(false);
-
-  const [hoveredMovie, setHoveredMovie] = useState<MovieList | null>(null);
-  useEffect(() => {
-    console.log(hoveredMovie);
-  }, [hoveredMovie]);
-
-  useEffect(() => {
-    if (hoveredMovie) {
-      console.log("hoveredMovie.genre:", hoveredMovie);
-    }
-  }, [hoveredMovie]);
   return (
     <>
       {isNewUser && <SurveyModal setIsNewUser={setIsNewUser} />}
@@ -466,9 +509,68 @@ const Main = () => {
                   <TeaserTitleContainer $ismobile={isMobile}>
                     {teaser.title}
                   </TeaserTitleContainer>
+
                   <TeaserExplainContainer $ismobile={isMobile}>
                     {teaser.plot}
                   </TeaserExplainContainer>
+                  <TeaserMetaContainer $ismobile={isMobile}>
+                    <span>개봉일: {teaser.releaseDate || "개봉 예정"}</span>
+                    <span>
+                      러닝타임:
+                      {teaser.runningTime
+                        ? ` ${teaser.runningTime}분`
+                        : " 개봉 예정"}
+                    </span>
+                  </TeaserMetaContainer>
+                  <TeaserMetaContainer>
+                    <TeaserGenre>
+                      {teaser.genres.map((g) => (
+                        <GenreTag key={g}>{g} </GenreTag>
+                      ))}
+                    </TeaserGenre>
+                  </TeaserMetaContainer>
+                  <TeaserBtnContainer
+                    onMouseEnter={() => {
+                      setShowIframe(false);
+                    }}
+                    onMouseLeave={() => {
+                      setShowIframe(true);
+                    }}
+                  >
+                    <TeaserDetailBtn
+                      $ismobile={isMobile}
+                      onClick={() => {
+                        navigate(`/movie/${teaser.movieId}`);
+                      }}
+                      whileHover={{
+                        filter: "brightness(93%)",
+                        scale: 1.05,
+                      }}
+                      whileTap={{
+                        scale: 0.96,
+                        filter: "brightness(87%)",
+                      }}
+                      animate={{
+                        boxShadow: [
+                          "0 0 8px 1px #f0629280, 0 3px 10px rgba(240,98,146,0.10)",
+                          "0 0 20px 5px #f06292cc, 0 8px 22px rgba(240,98,146,0.17)",
+                          "0 0 8px 1px #f0629280, 0 3px 10px rgba(240,98,146,0.10)",
+                        ],
+                      }}
+                      transition={{
+                        boxShadow: {
+                          duration: 1.7,
+                          repeat: Infinity,
+                          repeatType: "loop",
+                          ease: "easeInOut",
+                        },
+                        scale: { type: "spring", stiffness: 350, damping: 22 },
+                        filter: { duration: 0.22 },
+                      }}
+                    >
+                      상세보기
+                    </TeaserDetailBtn>
+                  </TeaserBtnContainer>
                 </VideoHiddenContainer>
               ) : (
                 <VideoSkeletonBox

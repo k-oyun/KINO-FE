@@ -21,7 +21,7 @@ function KakaoCallback() {
     if (code) {
       console.log("code 가져옴:", code);
       handleLogin(code).then(() => {
-        window.location.href = "/";
+        window.location.href = "/main";
       });
     }
   }, [searchParams, navigate]);

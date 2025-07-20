@@ -31,8 +31,8 @@ import { useEffect, useRef } from "react";
 import { useMediaQuery } from "react-responsive";
 
 const HeaderSelector = ({ path }: { path: string }) => {
-  if (path === "/Login" || path === "/login") return null;
   if (path === "/") return null;
+  if (path === "/Main" || path === "/main") return null;
 
   return <Header />;
 };
@@ -89,7 +89,7 @@ const AppContents = () => {
             onConfirm: () => {
               localStorage.removeItem("accessToken");
               localStorage.removeItem("refreshToken");
-              window.location.href = "/login";
+              window.location.href = "/";
               closeDialog();
             },
           });
@@ -111,8 +111,8 @@ const AppContents = () => {
         <GlobalStyle />
         <HeaderSelector path={path} />
         <Routes>
-          <Route path="/" element={<Main />}></Route>
-          <Route path="/login" element={<Login />}></Route>
+          <Route path="/main" element={<Main />}></Route>
+          <Route path="/" element={<Login />}></Route>
           <Route path="/api/auth/oauth/kakao" element={<KakaoCallback />} />
           <Route path="/api/auth/oauth/google" element={<GoogleCallback />} />
           <Route path="/api/auth/oauth/naver" element={<NaverCallback />} />
