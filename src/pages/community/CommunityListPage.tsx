@@ -12,7 +12,7 @@ interface DetailReview {
   userNickname: string;
   title: string;
   content: string;
-  mine: boolean;
+  isMine: boolean;
   likeCount: number;
   totalViews: number;
   commentCount: number;
@@ -293,7 +293,7 @@ const CommunityListPage: React.FC = () => {
               <DetailReviewCard
                 key={post.reviewId}
                 review={post}
-                isMine={post.mine}
+                isMine={post.isMine}
                 isMobile={isMobile}
                 showProfile={true}
                 onClick={() => handlePostClick(post.reviewId)}

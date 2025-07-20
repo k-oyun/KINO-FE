@@ -111,6 +111,12 @@ const ContentArea = styled.div`
   min-height: 200px;
   white-space: pre-wrap;
   padding: 20px;
+  img {
+    max-width: 100%;
+    object-fit: cover;
+    height: auto;
+    display: block;
+  }
 `;
 
 // --- 버튼 그룹 및 스타일 ---

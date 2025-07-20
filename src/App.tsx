@@ -124,6 +124,7 @@ const AppContents = () => {
 
           <Route path="/movie" element={<Movie />}></Route>
           <Route path="/movie/:id" element={<MovieDetail />}></Route>
+          <Route path="/movie/:movie/new" element={<CommunityCreatePage />} />
 
           <Route path="/admin" element={<Admin />}></Route>
 

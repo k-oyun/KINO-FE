@@ -69,6 +69,17 @@ export const useReviewsApi = () => {
     return await axios.put(`/review/${reviewId}/heart`);
   };
 
+  const uploadImage = async (file: File) => {
+    const data = new FormData();
+    data.append("upload", file);
+
+    return await axios.post(`/img`, data, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+  };
+
   return {
     getReviews,
     postReview,
@@ -80,6 +91,7 @@ export const useReviewsApi = () => {
     getComments,
     deleteComment,
     updateComment,
+    uploadImage,
   };
 };
 

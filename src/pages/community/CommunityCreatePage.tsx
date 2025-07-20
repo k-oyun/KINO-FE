@@ -107,7 +107,9 @@ const CommunityCreatePage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const isMobile = useMediaQuery({ query: "(max-width: 768px)" });
   const { id } = useParams<{ id: string }>();
-  const { postReview, updateReview, getReviewById } = useReviewsApi();
+  const { movie } = useParams<{ movie: string }>();
+  const { postReview, updateReview, getReviewById, uploadImage } =
+    useReviewsApi();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -162,9 +164,38 @@ const CommunityCreatePage: React.FC = () => {
         }
       };
       fetchReview();
+    } else if (movie) {
+      // 영화 ID가 있을 경우
+      setMovieId(parseInt(movie));
     }
   }, [id]);
 
+  const customUploadAdapter = (loader: any) => {
+    return {
+      upload() {
+        return new Promise((resolve, reject) => {
+          loader.file.then((file: any) => {
+            const res = uploadImage(file);
+            res
+              .then((res) => {
+                resolve({
+                  default: `${res.data.url}`,
+                });
+              })
+              .catch((err) => reject(err));
+          });
+        });
+      },
+    };
+  };
+
+  function uploadPlugin(editor: any) {
+    editor.plugins.get("FileRepository").createUploadAdapter = (
+      loader: any
+    ) => {
+      return customUploadAdapter(loader);
+    };
+  }
   return (
     <OutContainer>
       <PageWrapper $ismobile={isMobile}>
@@ -208,13 +239,7 @@ const CommunityCreatePage: React.FC = () => {
                 config={{
                   placeholder: "내용을 입력하세요...",
                   licenseKey: "GPL",
-                  simpleUpload: {
-                    uploadUrl: "http://43.203.218.183:8080/api/img",
-                    headers: {
-                      Authorization:
-                        "Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiI1NSIsInR5cGUiOiJBQ0NFU1MiLCJhdXRoIjoiUk9MRV9VU0VSIiwiaWF0IjoxNzUyODk5Nzg4LCJleHAiOjE3NTI5MDMzODh9.vE6HLt2KQO13onSQQNKL_cw9WMetCgfl6k5YHSWDrE2bPhpX91Os0fUTE_KcGKOJprd9Ybvt9BRym5pvE0GhJA",
-                    },
-                  },
+                  extraPlugins: [uploadPlugin],
                 }}
               />
             </EditorWrapper>
