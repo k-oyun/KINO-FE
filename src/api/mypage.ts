@@ -62,6 +62,15 @@ export const useMypageApi = () => {
         });
     };
 
+    const updateShortReview = async (reviewId: string, payload: { movieTitle: string; content: string; rating: number }) => {
+        return await axios.put(`/mypage/shortReview/${reviewId}`, payload);
+    };
+
+    const deleteShortReview = async (reviewId: string) => {
+        return await axios.delete(`/mypage/shortReview/${reviewId}`);
+    };
+
+
     return {
         mypageMain,
         mypageMyPickMovie,
@@ -75,6 +84,8 @@ export const useMypageApi = () => {
         updateProfile,
         getGenre,
         updateGenre,
+        updateShortReview,
+        deleteShortReview,
     };
 };
 export default useMypageApi;

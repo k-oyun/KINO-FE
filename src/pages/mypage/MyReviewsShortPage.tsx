@@ -135,7 +135,6 @@ const SortButton = styled.button<{ isActive: boolean }>`
 const ReviewList = styled.div`
   display: flex;
   flex-direction: column;
-  /* gap: 15px; -> ShortReviewCard margin-bottom 사용 */
 `;
 
 const EmptyState = styled.div`
@@ -156,17 +155,19 @@ const PinkText = styled.span`
 `;
 
 interface PageInfo {
-  currentPage: number;       
-  size: number;              
-  pageContentAmount: number; 
+  currentPage: number;
+  size: number;
+  pageContentAmount: number;
 }
 
-const ITEMS_PER_PAGE = 10; 
+const ITEMS_PER_PAGE = 10;
 
 const MyReviewsShortPage: React.FC = () => {
   const navigate = useNavigate();
-  const [sortOrder, setSortOrder] = useState<"latest" | "likes" | "rating">("latest");
-  const { mypageShortReview } = useMypageApi();
+  const [sortOrder, setSortOrder] = useState<"latest" | "likes" | "rating">(
+    "latest"
+  );
+  const { mypageShortReview } = useMypageApi(); 
 
   const [shortReviews, setShortReviews] = useState<ShortReviewType[]>([]);
 
@@ -205,9 +206,9 @@ const MyReviewsShortPage: React.FC = () => {
   }, [shortReviews, sortOrder]);
 
   useEffect(() => {
-    const totalPages = Math.ceil(sortedReviews.length / ITEMS_PER_PAGE) || 0;
+    const totalPages = Math.ceil(sortedReviews.length / ITEMS_PER_PAGE);
     setPageInfo((prev) => {
-      const currentPage = prev.currentPage >= totalPages ? 0 : prev.currentPage;
+      const currentPage = prev.currentPage >= totalPages ? Math.max(0, totalPages - 1) : prev.currentPage;
       return {
         ...prev,
         currentPage,
@@ -229,6 +230,40 @@ const MyReviewsShortPage: React.FC = () => {
   const handleReviewClick = (reviewId: string) => {
     navigate(`/reviews/short/${reviewId}`);
   };
+
+const { updateShortReview, deleteShortReview } = useMypageApi();
+
+const handleEditReview = async (updatedReview: ShortReviewType) => {
+  try {
+    await updateShortReview(updatedReview.shortReviewId, {
+      movieTitle: updatedReview.movieTitle,
+      content: updatedReview.content,
+      rating: updatedReview.rating,
+    });
+
+    setShortReviews((prev) =>
+      prev.map((r) =>
+        r.shortReviewId === updatedReview.shortReviewId ? updatedReview : r
+      )
+    );
+  } catch (error) {
+    console.error(error);
+    alert("한줄평 수정 실패");
+  }
+};
+
+const handleDeleteReview = async (reviewId: string) => {
+  if (window.confirm("이 한줄평을 정말 삭제할까요?")) {
+    try {
+      await deleteShortReview(reviewId);
+      setShortReviews((prev) => prev.filter((r) => r.shortReviewId !== reviewId));
+    } catch (error) {
+      console.error(error);
+      alert("삭제 실패");
+    }
+  }
+};
+
 
   return (
     <PageContainer>
@@ -286,6 +321,8 @@ const MyReviewsShortPage: React.FC = () => {
                   key={review.shortReviewId}
                   review={review}
                   onClick={() => handleReviewClick(review.shortReviewId)}
+                  onEdit={handleEditReview}
+                  onDelete={handleDeleteReview}
                 />
               ))}
             </ReviewList>
@@ -293,7 +330,7 @@ const MyReviewsShortPage: React.FC = () => {
             {pageInfo.pageContentAmount > 1 && (
               <Pagination
                 size={pageInfo.size}
-                itemsPerPage={ITEMS_PER_PAGE} 
+                itemsPerPage={ITEMS_PER_PAGE}
                 pageContentAmount={pageInfo.pageContentAmount}
                 currentPage={pageInfo.currentPage}
                 setPageInfo={setPageInfo}
