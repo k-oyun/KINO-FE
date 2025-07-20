@@ -393,7 +393,7 @@ const MainHeader = ({ keyword, setKeyword, setIsNewUser }: HeaderProps) => {
         title="알림"
         message={"로그아웃 되었습니다!"}
         onConfirm={() => {
-          navigate("/login");
+          navigate("/");
         }}
         showCancel={false}
         isRedButton={true}
