@@ -5,7 +5,7 @@ import SurveyModal from "../components/SurveyModal";
 import useHomeApi from "../api/home";
 import { useMediaQuery } from "react-responsive";
 import logo from "../assets/img/Logo.png";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, hover, motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 
 interface styleType {
@@ -246,12 +246,13 @@ const MovieGenre = styled.div`
 `;
 
 const GenreTag = styled.span<styleType>`
-  background: rgba(240, 98, 146, 0.18);
+  background: rgba(240, 98, 146, 0.44);
   border-radius: 50px;
   padding: ${(props) =>
     props.$ismobile ? "2px 6px 2px 6px" : "3px 13px 2px 13px"};
   font-size: ${(props) => (props.$ismobile ? "5px" : "16px")};
   color: #f06292;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
   font-weight: 700;
   letter-spacing: 0.16px;
   box-shadow: 0 2px 6px 0 rgba(240, 98, 146, 0.1);
@@ -467,7 +468,9 @@ const Main = () => {
     monthlyTopMovieList, // 월별 조회수 TOP 10 영화
     recommendedMovieList, // 추천 TOP 10 영화 (필요하다면 추가)
   ];
-
+  // useEffect(() => {
+  //   console.log(hoveredMovie);
+  // }, [hoveredMovie]);
   return (
     <>
       {isNewUser && <SurveyModal setIsNewUser={setIsNewUser} />}
@@ -628,6 +631,8 @@ const Main = () => {
                       onClick={() => {
                         navigate(`/movie/${movie.movie_id}`);
                       }}
+                      onMouseEnter={() => setHoveredMovie(movie)}
+                      onMouseLeave={() => setHoveredMovie(null)}
                     >
                       <MoviePosterImg
                         src={movie.still_cut_url}
