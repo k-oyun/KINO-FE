@@ -191,7 +191,7 @@ const Comment: React.FC<CommentProps> = ({
         const newComments = data.data.data.content as CommentType[];
         setComments((prev) => [...prev, ...newComments]);
         setPage((prev) => prev + 1);
-        if (data.data.last) {
+        if (data.data.data.last) {
           setHasMore(false);
         }
         setError(null);
@@ -238,10 +238,7 @@ const Comment: React.FC<CommentProps> = ({
     }
 
     try {
-      const res = postComment({
-        reviewId: postId,
-        commentContent: commentContent,
-      });
+      const res = postComment(postId, commentContent);
       res.then((data) => {
         console.log("댓글 등록 성공:", data.data);
         setComments((prev) => [data.data.data, ...prev]);

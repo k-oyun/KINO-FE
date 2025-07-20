@@ -3,6 +3,7 @@ import { styled } from "styled-components";
 import { formatDistanceToNow } from "date-fns";
 import { ko } from "date-fns/locale";
 import ReportModal from "../ReportModal";
+import parse from "html-react-parser";
 
 interface DetailReview {
   reviewId: string;
@@ -263,22 +264,6 @@ const DetailReviewCard: React.FC<DetailReviewCardProps> = ({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [menuOpen]);
 
-  // createdAt 문자열을 Date 객체로 파싱하여 formatDistanceToNow 사용
-  // "YYYY.MM.DD HH:MM" 형태를 Date 객체로 변환
-  const parseDateString = (dateStr: string): Date | null => {
-    const parts = dateStr.split(/[. :]/); // '.', ' ', ':' 기준으로 분리
-    if (parts.length === 5) {
-      return new Date(
-        parseInt(parts[0]),
-        parseInt(parts[1]) - 1,
-        parseInt(parts[2]),
-        parseInt(parts[3]),
-        parseInt(parts[4])
-      );
-    }
-    return null;
-  };
-
   return (
     <>
       <DetailReviewCardContainer $ismobile={isMobile} onClick={onClick}>
@@ -311,7 +296,9 @@ const DetailReviewCard: React.FC<DetailReviewCardProps> = ({
                 영화: {movieTitle}
               </DetailReviewMovieTitleText>
             )}
-            <ReviewText $ismobile={isMobile}>{review.content}</ReviewText>
+            <ReviewText $ismobile={isMobile}>
+              {parse(review.content)}
+            </ReviewText>
             <DetailReviewFooter $ismobile={isMobile}>
               <MetaInfo $ismobile={isMobile}>
                 <Heart

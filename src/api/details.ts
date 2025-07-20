@@ -5,16 +5,22 @@ export const useMovieDetailApi = () => {
     return await axios.get(`/${movieId}/info`);
   };
 
-  const postShortReview = async (movieId: number, content: string) => {
-    return await axios.post(`/${movieId}/short-reviews`, { content });
+  const postShortReview = async (
+    movieId: number,
+    rating: number,
+    content: string
+  ) => {
+    return await axios.post(`/${movieId}/short-reviews`, { rating, content });
   };
 
   const updateShortReview = async (
     movieId: number,
     reviewId: number,
+    rating: number,
     content: string
   ) => {
     return await axios.put(`/${movieId}/short-reviews/${reviewId}`, {
+      rating,
       content,
     });
   };

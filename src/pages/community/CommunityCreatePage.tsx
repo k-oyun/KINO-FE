@@ -123,25 +123,14 @@ const CommunityCreatePage: React.FC = () => {
     try {
       if (id) {
         // 수정 모드
-        const payload = {
-          reviewTitle: title,
-          reviewContent: content,
-          movieId: movieId,
-          reviewId: parseInt(id),
-        };
-        const res = updateReview(payload);
+        const res = updateReview(title, content, movieId, parseInt(id));
         res.then((data) => {
           console.log("게시글 수정 성공:", data.data);
           navigate(`/community/${data.data.data}`);
         });
         return;
       } else {
-        const payload = {
-          reviewTitle: title,
-          reviewContent: content,
-          movieId: movieId,
-        };
-        const res = postReview(payload);
+        const res = postReview(title, content, movieId);
         res.then((data) => {
           console.log("게시글 작성 성공:", data.data);
           navigate(`/community/${data.data.data}`);
