@@ -89,7 +89,12 @@ const Review = ({ isMobile, movieId }: ReviewProps) => {
     <ReviewContainer $ismobile={isMobile}>
       <Head $ismobile={isMobile}>
         <div>리뷰가 총 {reviews ? reviews.length : 0} 개 등록되어 있어요!</div>
-        <WriteBtn $ismobile={isMobile}>작성하기</WriteBtn>
+        <WriteBtn
+          $ismobile={isMobile}
+          onClick={() => navigate(`/movie/${movieId}/new`)}
+        >
+          작성하기
+        </WriteBtn>
       </Head>
       {reviews &&
         reviews.map((review) => (

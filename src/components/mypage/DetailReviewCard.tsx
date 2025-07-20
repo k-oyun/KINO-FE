@@ -49,7 +49,7 @@ const CardBase = styled.div<styleType>`
   }
 `;
 
-const ReviewText = styled.p<styleType>`
+const ReviewText = styled.div<styleType>`
   margin: 0;
   font-size: ${(props) => (props.$ismobile ? "0.7em" : "1em")};
   white-space: pre-wrap;
@@ -63,6 +63,12 @@ const ReviewText = styled.p<styleType>`
   word-break: break-word;
   min-height: ${(props) => (props.$ismobile ? "5vh" : "8vh")};
   color: #333;
+
+  img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+  }
 `;
 
 const MetaInfo = styled.div<styleType>`
