@@ -51,7 +51,7 @@ const MoviePosters = styled.img<styleType>`
 const MovieList = ({ isMobile, movies }: MovieListProps) => {
   const navigate = useNavigate();
   const handleMovieClick = (movieId: number) => {
-    navigate(`/movies/${movieId}`);
+    navigate(`/movie/${movieId}`);
   };
   return (
     <MovieListContainer $ismobile={isMobile}>
@@ -63,7 +63,7 @@ const MovieList = ({ isMobile, movies }: MovieListProps) => {
         >
           <MoviePosters
             $ismobile={isMobile}
-            src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
+            src={movie.posterUrl}
             alt={movie.title}
           />
         </MovieItem>

@@ -1,23 +1,5 @@
 import axios from "./AxiosInstance";
 
-interface ReviewPayload {
-  movieId: number;
-  reviewTitle: string;
-  reviewContent: string;
-}
-
-interface ReviewEdit {
-  reviewId: number;
-  reviewTitle: string;
-  reviewContent: string;
-  movieId: number;
-}
-
-interface CommentPayload {
-  reviewId: number;
-  commentContent: string;
-}
-
 export const useReviewsApi = () => {
   const getReviews = async (page: number, size: number) => {
     return await axios.get(`/review/reviews`, {
@@ -32,16 +14,30 @@ export const useReviewsApi = () => {
     return await axios.get(`/review/${reviewId}`);
   };
 
-  const postReview = async (payload: ReviewPayload) => {
-    return await axios.post(`/review`, payload);
+  const postReview = async (
+    reviewTitle: string,
+    reviewContent: string,
+    movieId: number
+  ) => {
+    return await axios.post(`/review`, { reviewTitle, reviewContent, movieId });
   };
 
-  const updateReview = async (payload: ReviewEdit) => {
-    return await axios.put(`/review`, payload);
+  const updateReview = async (
+    reviewTitle: string,
+    reviewContent: string,
+    movieId: number,
+    reviewId: number
+  ) => {
+    return await axios.put(`/review`, {
+      reviewContent,
+      reviewTitle,
+      movieId,
+      reviewId,
+    });
   };
 
-  const postComment = async (payload: CommentPayload) => {
-    return await axios.post(`/comment`, payload);
+  const postComment = async (reviewId: number, commentContent: string) => {
+    return await axios.post(`/comment`, { reviewId, commentContent });
   };
 
   const getComments = async (reviewId: number, page: number, size: number) => {
@@ -53,8 +49,12 @@ export const useReviewsApi = () => {
     });
   };
 
-  const updateComment = async (commentId: number, content: string) => {
-    return await axios.put(`/comment/${commentId}`, { content });
+  const updateComment = async (
+    commentId: number,
+    reviewId: number,
+    content: string
+  ) => {
+    return await axios.put(`/comment/${commentId}`, { reviewId, content });
   };
 
   const deleteReview = async (reviewId: number) => {

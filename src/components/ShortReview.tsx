@@ -3,7 +3,7 @@ import StarRatings from "react-star-ratings";
 import { useEffect, useState } from "react";
 import ReportModal from "./ReportModal";
 import useMovieDetailApi from "../api/details";
-import { formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow, set } from "date-fns";
 import { ko } from "date-fns/locale";
 import { formatDate, utcToKstString } from "../utils/date";
 
@@ -23,6 +23,7 @@ interface Review {
   userProfile: string;
   content: string;
   createdAt: string;
+  rating: number;
   mine: boolean;
   likeCount: number;
   liked: boolean;
@@ -88,6 +89,7 @@ const UserProfile = styled.div<styleType>`
   padding: ${(props) => (props.$ismobile ? "10px" : "20px")};
   padding-bottom: 0;
   display: flex;
+  padding-top: ${(props) => (props.$ismobile ? "15px" : "20px")};
 `;
 
 const UserImage = styled.img<styleType>`
@@ -105,7 +107,7 @@ const UserText = styled.div<styleType>`
   display: flex;
   flex-direction: column;
   margin-left: ${(props) => (props.$ismobile ? "15px" : "20px")};
-  margin-top: ${(props) => (props.$ismobile ? "3px" : "6px")};
+  margin-right: ${(props) => (props.$ismobile ? "10px" : "20px")};
 `;
 
 const UserNickname = styled.div<styleType>`
@@ -214,24 +216,24 @@ const ShortReview = ({ isMobile, movieId }: ShortReviewProps) => {
     setEditReviewId(0); // Reset edit mode when rating changes
     setEditText(""); // Clear edit text when rating changes
   };
+  const handleEditRatingChange = (newRating: number) => {
+    setRating(newRating);
+  };
   const handleReviewWrite = () => {
     if (review.trim() === "") {
       // alert("한줄평을 입력해주세요.");
       return;
     }
     try {
-      const res = postShortReview(movieId, review);
+      const res = postShortReview(movieId, rating, review);
       res.then((data) => {
         console.log("Review written successfully:", data);
-        setReviews((prevReviews) => [
-          ...prevReviews,
-          { ...data.data.data, mine: true },
-        ]);
+        setReviews((prevReviews) => [{ ...data.data.data }, ...prevReviews]);
         setReview("");
+        setRating(0);
       });
     } catch (error: any) {
       console.error("Error writing review:", error);
-      // alert("리뷰 작성에 실패했습니다.");
     }
   };
   const handleLikeClick = (reviewId: number, liked: boolean) => {
@@ -263,10 +265,15 @@ const ShortReview = ({ isMobile, movieId }: ShortReviewProps) => {
   const handleReportClick = () => {
     setIsReportOpen(true);
   };
-  const handleReviewEdit = (reviewId: number, oldContent: string) => {
+  const handleReviewEdit = (
+    reviewId: number,
+    oldContent: string,
+    reviewRating: number
+  ) => {
     setEditReviewId(reviewId);
     setEditText(oldContent);
-    setRating(0); // Reset rating after editing
+    setRating(reviewRating); // Reset rating after editing
+    console.log("Editing review:", editReviewId, oldContent);
   };
   const handleReviewUpdate = () => {
     if (editText.trim() === "") {
@@ -274,7 +281,7 @@ const ShortReview = ({ isMobile, movieId }: ShortReviewProps) => {
       return;
     }
     try {
-      const res = updateShortReview(movieId, editReviewId, editText);
+      const res = updateShortReview(movieId, editReviewId, rating, editText);
       res.then((data) => {
         console.log("Review updated successfully:", data);
         setReviews((prevReviews) =>
@@ -290,6 +297,7 @@ const ShortReview = ({ isMobile, movieId }: ShortReviewProps) => {
         );
         setEditReviewId(0);
         setEditText("");
+        setRating(0);
       });
     } catch (error: any) {
       console.error("Error updating review:", error);
@@ -298,8 +306,10 @@ const ShortReview = ({ isMobile, movieId }: ShortReviewProps) => {
   };
 
   const handleEditCancel = () => {
+    setRating(0);
     setEditReviewId(0);
     setEditText("");
+    setReview("");
   };
   const handleReviewDelete = (reviewId: number) => {
     try {
@@ -331,34 +341,38 @@ const ShortReview = ({ isMobile, movieId }: ShortReviewProps) => {
   return (
     <>
       <ReviewContainer $ismobile={isMobile}>
-        <StarRatings
-          rating={rating}
-          numberOfStars={5}
-          name="rating"
-          starDimension={isMobile ? "30px" : "50px"}
-          starSpacing={isMobile ? "2px" : "4px"}
-          changeRating={handleRatingChange}
-          starEmptyColor="#d9d9d9"
-          starHoverColor="#F73C63"
-          starRatedColor="#FD6782"
-        ></StarRatings>
-        {rating > 0 && (
-          <ShortWrite>
-            <ShortText
-              $ismobile={isMobile}
-              value={review}
-              onChange={(e) => setReview(e.target.value)}
-              placeholder="한줄평을 남겨주세요!"
-            ></ShortText>
-            <ShortButton
-              $ismobile={isMobile}
-              $isEdit={false}
-              onClick={() => handleReviewWrite()}
-            >
-              리뷰 작성
-            </ShortButton>
-          </ShortWrite>
+        {editReviewId === 0 && (
+          <StarRatings
+            rating={rating}
+            numberOfStars={5}
+            name="rating"
+            starDimension={isMobile ? "30px" : "50px"}
+            starSpacing={isMobile ? "2px" : "4px"}
+            changeRating={handleRatingChange}
+            starEmptyColor="#d9d9d9"
+            starHoverColor="#F73C63"
+            starRatedColor="#FD6782"
+          ></StarRatings>
         )}
+        <div style={{ marginTop: "10px" }}>
+          {rating > 0 && editReviewId === 0 && (
+            <ShortWrite>
+              <ShortText
+                $ismobile={isMobile}
+                value={review}
+                onChange={(e) => setReview(e.target.value)}
+                placeholder="한줄평을 남겨주세요!"
+              ></ShortText>
+              <ShortButton
+                $ismobile={isMobile}
+                $isEdit={false}
+                onClick={() => handleReviewWrite()}
+              >
+                리뷰 작성
+              </ShortButton>
+            </ShortWrite>
+          )}
+        </div>
         <ReviewList $ismobile={isMobile}>
           {reviews &&
             reviews.map((review, id) => (
@@ -378,6 +392,29 @@ const ShortReview = ({ isMobile, movieId }: ShortReviewProps) => {
                       })}
                     </UserCreatedAt>
                   </UserText>
+                  {editReviewId === review.shortReviewId ? (
+                    <StarRatings
+                      rating={rating}
+                      numberOfStars={5}
+                      name="rating"
+                      starDimension={isMobile ? "15px" : "30px"}
+                      starSpacing={isMobile ? "1px" : "2px"}
+                      changeRating={handleEditRatingChange}
+                      starEmptyColor="#d9d9d9"
+                      starHoverColor="#F73C63"
+                      starRatedColor="#FD6782"
+                    ></StarRatings>
+                  ) : (
+                    <StarRatings
+                      rating={review.rating}
+                      numberOfStars={5}
+                      name="rating"
+                      starDimension={isMobile ? "15px" : "30px"}
+                      starSpacing={isMobile ? "1px" : "2px"}
+                      starEmptyColor="#d9d9d9"
+                      starRatedColor="#FD6782"
+                    ></StarRatings>
+                  )}
                 </UserProfile>
                 {editReviewId === review.shortReviewId ? (
                   <EditBox $ismobile={isMobile}>
@@ -440,7 +477,8 @@ const ShortReview = ({ isMobile, movieId }: ShortReviewProps) => {
                             onClick={() =>
                               handleReviewEdit(
                                 review.shortReviewId,
-                                review.content
+                                review.content,
+                                review.rating
                               )
                             }
                           >

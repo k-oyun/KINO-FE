@@ -12,7 +12,6 @@ interface styleType {
 }
 
 const TagContainer = styled.div<styleType>`
-  width: 100%;
   overflow-x: ${(props) => (props.$ismobile ? "auto" : "visible")};
   /* 모바일에서 가로 스크롤 시 스크롤바 안보이게 */
   &::-webkit-scrollbar {
@@ -22,7 +21,7 @@ const TagContainer = styled.div<styleType>`
 
 const GenreList = styled.ul<styleType>`
   list-style-type: none;
-  margin: ${(props) => (props.$ismobile ? "5px 10px 0px 13px" : "0")};
+  margin: ${(props) => (props.$ismobile ? "5px 13px 0px 13px" : "0")};
   display: flex;
   flex-wrap: ${(props) => (props.$ismobile ? "nowrap" : "wrap")};
   justify-content: ${(props) => (props.$ismobile ? "flex-start" : "center")};

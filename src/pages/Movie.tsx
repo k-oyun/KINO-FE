@@ -1,7 +1,7 @@
 import styled from "styled-components";
 import TagSelector from "../components/TagSelector";
 import MovieList from "../components/MovieList";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useMediaQuery } from "react-responsive";
 import { useMovieApi } from "../api/movie";
 
@@ -35,14 +35,14 @@ const genresKOR = [
   { id: 27, name: "공포" },
   { id: 28, name: "액션" },
   { id: 35, name: "코미디" },
-  { id: 36, name: "역사" },
-  { id: 37, name: "서부" },
+  // { id: 36, name: "역사" },
+  // { id: 37, name: "서부" },
   { id: 53, name: "스릴러" },
   { id: 80, name: "범죄" },
   { id: 99, name: "다큐멘터리" },
   { id: 878, name: "SF" },
   { id: 9648, name: "미스터리" },
-  { id: 10402, name: "음악" },
+  // { id: 10402, name: "음악" },
   { id: 10749, name: "로맨스" },
   { id: 10751, name: "가족" },
   { id: 10752, name: "전쟁" },
@@ -55,35 +55,83 @@ const MovieContainer = styled.div`
   margin-top: 65px; /* Adjust based on Header height + 5px*/
 `;
 
+const EmptyState = styled.div`
+  /* color: #aaa; */
+  text-align: center;
+  padding: 30px 0;
+  font-size: 1.1em;
+
+  @media (max-width: 767px) {
+    padding: 20px 0;
+    font-size: 1em;
+  }
+`;
+
 interface Movie {
   movieId: number;
   title: string;
   posterUrl: string;
-  movieGenre: string[];
+  movieGenre: number[];
 }
 
 const Movie = () => {
   const [movies, setMovies] = useState<Movie[]>([]);
   const [selectedGenres, setSelectedGenres] = useState<number[]>([]);
+  const [page, setPage] = useState(0);
+  const pageSize = 20;
+  const [hasMore, setHasMore] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
+  const observerRef = useRef<HTMLDivElement | null>(null);
   const isMobile = useMediaQuery({ query: "(max-width: 767px)" });
   const { getMovies } = useMovieApi();
 
-  useEffect(() => {
-    console.log("Movie component mounted");
-    const res = getMovies();
-    res
-      .then((data) => {
-        console.log("Fetched movies:", data.data);
-        setMovies(data.data.data);
-      })
-      .catch((error) => {
-        console.error("Error fetching movies:", error);
-      });
-  }, []);
+  const loadMoreMovies = async () => {
+    if (isLoading || !hasMore) return;
+    setIsLoading(true);
+    try {
+      const res = await getMovies(page, pageSize, selectedGenres);
+      const newMovies = res.data.data.content as Movie[];
+      console.log("Fetched movies:", page, pageSize, newMovies);
+      setMovies((prev) => [...prev, ...newMovies]);
+      setPage((prev) => prev + 1);
+      if (res.data.data.last) {
+        setHasMore(false);
+      }
+    } catch (error) {
+      console.error("영화 데이터를 불러오지 못했습니다", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // useEffect(() => {
+  //   loadMoreMovies();
+  // }, []);
+
+  // useEffect(() => {
+  //   loadMoreMovies();
+  // }, [selectedGenres]);
 
   useEffect(() => {
-    // 선택된 장르에 따라 영화 리스트 불러오기
-  }, [selectedGenres]);
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !isLoading) {
+          loadMoreMovies();
+        }
+      },
+      { threshold: 0.5 }
+    );
+
+    if (observerRef.current) {
+      observer.observe(observerRef.current);
+    }
+
+    return () => {
+      if (observerRef.current) {
+        observer.unobserve(observerRef.current);
+      }
+    };
+  }, [hasMore, isLoading]);
 
   return (
     <MovieContainer>
@@ -101,6 +149,8 @@ const Movie = () => {
             selectedGenres.length === 0
         )}
       />
+      <div ref={observerRef} style={{ height: 1 }} /> {/* 감지용 sentinel */}
+      {isLoading && <EmptyState>불러오는 중...</EmptyState>}
     </MovieContainer>
   );
 };
