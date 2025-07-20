@@ -414,6 +414,8 @@ const Main = () => {
   const [searchedMovieList, setSearchedMovieList] = useState<MovieList[]>([]);
   const [showIframe, setShowIframe] = useState(false);
   const [hoveredMovie, setHoveredMovie] = useState<MovieList | null>(null);
+  const [hoveredReview, setHoveredReview] =
+    useState<TopLikeReviewListType | null>(null);
 
   const getHomeData = async () => {
     setIsReviewLoading(true);
@@ -692,6 +694,8 @@ const Main = () => {
                           stiffness: 250,
                           damping: 18,
                         }}
+                        onMouseEnter={() => setHoveredReview(review)}
+                        onMouseLeave={() => setHoveredReview(null)}
                       ></Movies>
                     ))
                   ) : (
@@ -802,6 +806,32 @@ const Main = () => {
                 >
                   상세보기
                 </MoreBtn>
+              </InfoSection>
+            </ModalBox>
+          </ModalContainer>
+        )}
+        {hoveredReview && (
+          <ModalContainer
+            onMouseEnter={() => setHoveredReview(hoveredReview)}
+            onMouseLeave={() => setHoveredReview(null)}
+          >
+            <ModalBox
+              initial={{ opacity: 0, y: 32 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 32 }}
+              transition={{
+                duration: 0.22,
+                ease: [0.44, 0.06, 0.36, 1],
+              }}
+            >
+              {/* <MoviePoster
+                src={hoveredReview.poster_url}
+                alt={hoveredReview.title}
+              /> */}
+              <InfoSection>
+                <MovieTitle>{hoveredReview.movieTitle}</MovieTitle>
+                <MovieTitle>{hoveredReview.reviewTitle}</MovieTitle>
+                <MoviePlot>{hoveredReview.content}</MoviePlot>
               </InfoSection>
             </ModalBox>
           </ModalContainer>
