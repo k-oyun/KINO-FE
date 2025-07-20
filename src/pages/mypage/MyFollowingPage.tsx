@@ -1,4 +1,4 @@
-  import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
   import styled from 'styled-components';
   import { useNavigate } from 'react-router-dom';
   import axios from 'axios';
@@ -6,6 +6,8 @@
   import UserListItem from '../../components/mypage/UserListItem';
   import VideoBackground from '../../components/VideoBackground';
   import useMyPageApi from '../../api/mypage';
+  import Pagination from '../../components/PageNation';
+
 
   export interface FollowingApiResponse {
     status: number;
@@ -25,6 +27,15 @@
     profileImageUrl: string;
     isFollowing: boolean;
   }
+
+  interface PageInfo {
+    currentPage: number;       
+    size: number;              
+    pageContentAmount: number; 
+  }
+
+  const ITEMS_PER_PAGE = 20; 
+
 
   const PageContainer = styled.div`
     max-width: 1200px;
@@ -145,8 +156,15 @@
     const [following, setFollowing] = useState<FollowingType[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
-    const myUserId = "1"; 
 
+    const myUserId = "1"; 
+    
+    const [pageInfo, setPageInfo] = useState<PageInfo>({
+      currentPage: 0,
+      size: ITEMS_PER_PAGE,
+      pageContentAmount: 0,
+    });
+    
     useEffect(() => {
       const loadFollowing = async () => {
         setLoading(true);
@@ -154,12 +172,12 @@
         try {
           const res = await getFollowing(Number(myUserId));
           const data: FollowingApiResponse["data"] | null = res.data.data;
-
           if (data) {
             const mappedFollowing: FollowingType[] = data.map(followedUser => ({
               id: String(followedUser.userId), 
               nickname: followedUser.nickname,
-              profileImageUrl: followedUser.profileImageUrl || `https://via.placeholder.com/50/CCCCCC/FFFFFF?text=${followedUser.nickname.substring(0,1)}`, 
+              profileImageUrl: followedUser.profileImageUrl || 
+              `https://via.placeholder.com/50/CCCCCC/FFFFFF?text=${followedUser.nickname.substring(0,1)}`, 
               isFollowing: followedUser.follow,
             }));
             setFollowing(mappedFollowing);
@@ -183,8 +201,27 @@
 
       loadFollowing();
     }, [getFollowing, myUserId, navigate]); 
+    
+    useEffect(() => {
+        const totalPages = Math.ceil(following.length / ITEMS_PER_PAGE) || 0;
+        setPageInfo((prev) => ({
+          ...prev,
+          currentPage: prev.currentPage >= totalPages ? 0 : prev.currentPage,
+          size: ITEMS_PER_PAGE,
+          pageContentAmount: totalPages,
+        }));
+      }, [following]);
+    
+      const currentFollowing = useMemo(() => {
+        const startIdx = pageInfo.currentPage * pageInfo.size;
+        const endIdx = startIdx + pageInfo.size;
+        return following.slice(startIdx, endIdx);
+      }, [following, pageInfo]);
 
-    const handleFollowToggle = async (targetUserId: string, isCurrentlyFollowing: boolean) => {
+    const handleFollowToggle = async (
+      targetUserId: string,
+      isCurrentlyFollowing: boolean
+    ) => {
       try {
         if (isCurrentlyFollowing) {
           await unfollowUser(Number(targetUserId)); 
@@ -195,7 +232,8 @@
         } else {
           await followUser(Number(targetUserId));
           console.log(`User ${targetUserId} 팔로우 성공`);
-          setFollowing(prevFollowing =>
+          setFollowing(
+            prevFollowing =>
               prevFollowing.map(u => u.id === targetUserId ? { ...u, isFollowing: true } : u)
           );
         }
@@ -223,8 +261,9 @@
           ) : error ? (
             <EmptyState>오류 발생: {error}</EmptyState>
           ) : following.length > 0 ? (
+          <>
             <UserList>
-              {following.map((followedUser) => (
+              {currentFollowing.map((followedUser) => (
                 <UserListItem
                   key={followedUser.id}
                   user={followedUser}
@@ -233,6 +272,18 @@
                 />
               ))}
             </UserList>
+              
+            {pageInfo.pageContentAmount > 1 && (
+              <Pagination
+                size={pageInfo.size}
+                itemsPerPage={ITEMS_PER_PAGE}
+                currentPage={pageInfo.currentPage}
+                pageContentAmount={pageInfo.pageContentAmount}
+                setPageInfo={setPageInfo}
+                pageInfo={pageInfo}
+              />
+            )}
+          </>
           ) : (
             <EmptyState>아직 팔로잉하는 사용자가 없습니다.</EmptyState> 
           )}

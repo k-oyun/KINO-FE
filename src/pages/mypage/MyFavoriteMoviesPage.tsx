@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
 import MovieCard from "../../components/mypage/MovieCard";
-
 import useMypageApi from "../../api/mypage";
 import VideoBackground from '../../components/VideoBackground';
+import Pagination from "../../components/PageNation";
 
 interface FavoriteMovieType {
     myPickId: string;
@@ -19,13 +19,9 @@ const PageContainer = styled.div`
     margin: 0 auto;
     padding-top: 300px;
     background-color: transparent;
-    // min-height: calc(100vh - 60px);
-    max-height: 100vh;
     color: #f0f0f0;
-
     display: flex;
     flex-direction: column;
-
     @media (max-width: 767px) {
         padding: 20px 15px;
         padding-top: 80px;
@@ -36,7 +32,6 @@ const SectionWrapper = styled.div`
     background-color: rgba(0, 0, 0, 0.7);
     padding: 25px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-
     @media (max-width: 767px) {
         padding: 20px;
     }
@@ -46,7 +41,6 @@ const PageHeader = styled.div`
     display: flex;
     align-items: center;
     margin-bottom: 20px;
-
     @media (max-width: 767px) {
         flex-direction: column;
         align-items: flex-start;
@@ -63,17 +57,14 @@ const BackButton = styled.button`
     margin-right: 15px;
     cursor: pointer;
     transition: transform 0.2s ease-in-out;
-
     &:hover {
         transform: translateX(-5px);
     }
-
     svg {
         width: 24px;
         height: 24px;
         vertical-align: middle;
     }
-
     @media (max-width: 767px) {
         margin-right: 0;
         margin-bottom: 10px;
@@ -85,7 +76,6 @@ const PageTitle = styled.h1`
     font-size: 1.8em;
     font-weight: bold;
     color: #e0e0e0;
-
     @media (max-width: 767px) {
         font-size: 1.4em;
     }
@@ -100,7 +90,6 @@ const SortOptions = styled.div`
   font-size: 0.9em;
   margin-bottom: 20px;
   justify-content: flex-end;
-
   @media (max-width: 767px) {
     font-size: 0.8em;
     justify-content: flex-start;
@@ -114,13 +103,9 @@ const SortButton = styled.button<{ $isActive: boolean }>`
   cursor: pointer;
   padding: 5px 0;
   position: relative;
-//   display: flex;
-//   justify-content: flex-end;
-
   &:hover {
     color: #f0f0f0;
   }
-
   ${props =>
     props.$isActive &&
     `
@@ -141,7 +126,6 @@ const MovieCardGrid = styled.div`
     grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
     gap: 20px;
     padding-top: 10px;
-
     @media (max-width: 767px) {
         grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
         gap: 15px;
@@ -157,7 +141,6 @@ const EmptyState = styled.div`
     text-align: center;
     padding: 30px 0;
     font-size: 1.1em;
-
     @media (max-width: 767px) {
         padding: 20px 0;
         font-size: 1em;
@@ -170,15 +153,24 @@ const PinkText = styled.span`
   margin-left: 0.25em;
 `;
 
+interface PageInfo {
+  currentPage: number;
+  size: number;
+  pageContentAmount: number;
+}
+
+const ITEMS_PER_PAGE = 12; // 페이지당 영화 수
+
 const MyFavoriteMoviesPage: React.FC = () => {
     const navigate = useNavigate();
     const { mypageMyPickMovie } = useMypageApi();
-    const [sortOrder, setSortOrder] = useState<"latest" | "title">(
-    "latest"
-  );
-    const [favoriteMovies, setFavoriteMovies] = useState<FavoriteMovieType[]>(
-        []
-    );
+    const [sortOrder, setSortOrder] = useState<"latest" | "title">("latest");
+    const [favoriteMovies, setFavoriteMovies] = useState<FavoriteMovieType[]>([]);
+    const [pageInfo, setPageInfo] = useState<PageInfo>({
+      currentPage: 0,
+      size: ITEMS_PER_PAGE,
+      pageContentAmount: 0,
+    });
 
     useEffect(() => {
         const myPickGet = async () => {
@@ -186,11 +178,34 @@ const MyFavoriteMoviesPage: React.FC = () => {
             const pick = Array.isArray(res.data.data.myPickMoives)
                 ? res.data.data.myPickMoives
                 : [];
-            console.log(res.data.data);
             setFavoriteMovies(pick);
         };
         myPickGet();
     }, []);
+
+    const sortedMovies = useMemo(() => {
+        const arr = [...favoriteMovies];
+        if (sortOrder === "latest") {
+          return arr.sort((a, b) => new Date(b.releaseDate).getTime() - new Date(a.releaseDate).getTime());
+        }
+          //  else if (sortOrder === "title") {
+        //   return arr.sort((a, b) => a.movieTitle.localeCompare(b.movieTitle));
+        // }
+        return arr;
+    }, [favoriteMovies, sortOrder]);
+
+    useEffect(() => {
+      const totalPages = Math.ceil(sortedMovies.length / ITEMS_PER_PAGE) || 0;
+      setPageInfo(prev => ({
+        ...prev,
+        currentPage: prev.currentPage >= totalPages ? 0 : prev.currentPage,
+        pageContentAmount: totalPages,
+      }));
+    }, [sortedMovies]);
+
+    const startIdx = pageInfo.currentPage * ITEMS_PER_PAGE;
+    const endIdx = startIdx + ITEMS_PER_PAGE;
+    const currentMovies = sortedMovies.slice(startIdx, endIdx);
 
     return (
         <PageContainer>
@@ -218,18 +233,37 @@ const MyFavoriteMoviesPage: React.FC = () => {
                 </PageHeader>
                 <SortOptions>
                     <SortButton
-                    $isActive={sortOrder === "latest"}
-                    onClick={() => setSortOrder("latest")}
+                      $isActive={sortOrder === "latest"}
+                      onClick={() => setSortOrder("latest")}
                     >
-                    최신순
+                      최신순
                     </SortButton>
+                    {/* <SortButton
+                      $isActive={sortOrder === "title"}
+                      onClick={() => setSortOrder("title")}
+                    >
+                      제목순
+                    </SortButton> */}
                 </SortOptions>
-                {favoriteMovies && favoriteMovies.length > 0 ? (
-                    <MovieCardGrid>
-                        {favoriteMovies.map((movie: FavoriteMovieType) => (
-                            <MovieCard key={movie.myPickId} movie={movie} />
-                        ))}
-                    </MovieCardGrid>
+                {currentMovies && currentMovies.length > 0 ? (
+                    <>
+                      <MovieCardGrid>
+                          {currentMovies.map((movie: FavoriteMovieType) => (
+                              <MovieCard key={movie.myPickId} movie={movie} />
+                          ))}
+                      </MovieCardGrid>
+                      {pageInfo.pageContentAmount > 1 && (
+                        <Pagination
+                          size={pageInfo.size}
+                          itemsPerPage={ITEMS_PER_PAGE}
+                          pageContentAmount={pageInfo.pageContentAmount}
+                          currentPage={pageInfo.currentPage}
+                          setPageInfo={setPageInfo}
+                          pageInfo={pageInfo}
+                          selectedOption={sortOrder}
+                        />
+                      )}
+                    </>
                 ) : (
                     <EmptyState>찜한 영화가 없습니다.</EmptyState>
                 )}

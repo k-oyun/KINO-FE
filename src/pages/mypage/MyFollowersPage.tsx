@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -6,6 +6,7 @@ import axios from 'axios';
 import UserListItem from '../../components/mypage/UserListItem';
 import VideoBackground from '../../components/VideoBackground';
 import useMyPageApi from '../../api/mypage';
+import Pagination from '../../components/PageNation';
 
 export interface FollowerApiResponse {
   status: number;
@@ -26,6 +27,14 @@ interface FollowerType {
   isFollowing: boolean;
 }
 
+interface PageInfo {
+  currentPage: number;       
+  size: number;              
+  pageContentAmount: number; 
+}
+
+const ITEMS_PER_PAGE = 20;
+
 const PageContainer = styled.div`
   max-width: 1200px;
   margin: 0 auto;
@@ -33,10 +42,8 @@ const PageContainer = styled.div`
   background-color: transparent;
   min-height: calc(100vh - 60px);
   color: #f0f0f0;
-
   display: flex;
   flex-direction: column;
-
   @media (max-width: 767px) {
     padding: 20px 15px;
     padding-top: 80px;
@@ -49,7 +56,6 @@ const SectionWrapper = styled.div`
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
   flex-grow: 1;
   overflow-y: auto;
-
   @media (max-width: 767px) {
     padding: 20px;
   }
@@ -59,7 +65,6 @@ const PageHeader = styled.div`
   display: flex;
   align-items: center;
   margin-bottom: 20px;
-  
   @media (max-width: 767px) {
     flex-direction: column;
     align-items: flex-start;
@@ -76,19 +81,14 @@ const BackButton = styled.button`
   margin-right: 15px;
   cursor: pointer;
   transition: transform 0.2s ease-in-out;
-
   &:hover {
     transform: translateX(-5px);
   }
-
   svg {
     width: 24px;
     height: 24px;
-    viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M15 5L9 12L15 19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-    </svg>
+    vertical-align: middle;
   }
-
   @media (max-width: 767px) {
     margin-right: 0;
     margin-bottom: 10px;
@@ -100,7 +100,6 @@ const PageTitle = styled.h1`
   font-size: 1.8em;
   font-weight: bold;
   color: #e0e0e0;
-
   @media (max-width: 767px) {
     font-size: 1.4em;
   }
@@ -113,7 +112,6 @@ const UserList = styled.div`
   display: flex;
   flex-direction: column;
   gap: 15px;
-
   @media (max-width: 767px) {
     gap: 10px;
   }
@@ -124,7 +122,6 @@ const EmptyState = styled.div`
   text-align: center;
   padding: 30px 0;
   font-size: 1.1em;
-
   @media (max-width: 767px) {
     padding: 20px 0;
     font-size: 1em;
@@ -139,12 +136,20 @@ const PinkText = styled.span`
 
 const MyFollowersPage: React.FC = () => {
   const navigate = useNavigate();
-  const { getFollower, followUser, unfollowUser } = useMyPageApi(); 
-  
+  const { getFollower, followUser, unfollowUser } = useMyPageApi();
+
   const [followers, setFollowers] = useState<FollowerType[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const myUserId = "1"; 
+
+  // TODO: 로그인 유 ID 연동
+  const myUserId = "1";
+
+  const [pageInfo, setPageInfo] = useState<PageInfo>({
+    currentPage: 0,
+    size: ITEMS_PER_PAGE,
+    pageContentAmount: 0,
+  });
 
   useEffect(() => {
     const loadFollowers = async () => {
@@ -153,13 +158,14 @@ const MyFollowersPage: React.FC = () => {
       try {
         const res = await getFollower(Number(myUserId));
         const data: FollowerApiResponse["data"] | null = res.data.data;
-        
         if (data) {
-          const mappedFollowers: FollowerType[] = data.map(follower => ({
-            id: String(follower.userId), 
+          const mappedFollowers: FollowerType[] = data.map((follower) => ({
+            id: String(follower.userId),
             nickname: follower.nickname,
-            profileImageUrl: follower.profileImageUrl || `https://via.placeholder.com/50/CCCCCC/FFFFFF?text=${follower.nickname.substring(0,1)}`, 
-            isFollowing: follower.follow, 
+            profileImageUrl:
+              follower.profileImageUrl ||
+              `https://via.placeholder.com/50/CCCCCC/FFFFFF?text=${follower.nickname.substring(0, 1)}`,
+            isFollowing: follower.follow,
           }));
           setFollowers(mappedFollowers);
         } else {
@@ -179,23 +185,43 @@ const MyFollowersPage: React.FC = () => {
         setLoading(false);
       }
     };
-
     loadFollowers();
-  }, [getFollower, myUserId, navigate]); 
+  }, [getFollower, myUserId, navigate]);
 
-  const handleFollowToggle = async (targetUserId: string, isCurrentlyFollowing: boolean) => {
+  useEffect(() => {
+    const totalPages = Math.ceil(followers.length / ITEMS_PER_PAGE) || 0;
+    setPageInfo((prev) => ({
+      ...prev,
+      currentPage: prev.currentPage >= totalPages ? 0 : prev.currentPage,
+      size: ITEMS_PER_PAGE,
+      pageContentAmount: totalPages,
+    }));
+  }, [followers]);
+
+  const currentFollowers = useMemo(() => {
+    const startIdx = pageInfo.currentPage * pageInfo.size;
+    const endIdx = startIdx + pageInfo.size;
+    return followers.slice(startIdx, endIdx);
+  }, [followers, pageInfo]);
+
+  const handleFollowToggle = async (
+    targetUserId: string,
+    isCurrentlyFollowing: boolean
+  ) => {
     try {
       if (isCurrentlyFollowing) {
-        await unfollowUser(Number(targetUserId)); 
+        await unfollowUser(Number(targetUserId));
         console.log(`User ${targetUserId} 언팔로우 성공`);
-        setFollowers(prevFollowers => 
-          prevFollowers.filter(follower => follower.id !== targetUserId) 
+        setFollowers((prevFollowers) =>
+          prevFollowers.filter((follower) => follower.id !== targetUserId)
         );
       } else {
-        await followUser(Number(targetUserId)); 
+        await followUser(Number(targetUserId));
         console.log(`User ${targetUserId} 팔로우 성공`);
-        setFollowers(prevFollowers => 
-          prevFollowers.map(f => f.id === targetUserId ? { ...f, isFollowing: true } : f)
+        setFollowers((prevFollowers) =>
+          prevFollowers.map((f) =>
+            f.id === targetUserId ? { ...f, isFollowing: true } : f
+          )
         );
       }
     } catch (err) {
@@ -204,10 +230,9 @@ const MyFollowersPage: React.FC = () => {
     }
   };
 
-
   return (
     <PageContainer>
-      <VideoBackground /> 
+      <VideoBackground />
       <SectionWrapper>
         <PageHeader>
           <BackButton onClick={() => navigate('/mypage')}>
@@ -217,21 +242,35 @@ const MyFollowersPage: React.FC = () => {
           </BackButton>
           <PageTitle><PinkText>팔로워</PinkText></PageTitle>
         </PageHeader>
+
         {loading ? (
           <EmptyState>팔로워 목록을 불러오는 중...</EmptyState>
         ) : error ? (
           <EmptyState>오류 발생: {error}</EmptyState>
         ) : followers.length > 0 ? (
-          <UserList>
-            {followers.map((follower) => (
-              <UserListItem
-                key={follower.id}
-                user={follower}
-                onFollowToggle={handleFollowToggle}
-                type="follower" 
+          <>
+            <UserList>
+              {currentFollowers.map((follower) => (
+                <UserListItem
+                  key={follower.id}
+                  user={follower}
+                  onFollowToggle={handleFollowToggle}
+                  type="follower"
+                />
+              ))}
+            </UserList>
+
+            {pageInfo.pageContentAmount > 1 && (
+              <Pagination
+                size={pageInfo.size}
+                itemsPerPage={ITEMS_PER_PAGE} 
+                currentPage={pageInfo.currentPage}
+                pageContentAmount={pageInfo.pageContentAmount}
+                setPageInfo={setPageInfo}
+                pageInfo={pageInfo}
               />
-            ))}
-          </UserList>
+            )}
+          </>
         ) : (
           <EmptyState>아직 팔로워가 없습니다.</EmptyState>
         )}
