@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useCallback } from "react";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
 import ShortReviewCard from "../../components/mypage/ShortReviewCard";
@@ -16,8 +16,10 @@ interface ShortReviewType {
 }
 
 const parseDateString = (dateStr: string): Date => {
+  const parsed = Date.parse(dateStr);
+  if (!isNaN(parsed)) return new Date(parsed);
   const parts = dateStr.split(/[. :]/).map(Number);
-  return new Date(parts[0], parts[1] - 1, parts[2], parts[3], parts[4]);
+  return new Date(parts[0], parts[1] - 1, parts[2], parts[3] || 0, parts[4] || 0);
 };
 
 const PageContainer = styled.div`
@@ -164,10 +166,9 @@ const ITEMS_PER_PAGE = 10;
 
 const MyReviewsShortPage: React.FC = () => {
   const navigate = useNavigate();
-  const [sortOrder, setSortOrder] = useState<"latest" | "likes" | "rating">(
-    "latest"
-  );
-  const { mypageShortReview } = useMypageApi(); 
+
+  const [sortOrder, setSortOrder] = useState<"latest" | "likes" | "rating">("latest");
+  const { mypageShortReview, updateShortReview, deleteShortReview } = useMypageApi();
 
   const [shortReviews, setShortReviews] = useState<ShortReviewType[]>([]);
 
@@ -177,30 +178,33 @@ const MyReviewsShortPage: React.FC = () => {
     pageContentAmount: 0,
   });
 
-  useEffect(() => {
-    const myShortReviewGet = async () => {
+  const fetchShortReviews = useCallback(async () => {
+    try {
       const res = await mypageShortReview();
-      const shortReview = Array.isArray(res.data.data.shortReviews)
+      const shortReview = Array.isArray(res.data?.data?.shortReviews)
         ? res.data.data.shortReviews
         : [];
-      console.log(res.data.data.shortReviews);
       setShortReviews(shortReview);
-    };
-    myShortReviewGet();
+    } catch (err) {
+      console.error("한줄평 로드 실패:", err);
+    }
   }, [mypageShortReview]);
+
+  useEffect(() => {
+    fetchShortReviews();
+  }, [fetchShortReviews]);
 
   const sortedReviews = useMemo(() => {
     const arr = [...shortReviews];
     if (sortOrder === "latest") {
-      return arr.sort(
+      arr.sort(
         (a, b) =>
-          parseDateString(b.createdAt).getTime() -
-          parseDateString(a.createdAt).getTime()
+          parseDateString(b.createdAt).getTime() - parseDateString(a.createdAt).getTime()
       );
     } else if (sortOrder === "likes") {
-      return arr.sort((a, b) => b.likes - a.likes);
+      arr.sort((a, b) => b.likes - a.likes);
     } else if (sortOrder === "rating") {
-      return arr.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+      arr.sort((a, b) => (b.rating || 0) - (a.rating || 0));
     }
     return arr;
   }, [shortReviews, sortOrder]);
@@ -208,7 +212,8 @@ const MyReviewsShortPage: React.FC = () => {
   useEffect(() => {
     const totalPages = Math.ceil(sortedReviews.length / ITEMS_PER_PAGE);
     setPageInfo((prev) => {
-      const currentPage = prev.currentPage >= totalPages ? Math.max(0, totalPages - 1) : prev.currentPage;
+      const currentPage =
+        prev.currentPage >= totalPages ? Math.max(0, totalPages - 1) : prev.currentPage;
       return {
         ...prev,
         currentPage,
@@ -224,46 +229,36 @@ const MyReviewsShortPage: React.FC = () => {
   };
 
   const startIdx = pageInfo.currentPage * ITEMS_PER_PAGE;
-  const endIdx = startIdx + ITEMS_PER_PAGE;
-  const currentPageReviews = sortedReviews.slice(startIdx, endIdx);
+  const currentPageReviews = sortedReviews.slice(startIdx, startIdx + ITEMS_PER_PAGE);
 
   const handleReviewClick = (reviewId: string) => {
     navigate(`/reviews/short/${reviewId}`);
   };
 
-const { updateShortReview, deleteShortReview } = useMypageApi();
+  const handleEditReview = async (updatedReview: ShortReviewType) => {
+    try {
+      await updateShortReview(updatedReview.shortReviewId, {
+        movieTitle: updatedReview.movieTitle,
+        content: updatedReview.content,
+        rating: updatedReview.rating,
+      });
+      await fetchShortReviews();
+    } catch (error) {
+      console.error(error);
+      alert("한줄평 수정 실패");
+    }
+  };
 
-const handleEditReview = async (updatedReview: ShortReviewType) => {
-  try {
-    await updateShortReview(updatedReview.shortReviewId, {
-      movieTitle: updatedReview.movieTitle,
-      content: updatedReview.content,
-      rating: updatedReview.rating,
-    });
-
-    setShortReviews((prev) =>
-      prev.map((r) =>
-        r.shortReviewId === updatedReview.shortReviewId ? updatedReview : r
-      )
-    );
-  } catch (error) {
-    console.error(error);
-    alert("한줄평 수정 실패");
-  }
-};
-
-const handleDeleteReview = async (reviewId: string) => {
-  if (window.confirm("이 한줄평을 정말 삭제할까요?")) {
+  const handleDeleteReview = async (reviewId: string) => {
+    if (!window.confirm("이 한줄평을 정말 삭제할까요?")) return;
     try {
       await deleteShortReview(reviewId);
-      setShortReviews((prev) => prev.filter((r) => r.shortReviewId !== reviewId));
+      await fetchShortReviews();
     } catch (error) {
       console.error(error);
       alert("삭제 실패");
     }
-  }
-};
-
+  };
 
   return (
     <PageContainer>
@@ -293,22 +288,13 @@ const handleDeleteReview = async (reviewId: string) => {
         </PageHeader>
 
         <SortOptions>
-          <SortButton
-            isActive={sortOrder === "latest"}
-            onClick={() => handleSortChange("latest")}
-          >
+          <SortButton isActive={sortOrder === "latest"} onClick={() => handleSortChange("latest")}>
             최신순
           </SortButton>
-          <SortButton
-            isActive={sortOrder === "rating"}
-            onClick={() => handleSortChange("rating")}
-          >
+          <SortButton isActive={sortOrder === "rating"} onClick={() => handleSortChange("rating")}>
             별점순
           </SortButton>
-          <SortButton
-            isActive={sortOrder === "likes"}
-            onClick={() => handleSortChange("likes")}
-          >
+          <SortButton isActive={sortOrder === "likes"} onClick={() => handleSortChange("likes")}>
             좋아요순
           </SortButton>
         </SortOptions>

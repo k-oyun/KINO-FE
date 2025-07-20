@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState, useCallback } from "react";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
 
@@ -6,9 +6,9 @@ import UserProfileSection from "../../components/mypage/UserProfileSection";
 import ShortReviewCard from "../../components/mypage/ShortReviewCard";
 import DetailReviewCard from "../../components/mypage/DetailReviewCard";
 import MovieCard from "../../components/mypage/MovieCard";
+import VideoBackground from "../../components/VideoBackground";
 
 import useMypageApi from "../../api/mypage";
-import VideoBackground from '../../components/VideoBackground';
 
 const MyPageContainer = styled.div`
   max-width: 1200px;
@@ -17,10 +17,8 @@ const MyPageContainer = styled.div`
   background-color: transparent;
   min-height: calc(100vh - 60px);
   color: #f0f0f0;
-
   display: flex;
   flex-direction: column;
-  // gap: 25px;
 
   @media (max-width: 767px) {
     padding: 20px 15px;
@@ -32,8 +30,6 @@ const MyPageContainer = styled.div`
 const SectionWrapper = styled.section`
   background-color: rgba(0, 0, 0, 0.7);
   padding: 25px;
-  // box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-  // border-radius: 8px;
 
   @media (max-width: 767px) {
     padding: 20px;
@@ -67,7 +63,6 @@ const SectionTitle = styled.h3`
     font-size: 1.5em;
     color: #f0f0f0;
     transition: transform 0.2s ease-in-out;
-
     &:hover {
       transform: translateX(5px);
     }
@@ -122,11 +117,6 @@ const SortButton = styled.button<{ isActive: boolean }>`
 const PreviewContent = styled.div`
   display: flex;
   flex-direction: column;
-  /* gap은 각 카드 컴포넌트의 margin-bottom으로 처리 */
-
-  @media (max-width: 767px) {
-    /* gap: 10px; */
-  }
 `;
 
 const EmptyState = styled.div`
@@ -185,12 +175,6 @@ interface ShortReviewType {
   createdAt: string;
 }
 
-// interface Reviewer {
-//     id: string;
-//     nickname: string;
-//     image: string;
-// }
-
 interface DetailReviewType {
   reviewId: string;
   image: string;
@@ -204,12 +188,6 @@ interface DetailReviewType {
   totalViews: number;
   commentCount: number;
   createdAt: string;
-  // reviewer?: {
-  //   id: string;
-  //   nickname: string;
-  //   image: string;
-  // };
-
   reviewer: UserProfileType;
 }
 
@@ -223,23 +201,20 @@ interface FavoriteMovieType {
 
 const parseDateString = (dateStr: string): Date => {
   const parts = dateStr.split(/[. :]/).map(Number);
-  return new Date(parts[0], parts[1] - 1, parts[2], parts[3], parts[4]);
+  return new Date(parts[0], parts[1] - 1, parts[2], parts[3] ?? 0, parts[4] ?? 0);
 };
 
 const MyPageMain: React.FC = () => {
   const navigate = useNavigate();
-  const [shortReviewSort, setShortReviewSort] = useState<
-    "latest" | "rating" | "likes"
-  >("latest");
-  const [detailReviewSort, setDetailReviewSort] = useState<
-    "latest" | "views" | "likes"
-  >("latest");
+  const [shortReviewSort, setShortReviewSort] = useState<"latest" | "rating" | "likes">("latest");
+  const [detailReviewSort, setDetailReviewSort] = useState<"latest" | "views" | "likes">("latest");
 
   const [userProfile, setUserProfile] = useState<UserProfileType>();
+  const [userFollow, setUserFollow] = useState<Follow>();
+
   const [shortReviews, setShortReviews] = useState<ShortReviewType[]>([]);
   const [detailReviews, setDetailReviews] = useState<DetailReviewType[]>([]);
   const [favoriteMovies, setFavoriteMovies] = useState<FavoriteMovieType[]>([]);
-  const [userFollow, setUserFollow] = useState<Follow>();
 
   const {
     mypageMyPickMovie,
@@ -248,95 +223,119 @@ const MyPageMain: React.FC = () => {
     userInfoGet,
     getFollower,
     getFollowing,
+    updateShortReview,
+    deleteShortReview,
   } = useMypageApi();
 
+  const loadUserProfileAndFollow = useCallback(async () => {
+    const res = await userInfoGet();
+    const profile: UserProfileType = res.data?.data;
+    setUserProfile(profile);
+
+    if (profile?.userId != null) {
+      const [followerRes, followingRes] = await Promise.all([
+        getFollower(profile.userId),
+        getFollowing(profile.userId),
+      ]);
+      const followData: Follow = {
+        follower: Array.isArray(followerRes.data?.data) ? followerRes.data.data.length : 0,
+        following: Array.isArray(followingRes.data?.data) ? followingRes.data.data.length : 0,
+      };
+      setUserFollow(followData);
+    } else {
+      setUserFollow({ follower: 0, following: 0 });
+    }
+  }, [userInfoGet, getFollower, getFollowing]);
+
+  const loadShortReviews = useCallback(async () => {
+    const res = await mypageShortReview();
+    const arr = Array.isArray(res.data?.data?.shortReviews) ? res.data.data.shortReviews : [];
+    setShortReviews(arr);
+  }, [mypageShortReview]);
+
+  const loadDetailReviews = useCallback(async () => {
+    const res = await mypageReview();
+    const arr = Array.isArray(res.data?.data?.reviews) ? res.data.data.reviews : [];
+    setDetailReviews(arr);
+  }, [mypageReview]);
+
+  const loadFavoriteMovies = useCallback(async () => {
+    const res = await mypageMyPickMovie();
+    const arr = Array.isArray(res.data?.data?.myPickMoives) ? res.data.data.myPickMoives : [];
+    setFavoriteMovies(arr);
+  }, [mypageMyPickMovie]);
+
   useEffect(() => {
-    const userDataGet = async () => {
-      const res = await userInfoGet();
-      setUserProfile(res.data.data);
-
-      const userId = res.data.data.userId;
-      if (userId) {
-        console.log("userid : " + userId);
-        const [followerRes, followingRes] = await Promise.all([
-          getFollower(userId),
-          getFollowing(userId),
-        ]);
-
-        const followData: Follow = {
-          follower: followerRes.data.data.length,
-          following: followingRes.data.data.length,
-        };
-
-        console.log(followerRes.data.data);
-        console.log(followingRes.data.data);
-
-        setUserFollow(followData);
+    (async () => {
+      try {
+        await loadUserProfileAndFollow();
+        await Promise.all([loadFavoriteMovies(), loadDetailReviews(), loadShortReviews()]);
+      } catch (err) {
+        console.error("마이페이지 데이터 로드 실패:", err);
       }
-    };
-    const myShortReviewGet = async () => {
-      const res = await mypageShortReview();
-      const shortReview = Array.isArray(res.data.data.shortReviews)
-        ? res.data.data.shortReviews
-        : [];
-      setShortReviews(shortReview);
-    };
-    const myReviewGet = async () => {
-      const res = await mypageReview();
-      const review = Array.isArray(res.data.data.reviews)
-        ? res.data.data.reviews
-        : [];
-      setDetailReviews(review);
-    };
-    const myPickGet = async () => {
-      const res = await mypageMyPickMovie();
-      const pick = Array.isArray(res.data.data.myPickMoives)
-        ? res.data.data.myPickMoives
-        : [];
-      setFavoriteMovies(pick);
-    };
+    })();
+  }, [loadUserProfileAndFollow, loadFavoriteMovies, loadDetailReviews, loadShortReviews]);
 
-    userDataGet();
-    myPickGet();
-    myReviewGet();
-    myShortReviewGet();
-  }, []);
-
-  const sortedShortReviews = [...shortReviews].sort((a, b) => {
+  const sortedShortReviews = useMemo(() => {
+    const arr = [...shortReviews];
     if (shortReviewSort === "latest") {
-      return (
-        parseDateString(b.createdAt).getTime() -
-        parseDateString(a.createdAt).getTime()
+      arr.sort(
+        (a, b) =>
+          parseDateString(b.createdAt).getTime() - parseDateString(a.createdAt).getTime()
       );
     } else if (shortReviewSort === "likes") {
-      return b.likes - a.likes;
+      arr.sort((a, b) => b.likes - a.likes);
     } else if (shortReviewSort === "rating") {
-      return (b.rating || 0) - (a.rating || 0);
+      arr.sort((a, b) => (b.rating || 0) - (a.rating || 0));
     }
-    return 0;
-  });
+    return arr;
+  }, [shortReviews, shortReviewSort]);
 
-  const sortedDetailReviews = [...detailReviews].sort((a, b) => {
+  const sortedDetailReviews = useMemo(() => {
+    const arr = [...detailReviews];
     if (detailReviewSort === "latest") {
-      return (
-        parseDateString(b.createdAt).getTime() -
-        parseDateString(a.createdAt).getTime()
+      arr.sort(
+        (a, b) =>
+          parseDateString(b.createdAt).getTime() - parseDateString(a.createdAt).getTime()
       );
     } else if (detailReviewSort === "views") {
-      return (b.totalViews || 0) - (a.totalViews || 0);
+      arr.sort((a, b) => (b.totalViews || 0) - (a.totalViews || 0));
     } else if (detailReviewSort === "likes") {
-      return b.likeCount - a.likeCount;
+      arr.sort((a, b) => b.likeCount - a.likeCount);
     }
-    return 0;
-  });
+    return arr;
+  }, [detailReviews, detailReviewSort]);
 
-  // 공통적인 카드 클릭 핸들러 (네비게이션)
   const handleShortReviewClick = (reviewId: string) => {
     navigate(`/mypage/reviews/short/${reviewId}`);
   };
-
   const handleDetailReviewClick = (reviewId: string) => {
     navigate(`/mypage/reviews/detail/${reviewId}`);
+  };
+
+  const handleEditShortReview = async (updated: ShortReviewType) => {
+    try {
+      await updateShortReview(updated.shortReviewId, {
+        movieTitle: updated.movieTitle,
+        content: updated.content,
+        rating: updated.rating,
+      });
+      await loadShortReviews();
+    } catch (err) {
+      console.error("한줄평 수정 실패:", err);
+      alert("한줄평 수정에 실패했습니다. 다시 시도해주세요.");
+    }
+  };
+
+  const handleDeleteShortReview = async (reviewId: string) => {
+    if (!window.confirm("정말 삭제하시겠습니까?")) return;
+    try {
+      await deleteShortReview(reviewId);
+      await loadShortReviews();
+    } catch (err) {
+      console.error("한줄평 삭제 실패:", err);
+      alert("삭제에 실패했습니다. 다시 시도해주세요.");
+    }
   };
 
   if (!userProfile || !userFollow) return null;
@@ -344,6 +343,7 @@ const MyPageMain: React.FC = () => {
   return (
     <MyPageContainer>
       <VideoBackground />
+
       <UserProfileSection userProfile={userProfile} follow={userFollow} />
 
       {/* 내가 작성한 한줄평 섹션 */}
@@ -389,12 +389,14 @@ const MyPageMain: React.FC = () => {
           </SortOptions>
         </SectionHeader>
         <PreviewContent>
-          {sortedShortReviews && sortedShortReviews.length > 0 ? (
-            sortedShortReviews.slice(0, 3).map((review: ShortReviewType) => (
+          {sortedShortReviews.length > 0 ? (
+            sortedShortReviews.slice(0, 3).map((review) => (
               <ShortReviewCard
                 key={review.shortReviewId}
                 review={review}
                 onClick={() => handleShortReviewClick(review.shortReviewId)}
+                onEdit={handleEditShortReview}
+                onDelete={handleDeleteShortReview}
               />
             ))
           ) : (
@@ -446,8 +448,8 @@ const MyPageMain: React.FC = () => {
           </SortOptions>
         </SectionHeader>
         <PreviewContent>
-          {sortedDetailReviews && sortedDetailReviews.length > 0 ? (
-            sortedDetailReviews.slice(0, 3).map((review: DetailReviewType) => (
+          {sortedDetailReviews.length > 0 ? (
+            sortedDetailReviews.slice(0, 3).map((review) => (
               <DetailReviewCard
                 key={review.reviewId}
                 review={review}
@@ -463,7 +465,7 @@ const MyPageMain: React.FC = () => {
       </SectionWrapper>
 
       {/* 내가 찜한 영화 섹션 */}
-      <SectionWrapper style={{ gridArea: "favoriteMovies" }}>
+      <SectionWrapper>
         <SectionHeader>
           <SectionTitle onClick={() => navigate("/mypage/movies/favorite")}>
             내가<PinkText>찜한 영화</PinkText>
@@ -485,14 +487,13 @@ const MyPageMain: React.FC = () => {
           </SectionTitle>
           <SortOptions>
             <SortButton isActive={true}>최신순</SortButton>
-          </SortOptions>        </SectionHeader>
+          </SortOptions>
+        </SectionHeader>
         <MovieCardGrid>
-          {favoriteMovies && favoriteMovies.length > 0 ? (
-            favoriteMovies
-              .slice(0, 12)
-              .map((movie: FavoriteMovieType) => (
-                <MovieCard key={movie.myPickId} movie={movie} />
-              ))
+          {favoriteMovies.length > 0 ? (
+            favoriteMovies.slice(0, 12).map((movie) => (
+              <MovieCard key={movie.myPickId} movie={movie} />
+            ))
           ) : (
             <EmptyState>찜한 영화가 없습니다.</EmptyState>
           )}
