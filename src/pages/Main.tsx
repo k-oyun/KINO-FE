@@ -279,9 +279,11 @@ const MoreBtn = styled.button`
   color: white;
   font-weight: bold;
   border: none;
-  border-radius: 22px;
-  padding: 7px 23px;
-  font-size: 17px;
+  width: 90px;
+  height: 35px;
+  border-radius: 15px;
+  padding: 7px 10px;
+  font-size: 13px;
   box-shadow: 0 3px 10px rgba(240, 98, 146, 0.11);
   cursor: pointer;
   margin-top: 16px;
@@ -332,11 +334,6 @@ const TeaserDetailBtn = styled(motion.button)<{ $ismobile?: boolean }>`
   right: 170px;
   padding: ${({ $ismobile }) => ($ismobile ? "7px 16px" : "7px 26px")};
   font-size: ${({ $ismobile }) => ($ismobile ? "15px" : "13px")};
-  backdrop-filter: blur(16px) saturate(130%);
-  box-shadow: 0 2px 18px 3px rgba(240, 98, 146, 0.1),
-    0 0 16px 4px rgba(240, 98, 146, 0.22),
-    0 1.5px 12px 2px rgba(255, 159, 128, 0.12);
-  border: 1.2px solid rgba(255, 255, 255, 0.16);
   cursor: pointer;
   overflow: hidden;
   z-index: 10;
