@@ -109,7 +109,7 @@ const VideoSkeletonBox = styled(motion.div)`
 const SliderTypeTxt = styled.div<styleType>`
   font-size: ${(props) => (props.$ismobile ? "16px;" : "18px")};
   font-weight: 400;
-  /* margin-top: 15px; */
+  margin-top: 15px;
   border-left: 4px solid #f06292;
   margin-left: ${(props) => (props.$ismobile ? "30px" : "60px")};
   padding-left: 10px;
@@ -630,7 +630,10 @@ const Main = () => {
           searchedMovieList.length > 0 ? (
             <ListContainer $ismobile={isMobile}>
               <MovieContainer>
-                <SliderTypeTxt $ismobile={isMobile}>
+                <SliderTypeTxt
+                  $ismobile={isMobile}
+                  style={{ marginTop: "0px" }}
+                >
                   <span>검색 결과</span>
                 </SliderTypeTxt>
                 <MoviesSlider $ismobile={isMobile}>
@@ -655,10 +658,14 @@ const Main = () => {
                       onMouseEnter={() => setHoveredMovie(movie)}
                       onMouseLeave={() => setHoveredMovie(null)}
                     >
-                      <MoviePosterImg
-                        src={movie.still_cut_url}
-                        alt={movie.title}
-                      />
+                      {movie.still_cut_url ? (
+                        <MoviePosterImg
+                          src={movie.still_cut_url}
+                          alt={movie.title}
+                        />
+                      ) : (
+                        <KinoLogoPlaceholderSVG />
+                      )}
                     </Movies>
                   ))}
                 </MoviesSlider>
@@ -677,7 +684,10 @@ const Main = () => {
           <ListContainer $ismobile={isMobile}>
             {reviewData.map(({ prefix, highlight }, idx) => (
               <MovieContainer key={idx}>
-                <SliderTypeTxt $ismobile={isMobile}>
+                <SliderTypeTxt
+                  $ismobile={isMobile}
+                  style={{ marginTop: "0px" }}
+                >
                   {prefix} <strong>{highlight}</strong>
                 </SliderTypeTxt>
                 <MoviesSlider $ismobile={isMobile}>
