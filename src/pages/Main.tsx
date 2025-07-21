@@ -140,6 +140,7 @@ const VideoHiddenContainer = styled(motion.div)<{
   justify-content: center;
   z-index: 1;
   margin-bottom: 100px;
+  padding-bottom: 10px;
   padding-left: ${(props) => (props.$ismobile ? "30px" : "140px")};
   font-size: 32;
   font-weight: bold;
@@ -201,6 +202,20 @@ const ModalBox = styled(motion.div)`
   display: flex;
   width: 590px;
   /* height: 500px; */
+  background-color: rgba(0, 0, 0, 0.7);
+  border: 1.5px solid rgba(240, 98, 146, 0.4);
+  border-radius: 20px;
+  box-shadow: 0 12px 48px 0 rgba(0, 0, 0, 0.53),
+    0 0 0 2px rgba(229, 132, 165, 0.07);
+  backdrop-filter: blur(12px) saturate(125%);
+  padding: 38px 38px 34px 40px;
+  gap: 36px;
+  transition: box-shadow 0.22s cubic-bezier(0.44, 0.06, 0.36, 1);
+`;
+
+const ReviewModalBox = styled(motion.div)`
+  display: flex;
+  width: 590px;
   background-color: rgba(0, 0, 0, 0.7);
   border: 1.5px solid rgba(240, 98, 146, 0.4);
   border-radius: 20px;
@@ -358,7 +373,7 @@ const TeaserDetailBtn = styled(motion.button)<styleType>`
   width: ${(props) => (props.$ismobile ? "30px" : "100px")};
   height: ${(props) => (props.$ismobile ? "14px" : "40px")};
   position: absolute;
-  top: ${(props) => (props.$ismobile ? "20px" : "10px")};
+  top: ${(props) => (props.$ismobile ? "7%" : "6%")};
   right: ${(props) => (props.$ismobile ? "35px" : "170px")};
   padding: ${({ $ismobile }) => ($ismobile ? "2px 6px" : "7px 26px")};
   font-size: ${({ $ismobile }) => ($ismobile ? "4px" : "13px")};
@@ -371,7 +386,10 @@ const ContentArea = styled.div`
   font-size: 1em;
   line-height: 1.6;
   min-height: 200px;
+  max-height: 200px;
+  overflow: auto;
   white-space: pre-wrap;
+
   padding: 20px;
   img {
     max-width: 100%;
@@ -738,6 +756,9 @@ const Main = () => {
                         }}
                         onMouseEnter={() => setHoveredReview(review)}
                         onMouseLeave={() => setHoveredReview(null)}
+                        onClick={() =>
+                          navigate(`/community/${review.reviewId}`)
+                        }
                       ></Movies>
                     ))
                   ) : (
@@ -809,7 +830,7 @@ const Main = () => {
         )}
       </MainContainer>
       <AnimatePresence>
-        {hoveredMovie && (
+        {!isMobile && hoveredMovie && (
           <ModalContainer
             onMouseEnter={() => setHoveredMovie(hoveredMovie)}
             onMouseLeave={() => setHoveredMovie(null)}
@@ -830,7 +851,6 @@ const Main = () => {
                 />
               ) : (
                 <PosterWrapper>
-                  {" "}
                   <KinoPosterPlaceholderSVG />
                 </PosterWrapper>
               )}
@@ -872,12 +892,13 @@ const Main = () => {
             </ModalBox>
           </ModalContainer>
         )}
-        {hoveredReview && (
+        {!isMobile && hoveredReview && (
           <ModalContainer
+            style={{ width: "1000px" }}
             onMouseEnter={() => setHoveredReview(hoveredReview)}
             onMouseLeave={() => setHoveredReview(null)}
           >
-            <ModalBox
+            <ReviewModalBox
               initial={{ opacity: 0, y: 32 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 32 }}
@@ -886,21 +907,59 @@ const Main = () => {
                 ease: [0.44, 0.06, 0.36, 1],
               }}
             >
-              {/* <MoviePoster
-                src={hoveredReview.poster_url}
-                alt={hoveredReview.title}
-              /> */}
+              {/* {hoveredReview.poster_url ? (
+                <MoviePoster
+                  src={hoveredReview.poster_url}
+                  alt={hoveredReview.title}
+                />
+              ) : (
+                <PosterWrapper>
+                 
+                  <KinoPosterPlaceholderSVG />
+                </PosterWrapper>
+              )} */}
+
               <InfoSection>
                 <MovieTitle>{hoveredReview.movieTitle}</MovieTitle>
-                <MovieTitle>{hoveredReview.reviewTitle}</MovieTitle>
-                <ContentArea>
+                {/* <MovieGenre>
+                  {(Array.isArray(hoveredReview.genres)
+                    ? hoveredReview.genres
+                    : []
+                  ).map((g: string, idx: number) => (
+                    <GenreTag $ismobile={isMobile} key={g + idx}>
+                      {g.trim()}
+                    </GenreTag>
+                  ))}
+                </MovieGenre> */}
+
+                {hoveredReview.content ? (
                   <ContentArea
-                    className="review-content"
                     dangerouslySetInnerHTML={{ __html: hoveredReview.content }}
                   />
-                </ContentArea>
+                ) : (
+                  "내용이 없습니다."
+                )}
+
+                {/* <MovieMeta>
+                  <span>개봉일: {hoveredReview.release_date}</span>
+                  <span>
+                    러닝 타임:{" "}
+                    {hoveredReview.running_time === 0
+                      ? "- "
+                      : hoveredReview.running_time}
+                    분
+                  </span>
+                </MovieMeta> */}
+                <MoreBtn
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate(`/community/${hoveredReview.reviewId}`);
+                  }}
+                >
+                  상세보기
+                </MoreBtn>
               </InfoSection>
-            </ModalBox>
+            </ReviewModalBox>
           </ModalContainer>
         )}
       </AnimatePresence>
