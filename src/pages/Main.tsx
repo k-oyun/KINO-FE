@@ -9,6 +9,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { KinoLogoPlaceholderSVG } from "../assets/svg/KinoLogoPlaceholder.tsx";
 import { KinoPosterPlaceholderSVG } from "../assets/svg/KinoPosterPlaceholder.tsx";
+import ProgressCircle from "../components/ProgressCycle.tsx";
 
 interface styleType {
   $ismobile: boolean;
@@ -550,7 +551,6 @@ const Main = () => {
   const reviewHoverTimer = useRef<number | null>(null);
   const reviewProgressTimer = useRef<number | null>(null);
 
-  const [movieProgressIdx, setMovieProgressIdx] = useState<number | null>(null);
   const [movieHoverProgress, setMovieHoverProgress] = useState(0);
   const movieHoverTimer = useRef<number | null>(null);
   const movieProgressTimer = useRef<number | null>(null);
@@ -603,7 +603,6 @@ const Main = () => {
     movieHoverTimer.current = window.setTimeout(() => {
       setHoveredMovie(movie);
       setMovieHoverProgress(0);
-      setMovieProgressIdx(null);
     }, 1000);
   };
 
@@ -613,7 +612,6 @@ const Main = () => {
     setHoveredMovie(null);
     setMovieProgressKey(null);
     setMovieHoverProgress(0);
-    setMovieProgressIdx(null);
   };
   return (
     <>
@@ -778,9 +776,16 @@ const Main = () => {
                       onClick={() => {
                         navigate(`/movie/${movie.movie_id}`);
                       }}
-                      onMouseEnter={() => setHoveredMovie(movie)}
-                      onMouseLeave={() => setHoveredMovie(null)}
+                      onMouseEnter={() =>
+                        handleMovieHoverEnter("searched", i, movie)
+                      }
+                      onMouseLeave={handleMovieHoverLeave}
                     >
+                      {movieProgressKey === `searched-${i}` &&
+                        movieHoverProgress > 0 &&
+                        movieHoverProgress < 100 && (
+                          <ProgressCircle progress={movieHoverProgress} />
+                        )}
                       {movie.still_cut_url ? (
                         <MoviePosterImg
                           src={movie.still_cut_url}
@@ -855,51 +860,7 @@ const Main = () => {
                         {reviewProgressIdx === i &&
                           reviewHoverProgress > 0 &&
                           reviewHoverProgress < 100 && (
-                            <div
-                              style={{
-                                position: "absolute",
-                                width: "100%",
-                                height: "100%",
-                                left: "50%",
-                                top: "50%",
-                                transform: "translate(-50%, -50%)",
-                                zIndex: 30,
-                                pointerEvents: "none",
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                backgroundColor: "rgba(0,0,0,0.5)",
-                              }}
-                            >
-                              <svg width="48" height="48">
-                                <circle
-                                  cx="24"
-                                  cy="24"
-                                  r="20"
-                                  stroke="#e0e0e0"
-                                  strokeWidth="5"
-                                  fill="none"
-                                />
-                                <circle
-                                  cx="24"
-                                  cy="24"
-                                  r="20"
-                                  stroke="#f06292"
-                                  strokeWidth="5"
-                                  fill="none"
-                                  strokeDasharray={2 * Math.PI * 20}
-                                  strokeDashoffset={
-                                    2 *
-                                    Math.PI *
-                                    20 *
-                                    (1 - reviewHoverProgress / 100)
-                                  }
-                                  style={{
-                                    transition: "stroke-dashoffset 0.1s linear",
-                                  }}
-                                />
-                              </svg>
-                            </div>
+                            <ProgressCircle progress={reviewHoverProgress} />
                           )}
 
                         {review.stillCutUrl ? (
@@ -966,51 +927,7 @@ const Main = () => {
                         {movieProgressKey === `slider${idx}-${i}` &&
                           movieHoverProgress > 0 &&
                           movieHoverProgress < 100 && (
-                            <div
-                              style={{
-                                position: "absolute",
-                                width: "100%",
-                                height: "100%",
-                                left: "50%",
-                                top: "50%",
-                                transform: "translate(-50%, -50%)",
-                                zIndex: 30,
-                                pointerEvents: "none",
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                backgroundColor: "rgba(0,0,0,0.5)",
-                              }}
-                            >
-                              <svg width="48" height="48">
-                                <circle
-                                  cx="24"
-                                  cy="24"
-                                  r="20"
-                                  stroke="#e0e0e0"
-                                  strokeWidth="5"
-                                  fill="none"
-                                />
-                                <circle
-                                  cx="24"
-                                  cy="24"
-                                  r="20"
-                                  stroke="#f06292"
-                                  strokeWidth="5"
-                                  fill="none"
-                                  strokeDasharray={2 * Math.PI * 20}
-                                  strokeDashoffset={
-                                    2 *
-                                    Math.PI *
-                                    20 *
-                                    (1 - movieHoverProgress / 100)
-                                  }
-                                  style={{
-                                    transition: "stroke-dashoffset 0.1s linear",
-                                  }}
-                                />
-                              </svg>
-                            </div>
+                            <ProgressCircle progress={movieHoverProgress} />
                           )}
                         {movie.still_cut_url ? (
                           <MoviePosterImg
