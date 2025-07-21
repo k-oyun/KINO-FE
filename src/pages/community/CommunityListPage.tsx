@@ -5,6 +5,7 @@ import DetailReviewCard from "../../components/mypage/DetailReviewCard";
 import { useMediaQuery } from "react-responsive";
 import useReviewsApi from "../../api/reviews";
 import { useTranslation } from "react-i18next";
+import { useMypageApi } from "../../api/mypage";
 
 interface DetailReview {
   reviewId: number;
@@ -73,6 +74,12 @@ const CreatePostButton = styled.button`
 
   &:hover {
     background-color: #fe5890d0;
+  }
+
+  &:disabled {
+    background-color: #ccc;
+    color: #666;
+    cursor: not-allowed;
   }
 
   @media (max-width: 767px) {
@@ -169,7 +176,8 @@ const CommunityListPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { getReviews } = useReviewsApi();
-
+  const { userInfoGet } = useMypageApi();
+  const [isUserActive, setIsUserActive] = useState<boolean>(true);
   const [posts, setPosts] = useState<DetailReview[]>([]);
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
@@ -202,7 +210,7 @@ const CommunityListPage: React.FC = () => {
       const res = await getReviews(page, pageSize);
       const content = res.data.data.content;
 
-      console.log("불러온 리뷰 데이터:", content);
+      console.log("불러온 리뷰 데이터:", res.data.data);
       setPosts((prev) => [...prev, ...content]);
       setPage((prev) => prev + 1);
       setTotalCount(res.data.data.totalElements);
@@ -218,7 +226,22 @@ const CommunityListPage: React.FC = () => {
     }
   };
 
+  const loadMyInfo = async () => {
+    try {
+      const res = userInfoGet();
+      res.then((data) => {
+        console.log("내 정보 불러오기 성공:", data.data.data);
+        if (!data.data.data.isUserActive) {
+          setIsUserActive(false);
+        }
+      });
+    } catch (e) {
+      console.error("내 정보를 불러오지 못했습니다", e);
+    }
+  };
+
   useEffect(() => {
+    loadMyInfo();
     loadMoreReviews();
   }, []);
 
@@ -261,7 +284,7 @@ const CommunityListPage: React.FC = () => {
     <PageContainer>
       <PageHeader>
         <PageTitle>{t("movieStory")}</PageTitle>
-        <CreatePostButton onClick={handleCreatePost}>
+        <CreatePostButton onClick={handleCreatePost} disabled={!isUserActive}>
           {t("write")}
         </CreatePostButton>
       </PageHeader>
