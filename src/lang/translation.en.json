@@ -117,5 +117,11 @@
   "loadMoreComments": "Load More Comments",
   "loadingPost": "Loading post...",
   "postNotFound": "Post not found.",
-  "thisPostWasBlockedByAdmin": "This post has been blocked by an administrator."
+  "thisPostWasBlockedByAdmin": "This post has been blocked by an administrator.",
+
+  "serverWarningMessage": "A problem has occurred with the server.",
+  "tryAgainLater": "Please try again later.",
+  "temporaryIssue": "This may be a temporary issue, so please try again later.",
+  "AuthenticationExpired": "Authentication time has expired.",
+  "LoginAgain": "Please log in again."
 }

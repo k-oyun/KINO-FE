@@ -118,5 +118,11 @@
   "loadMoreComments": "댓글 더 보기",
   "loadingPost": "게시글을 불러오는 중입니다...",
   "postNotFound": "게시글이 존재하지 않습니다.",
-  "thisPostWasBlockedByAdmin": "이 게시글은 관리자에 의해 숨겨졌습니다."
+  "thisPostWasBlockedByAdmin": "이 게시글은 관리자에 의해 숨겨졌습니다.",
+
+  "serverWarningMessage": "서버에 문제가 발생했습니다.",
+  "tryAgainLater": "잠시 후 다시 시도해주세요.",
+  "temporaryIssue": "일시적인 문제일 수 있으니 잠시 후 다시 시도해주세요.",
+  "AuthenticationExpired": "인증 시간이 만료되었습니다.",
+  "LoginAgain": "다시 로그인 해주세요."
 }

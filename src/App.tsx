@@ -33,6 +33,7 @@ import ConfirmDialog from "./components/ConfirmDialog";
 import { useEffect, useRef } from "react";
 import { useMediaQuery } from "react-responsive";
 import Language from "./components/Language";
+import { useTranslation } from "react-i18next";
 
 const HeaderSelector = ({ path }: { path: string }) => {
   if (path === "/") return null;
@@ -66,6 +67,7 @@ const AppContents = () => {
   const isMyPage = path.startsWith("/mypage");
   const { openDialog, closeDialog } = useDialog();
   const errorTimeoutRef = useRef<number | null>(null);
+  const { t } = useTranslation();
   const isMobile = useMediaQuery({ query: "(max-width: 767px)" });
   useEffect(() => {
     const handler = (e: Event) => {
@@ -74,10 +76,8 @@ const AppContents = () => {
         if (errorTimeoutRef.current) clearTimeout(errorTimeoutRef.current);
         errorTimeoutRef.current = setTimeout(() => {
           openDialog({
-            title: "서버에 문제가 발생했습니다",
-            message: isMobile
-              ? "잠시 후 다시 시도해주세요."
-              : "일시적인 문제일 수 있으니 잠시 후 다시 시도해주세요.",
+            title: t("serverWarningMessage"),
+            message: isMobile ? t("tryAgainLater") : t("temporaryIssue"),
             showCancel: false,
             isRedButton: true,
             onConfirm: () => closeDialog(),
@@ -88,8 +88,8 @@ const AppContents = () => {
         if (errorTimeoutRef.current) clearTimeout(errorTimeoutRef.current);
         errorTimeoutRef.current = setTimeout(() => {
           openDialog({
-            title: "인증 시간이 만료되었습니다.",
-            message: "다시 로그인 해주세요.",
+            title: t("AuthenticationExpired"),
+            message: t("LoginAgain"),
             showCancel: false,
             isRedButton: true,
             onConfirm: () => {
