@@ -6,7 +6,7 @@ import axios from 'axios';
 import UserListItem from '../../components/mypage/UserListItem';
 import VideoBackground from '../../components/VideoBackground';
 import useMyPageApi from '../../api/mypage';
-import Pagination from '../../components/PageNation';
+import Pagination from '../../components/Pagenation';
 
 export interface FollowerApiResponse {
   status: number;
@@ -268,6 +268,7 @@ const MyFollowersPage: React.FC = () => {
                 pageContentAmount={pageInfo.pageContentAmount}
                 setPageInfo={setPageInfo}
                 pageInfo={pageInfo}
+                selectedOption=''
               />
             )}
           </>

@@ -6,7 +6,7 @@ import React, { useState, useEffect, useMemo } from 'react';
   import UserListItem from '../../components/mypage/UserListItem';
   import VideoBackground from '../../components/VideoBackground';
   import useMyPageApi from '../../api/mypage';
-  import Pagination from '../../components/PageNation';
+  import Pagination from '../../components/Pagenation';
 
 
   export interface FollowingApiResponse {
