@@ -375,7 +375,7 @@ const TeaserDetailBtn = styled(motion.button)<styleType>`
   position: absolute;
   top: ${(props) => (props.$ismobile ? "7%" : "6%")};
   right: ${(props) => (props.$ismobile ? "35px" : "170px")};
-  padding: ${({ $ismobile }) => ($ismobile ? "2px 6px" : "7px 26px")};
+  padding: ${({ $ismobile }) => ($ismobile ? "2px 6px" : "2px 13px 4px  13px")};
   font-size: ${({ $ismobile }) => ($ismobile ? "4px" : "13px")};
   cursor: pointer;
   overflow: hidden;
@@ -385,10 +385,13 @@ const TeaserDetailBtn = styled(motion.button)<styleType>`
 const ContentArea = styled.div`
   font-size: 1em;
   line-height: 1.6;
-  min-height: 200px;
-  max-height: 200px;
+  width: 100%;
+  /* min-height: 200px; */
+  max-height: 300px;
   overflow: auto;
   white-space: pre-wrap;
+  border: 1px solid #d9d9d9;
+  border-radius: 15px;
 
   padding: 20px;
   img {
@@ -415,6 +418,13 @@ interface TopLikeReviewListType {
   content: string;
   movieId: number;
   movieTitle: string;
+  releaseDate: string;
+  runningTime: number;
+  plot: string;
+  ageRating: string;
+  genres: string[];
+  stillCutUrl: string;
+  posterUrl: string;
 }
 
 interface MovieList {
@@ -523,6 +533,11 @@ const Main = () => {
   // useEffect(() => {
   //   console.log(hoveredMovie);
   // }, [hoveredMovie]);
+
+  const [reviewModalPosition, setReviewModalPosition] = useState<{
+    x: number;
+    y: number;
+  } | null>(null);
   return (
     <>
       {isNewUser && <SurveyModal setIsNewUser={setIsNewUser} />}
@@ -759,7 +774,16 @@ const Main = () => {
                         onClick={() =>
                           navigate(`/community/${review.reviewId}`)
                         }
-                      ></Movies>
+                      >
+                        {review.stillCutUrl ? (
+                          <MoviePosterImg
+                            src={review.stillCutUrl}
+                            alt={review.movieTitle}
+                          />
+                        ) : (
+                          <KinoLogoPlaceholderSVG />
+                        )}
+                      </Movies>
                     ))
                   ) : (
                     <div>리뷰가 존재하지 않습니다.</div>
@@ -907,21 +931,20 @@ const Main = () => {
                 ease: [0.44, 0.06, 0.36, 1],
               }}
             >
-              {/* {hoveredReview.poster_url ? (
+              {hoveredReview.posterUrl ? (
                 <MoviePoster
-                  src={hoveredReview.poster_url}
-                  alt={hoveredReview.title}
+                  src={hoveredReview.posterUrl}
+                  alt={hoveredReview.movieTitle}
                 />
               ) : (
                 <PosterWrapper>
-                 
                   <KinoPosterPlaceholderSVG />
                 </PosterWrapper>
-              )} */}
+              )}
 
               <InfoSection>
                 <MovieTitle>{hoveredReview.movieTitle}</MovieTitle>
-                {/* <MovieGenre>
+                <MovieGenre>
                   {(Array.isArray(hoveredReview.genres)
                     ? hoveredReview.genres
                     : []
@@ -930,8 +953,21 @@ const Main = () => {
                       {g.trim()}
                     </GenreTag>
                   ))}
-                </MovieGenre> */}
+                </MovieGenre>
+                <MoviePlot>
+                  {hoveredReview.plot ? hoveredReview.plot : "내용이 없습니다."}
+                </MoviePlot>
 
+                <MovieMeta>
+                  <span>개봉일: {hoveredReview.releaseDate}</span>
+                  <span>
+                    러닝 타임:{" "}
+                    {hoveredReview.runningTime === 0
+                      ? "- "
+                      : hoveredReview.runningTime}
+                    분
+                  </span>
+                </MovieMeta>
                 {hoveredReview.content ? (
                   <ContentArea
                     dangerouslySetInnerHTML={{ __html: hoveredReview.content }}
@@ -939,17 +975,6 @@ const Main = () => {
                 ) : (
                   "내용이 없습니다."
                 )}
-
-                {/* <MovieMeta>
-                  <span>개봉일: {hoveredReview.release_date}</span>
-                  <span>
-                    러닝 타임:{" "}
-                    {hoveredReview.running_time === 0
-                      ? "- "
-                      : hoveredReview.running_time}
-                    분
-                  </span>
-                </MovieMeta> */}
                 <MoreBtn
                   onClick={(e) => {
                     e.stopPropagation();

@@ -10,9 +10,8 @@ function NaverCallback() {
     try {
       const res = await loginWithNaver(code);
       console.log("로그인", res);
-
-      localStorage.setItem("accessToken", res.data.accessToken);
-      localStorage.setItem("refreshToken", res.data.refreshToken);
+      localStorage.setItem("accessToken", res.data.data.accessToken);
+      localStorage.setItem("refreshToken", res.data.data.refreshToken);
     } catch (error: any) {
       console.log(error);
     }

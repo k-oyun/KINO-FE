@@ -353,7 +353,7 @@ const MainHeader = ({ keyword, setKeyword, setIsNewUser }: HeaderProps) => {
           {!isMobile && <SearchBar keyword={keyword} setKeyword={setKeyword} />}
 
           {user.nickname === "" ? (
-            <LoginBtn $ismobile={isMobile} onClick={() => navigate("/login")}>
+            <LoginBtn $ismobile={isMobile} onClick={() => navigate("/")}>
               {isMobile ? "로그인" : "로그인하러 가기"}
             </LoginBtn>
           ) : (
