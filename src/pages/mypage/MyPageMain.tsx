@@ -439,9 +439,9 @@ const MyPageMain: React.FC = () => {
     }
 
     // 사용자에게 삭제 확인 받기
-    if (!window.confirm("정말로 이 한줄평을 삭제하시겠습니까?")) {
-        return;
-    }
+    // if (!window.confirm("정말로 이 한줄평을 삭제하시겠습니까?")) {
+    //     return;
+    // }
 
     try {
       await deleteShortReview(movieId, reviewId);

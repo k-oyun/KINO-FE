@@ -2,8 +2,8 @@ import React, { useState } from "react";
 import styled from "styled-components";
 import { FaThumbsUp, FaEllipsisV, FaStar, FaRegStar } from "react-icons/fa";
 
-interface ShortReview {
-  movieId: number;            // 부모에서 꼭 전달되도록!
+export interface ShortReview {
+  movieId: number;
   shortReviewId: string;
   movieTitle: string;
   content: string;
@@ -12,11 +12,11 @@ interface ShortReview {
   createdAt: string;
 }
 
-interface ShortReviewCardProps {
+export interface ShortReviewCardProps {
   review: ShortReview;
   onClick: () => void;
-  onEdit: (updatedReview: ShortReview) => void;
-  onDelete: (movieId: number, reviewId: string) => void;
+  onEdit?: (updatedReview: ShortReview) => void;
+  onDelete?: (movieId: number, reviewId: string) => void;
   isMobile?: boolean;
 }
 
@@ -46,7 +46,6 @@ const ShortReviewCardContainer = styled(CardBase)`
   position: relative;
 `;
 
-/* 버튼 대신 div로 변경해 nested <button> 경고 제거 */
 const MenuTrigger = styled.div`
   background: none;
   border: none;
@@ -250,7 +249,8 @@ const ShortReviewCard: React.FC<ShortReviewCardProps> = ({
   const [editContent, setEditContent] = useState(review.content);
   const [editRating, setEditRating] = useState(review.rating);
 
-  /* 카드 클릭 시: 메뉴가 열려 있으면 닫기만, 아니면 부모 onClick */
+  const canManage = Boolean(onEdit && onDelete);
+
   const handleCardClick = (e: React.MouseEvent) => {
     if (isMenuOpen) {
       setMenuOpen(false);
@@ -260,43 +260,38 @@ const ShortReviewCard: React.FC<ShortReviewCardProps> = ({
     }
   };
 
-  /* 메뉴 > 수정 */
   const handleEdit = (e: React.MouseEvent) => {
     e.stopPropagation();
+    if (!canManage) return;
     setEditContent(review.content);
     setEditRating(review.rating);
     setEditModalOpen(true);
     setMenuOpen(false);
   };
 
-  /* 메뉴 > 삭제 */
   const handleDelete = (e: React.MouseEvent) => {
     e.stopPropagation();
+    if (!canManage) return;
     setMenuOpen(false);
     if (review.movieId == null) {
       alert("movieId가 없어 삭제할 수 없습니다.");
       return;
     }
     if (window.confirm("이 한줄평을 정말 삭제할까요?")) {
-      onDelete(review.movieId, review.shortReviewId);
+      onDelete?.(review.movieId, review.shortReviewId);
     }
   };
 
-  /* 수정 저장 */
   const handleEditSubmit = () => {
     if (review.movieId == null) {
       alert("movieId가 없어 수정할 수 없습니다.");
       return;
     }
-
-    // 부모로 movieId 포함해 전달 (중요!)
-    onEdit({
+    onEdit?.({
       ...review,
       content: editContent,
       rating: editRating,
-      // createdAt 그대로 유지 (서버에서 갱신)
     });
-
     setEditModalOpen(false);
   };
 
@@ -313,20 +308,22 @@ const ShortReviewCard: React.FC<ShortReviewCardProps> = ({
       <ShortReviewCardContainer onClick={handleCardClick} $ismobile={isMobile}>
         <CardHeader>
           <MovieTitle>{review.movieTitle}</MovieTitle>
-          <MenuTrigger
-            onClick={(e) => {
-              e.stopPropagation();
-              setMenuOpen(!isMenuOpen);
-            }}
-          >
-            <FaEllipsisV />
-            {isMenuOpen && (
-              <DropdownMenu>
-                <DropdownItem onClick={handleEdit}>수정</DropdownItem>
-                <DropdownItem onClick={handleDelete}>삭제</DropdownItem>
-              </DropdownMenu>
-            )}
-          </MenuTrigger>
+          {canManage && (
+            <MenuTrigger
+              onClick={(e) => {
+                e.stopPropagation();
+                setMenuOpen(!isMenuOpen);
+              }}
+            >
+              <FaEllipsisV />
+              {isMenuOpen && (
+                <DropdownMenu>
+                  <DropdownItem onClick={handleEdit}>수정</DropdownItem>
+                  <DropdownItem onClick={handleDelete}>삭제</DropdownItem>
+                </DropdownMenu>
+              )}
+            </MenuTrigger>
+          )}
         </CardHeader>
 
         <CardContent>{review.content}</CardContent>
@@ -346,11 +343,7 @@ const ShortReviewCard: React.FC<ShortReviewCardProps> = ({
         <ModalBackdrop onClick={() => setEditModalOpen(false)}>
           <ModalContent onClick={(e) => e.stopPropagation()}>
             <h3>한줄평 수정</h3>
-            <input
-              type="text"
-              value={review.movieTitle}
-              readOnly
-            />
+            <input type="text" value={review.movieTitle} readOnly />
             <textarea
               value={editContent}
               onChange={(e) => setEditContent(e.target.value)}
