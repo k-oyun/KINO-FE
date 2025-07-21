@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import { useMediaQuery } from "react-responsive";
 import useReviewsApi from "../../api/reviews";
+import { useTranslation } from "react-i18next";
 
 export type CommentType = {
   commentId: number;
@@ -162,13 +163,16 @@ interface CommentProps {
   postId: number;
   onCommentAdded?: (comment: CommentType) => void;
   onCommentDeleted?: (commentId: number) => void;
+  isUserActive?: boolean;
 }
 
 const Comment: React.FC<CommentProps> = ({
   postId,
+  isUserActive,
   onCommentAdded,
   onCommentDeleted,
 }) => {
+  const { t } = useTranslation();
   const [comments, setComments] = useState<CommentType[]>([]);
   const [hasMore, setHasMore] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
@@ -300,22 +304,27 @@ const Comment: React.FC<CommentProps> = ({
 
   return (
     <SectionWrapper>
-      <SectionTitle>댓글</SectionTitle>
+      <SectionTitle>{t("comments")}</SectionTitle>
       {/* 댓글 입력 섹션 */}
       <InputWrapper>
         <StyledTextArea
-          placeholder="댓글을 입력하세요..."
+          placeholder={
+            isUserActive ? t("commentPlaceholder") : t("commentBlocked")
+          }
+          disabled={!isUserActive}
           value={commentContent}
           onChange={(e) => setCommentContent(e.target.value)}
           maxLength={200}
         />
         <MaxLengthText>{commentContent.length} / 200</MaxLengthText>
-        <SubmitButton onClick={handleCommentSubmit}>댓글 등록</SubmitButton>
+        <SubmitButton onClick={handleCommentSubmit} disabled={!isUserActive}>
+          {t("submit")}
+        </SubmitButton>
       </InputWrapper>
 
       {error && <EmptyComments style={{ color: "red" }}>{error}</EmptyComments>}
       {isLoading && comments.length === 0 && (
-        <EmptyComments>댓글을 불러오는 중입니다...</EmptyComments>
+        <EmptyComments>{t("loadingComments")}</EmptyComments>
       )}
 
       {/* 댓글 목록 섹션 */}
@@ -323,12 +332,12 @@ const Comment: React.FC<CommentProps> = ({
         {comments.length > 0
           ? comments.map(renderCommentItem)
           : !isLoading &&
-            !error && <EmptyComments>아직 댓글이 없습니다.</EmptyComments>}
+            !error && <EmptyComments>{t("noComment")}</EmptyComments>}
       </CommentListContainer>
 
       {hasMore && (
         <LoadMoreButton onClick={() => loadMoreComments()} disabled={isLoading}>
-          {isLoading ? "댓글 불러오는 중..." : "댓글 더 보기"}
+          {isLoading ? t("loadingComments") : t("loadMoreComments")}
         </LoadMoreButton>
       )}
     </SectionWrapper>

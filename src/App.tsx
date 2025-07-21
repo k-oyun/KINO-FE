@@ -32,8 +32,9 @@ import { DialogProvider, useDialog } from "./context/DialogContext";
 import ConfirmDialog from "./components/ConfirmDialog";
 import { useEffect, useRef } from "react";
 import { useMediaQuery } from "react-responsive";
-import MyFollowingPage from "./pages/mypage/MyFavoriteMoviesPage";
 import MyFollowersPage from "./pages/mypage/MyFollowersPage";
+import Language from "./components/Language";
+import MyFollowingPage from "./pages/mypage/MyFollowingPage";
 
 const HeaderSelector = ({ path }: { path: string }) => {
   if (path === "/") return null;
@@ -64,6 +65,7 @@ const AppContents = () => {
   const path = location.pathname;
   const isAdminPage = path === "/admin";
   const isMainPage = path === "/home";
+  const isMyPage = path.startsWith("/mypage");
   const { openDialog, closeDialog } = useDialog();
   const errorTimeoutRef = useRef<number | null>(null);
   const isMobile = useMediaQuery({ query: "(max-width: 767px)" });
@@ -115,7 +117,7 @@ const AppContents = () => {
         theme={
           isAdminPage
             ? lightTheme
-            : isMainPage
+            : isMainPage || isMyPage
             ? darkTheme
             : isDarkMode
             ? darkTheme
@@ -123,6 +125,7 @@ const AppContents = () => {
         }
       >
         <GlobalStyle />
+        <Language />
         <HeaderSelector path={path} />
         <Routes>
           <Route path="/" element={<Login />}></Route>
@@ -146,7 +149,7 @@ const AppContents = () => {
           <Route path="/mypage/followers" element={<MyFollowersPage />} />
           <Route path="/mypage/following" element={<MyFollowingPage />} />
 
-          <Route path="/comnmuniy" element={<CommunityListPage />} />
+          <Route path="/community" element={<CommunityListPage />} />
           <Route path="/community/:id" element={<CommunityDetailPage />} />
           <Route path="/community/new" element={<CommunityCreatePage />} />
           <Route path="/community/edit/:id" element={<CommunityCreatePage />} />

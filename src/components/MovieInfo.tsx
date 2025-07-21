@@ -1,4 +1,23 @@
 import styled from "styled-components";
+import { useTranslation } from "react-i18next";
+
+const genreMap: Record<number, string> = {
+  12: "Adventure",
+  14: "Fantasy",
+  16: "Animation",
+  18: "Drama",
+  27: "Horror",
+  28: "Action",
+  35: "Comedy",
+  53: "Thriller",
+  80: "Crime",
+  99: "Documentary",
+  878: "Science Fiction",
+  9648: "Mystery",
+  10749: "Romance",
+  10751: "Family",
+  10752: "War",
+};
 
 interface MovieInfoProps {
   isMobile: boolean;
@@ -9,9 +28,9 @@ interface MovieInfoProps {
     backdropUrl: string;
     releaseDate: string;
     runningTime: number;
-    ageRating: boolean;
+    ageRating: string;
     avgRating: number;
-    genres: string[];
+    genreIds: number[];
     director: string;
     actors: [{ name: string; profileUrl: string }];
     otts: [{ name: string; logoUrl: string; linkUrl: string }];
@@ -30,21 +49,22 @@ const MovieInfoContainer = styled.div<styleType>`
 const MovieOverview = styled.div<styleType>`
   font-size: ${(props) => (props.$ismobile ? "16px" : "20px")};
   border-bottom: 1px solid #ccc;
-  padding: ${(props) => (props.$ismobile ? "14px 10px" : "20px 30px")};
+  padding: ${(props) => (props.$ismobile ? "20px 10px" : "30px 30px")};
+  line-height: 1.5;
 `;
 
 const InfoGrid = styled.div<styleType>`
   display: flex;
   justify-content: space-between;
   flex-wrap: wrap;
-  /* width: 100%; */
   margin: ${(props) => (props.$ismobile ? "20px 10px" : "30px")};
   font-size: ${(props) => (props.$ismobile ? "16px" : "20px")};
 `;
 const InfoItem = styled.div<styleType>`
   display: flex;
   width: ${(props) => (props.$ismobile ? "100%" : "50%")};
-  margin-bottom: 16px;
+  /* margin-bottom: 16px; */
+  margin: ${(props) => (props.$ismobile ? "10px 0" : "20px 0")};
 `;
 const InfoLabel = styled.div`
   width: 110px; // 라벨 고정 너비
@@ -82,6 +102,7 @@ const ActorImg = styled.img<styleType>`
   height: ${(props) => (props.$ismobile ? "55px" : "90px")};
   margin-bottom: 8px;
   border-radius: 50%;
+  object-fit: cover;
 `;
 
 const MovieWhereToWatch = styled.div<styleType>`
@@ -131,6 +152,7 @@ function getYouTubeVideoId(url: string) {
 }
 
 const MovieInfo = ({ isMobile, movieDetail }: MovieInfoProps) => {
+  const { t } = useTranslation();
   const videoId = getYouTubeVideoId(movieDetail.teaserUrl);
 
   return (
@@ -138,30 +160,34 @@ const MovieInfo = ({ isMobile, movieDetail }: MovieInfoProps) => {
       <MovieOverview $ismobile={isMobile}>{movieDetail.plot}</MovieOverview>
       <InfoGrid $ismobile={isMobile}>
         <InfoItem $ismobile={isMobile}>
-          <InfoLabel>장르</InfoLabel>
+          <InfoLabel>{t("genres")}</InfoLabel>
           <InfoValue>
-            {movieDetail.genres.map((genre) => genre).join(", ")}
+            {movieDetail.genreIds.map((id) => t(genreMap[id])).join(", ")}
           </InfoValue>
         </InfoItem>
         <InfoItem $ismobile={isMobile}>
-          <InfoLabel>개봉일</InfoLabel>
+          <InfoLabel>{t("releaseDate")}</InfoLabel>
           <InfoValue>{movieDetail.releaseDate}</InfoValue>
         </InfoItem>
         <InfoItem $ismobile={isMobile}>
-          <InfoLabel>연령 등급</InfoLabel>
+          <InfoLabel>{t("filmRating")}</InfoLabel>
           <InfoValue>
             {movieDetail.ageRating
-              ? "19세 미만 관람 불가"
-              : "흠..adult만 주나?"}
+              ? movieDetail.ageRating === "ALL"
+                ? movieDetail.ageRating
+                : movieDetail.ageRating + "+"
+              : "-"}
           </InfoValue>
         </InfoItem>
         <InfoItem $ismobile={isMobile}>
-          <InfoLabel>러닝 타임</InfoLabel>
-          <InfoValue>{movieDetail.runningTime} 분</InfoValue>
+          <InfoLabel>{t("runningTime")}</InfoLabel>
+          <InfoValue>
+            {movieDetail.runningTime} {t("minutes")}
+          </InfoValue>
         </InfoItem>
       </InfoGrid>
       <MovieActors $ismobile={isMobile}>
-        <ActorLabel $ismobile={isMobile}>출연진/제작진</ActorLabel>
+        <ActorLabel $ismobile={isMobile}>{t("actors")}</ActorLabel>
         <ActorList $ismobile={isMobile}>
           {movieDetail.actors.map((actor) => (
             <ActorItem key={actor.name} $ismobile={isMobile}>
@@ -176,23 +202,25 @@ const MovieInfo = ({ isMobile, movieDetail }: MovieInfoProps) => {
         </ActorList>
       </MovieActors>
       <MovieWhereToWatch $ismobile={isMobile}>
-        <OttLabel $ismobile={isMobile}>볼 수 있는 곳</OttLabel>
+        <OttLabel $ismobile={isMobile}>{t("whereToWatch")}</OttLabel>
         <OttList $ismobile={isMobile}>
-          {movieDetail.otts.length > 0
-            ? movieDetail.otts.map((ott) => (
-                <OttLogo
-                  key={ott.name}
-                  src={ott.logoUrl}
-                  onClick={() => window.open(ott.linkUrl, "_blank")}
-                  alt={ott.name}
-                  $ismobile={isMobile}
-                ></OttLogo>
-              ))
-            : "볼 수 있는 곳이 없어요. 따흐흑..."}
+          {movieDetail.otts.length > 0 ? (
+            movieDetail.otts.map((ott) => (
+              <OttLogo
+                key={ott.name}
+                src={ott.logoUrl}
+                onClick={() => window.open(ott.linkUrl, "_blank")}
+                alt={ott.name}
+                $ismobile={isMobile}
+              ></OttLogo>
+            ))
+          ) : (
+            <>{t("nowhereToWatch")}</>
+          )}
         </OttList>
       </MovieWhereToWatch>
       <MovieTrailer $ismobile={isMobile}>
-        <TrailerLabel $ismobile={isMobile}>영상</TrailerLabel>
+        <TrailerLabel $ismobile={isMobile}>{t("trailer")}</TrailerLabel>
         <TrailerStyle
           $ismobile={isMobile}
           src={`https://www.youtube.com/embed/${videoId}`}

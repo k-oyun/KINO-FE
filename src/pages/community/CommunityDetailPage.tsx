@@ -5,11 +5,14 @@ import Comment from "../../components/community/Comment";
 import { useMediaQuery } from "react-responsive";
 import useReviewsApi from "../../api/reviews";
 import { utcToKstString } from "../../utils/date";
+import { useTranslation } from "react-i18next";
+import ReportModal from "../../components/ReportModal";
 
 // 필요한 타입은 이 파일 내에서 직접 정의합니다.
 interface DetailReview {
   movieId: number;
   movieTitle: string;
+  moviePosterUrl: string;
 
   reviewId: number;
   reviewTitle: string;
@@ -26,6 +29,9 @@ interface DetailReview {
   writerId: number;
   writerUserImage: string;
   writerUserNickname: string;
+
+  isUserActive: boolean;
+  isReviewActive: boolean;
 }
 
 interface styleType {
@@ -44,6 +50,17 @@ const PostDetailContainer = styled.div<styleType>`
   padding: ${(props) => (props.$ismobile ? "20px" : "50px")};
   border-radius: 8px;
   box-sizing: border-box;
+`;
+
+const WarningBox = styled.div<styleType>`
+  background-color: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+  padding: 24px;
+  border-radius: 8px;
+  text-align: center;
+  font-size: 1em;
+  margin-top: 40px;
 `;
 
 // --- 게시글 내용 UI ---
@@ -191,7 +208,6 @@ const StyledButton = styled.button<styleType>`
   &:hover {
     background-color: #555555;
     border-color: #fe5890;
-    color: #fe5890;
   }
 `;
 
@@ -202,6 +218,15 @@ const DeleteButton = styled(StyledButton)<styleType>`
   &:hover {
     background-color: #c62828;
     border-color: #c62828;
+    color: white;
+  }
+`;
+
+const ReportButton = styled(StyledButton)<styleType>`
+  background-color: #fd6782;
+  border-color: #fe5890;
+  &:hover {
+    background-color: #f73c63;
     color: white;
   }
 `;
@@ -226,12 +251,15 @@ const LoadingState = styled.div`
 const ErrorState = styled(LoadingState)``;
 
 const CommunityDetailPage: React.FC = () => {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [post, setPost] = useState<DetailReview | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [post, setPost] = useState<DetailReview | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [isReportOpen, setIsReportOpen] = useState<boolean>(false);
   const isMobile = useMediaQuery({ query: "(max-width: 768px)" });
+
   const { getReviewById, likeReview, deleteReview } = useReviewsApi();
 
   const getPost = async () => {
@@ -292,6 +320,10 @@ const CommunityDetailPage: React.FC = () => {
     }
   };
 
+  const reportPost = () => {
+    setIsReportOpen(true);
+  };
+
   const increaseCommentCount = () => {
     setPost((prev) => {
       if (!prev) return null;
@@ -312,7 +344,7 @@ const CommunityDetailPage: React.FC = () => {
   };
 
   if (isLoading) {
-    return <LoadingState>게시글을 불러오는 중입니다...</LoadingState>;
+    return <LoadingState>{t("loadingPost")}</LoadingState>;
   }
 
   if (error) {
@@ -320,93 +352,118 @@ const CommunityDetailPage: React.FC = () => {
   }
 
   if (!post) {
-    return <ErrorState>게시글을 찾을 수 없습니다.</ErrorState>;
+    return <ErrorState>{t("loadingPost")}</ErrorState>;
   }
 
   return (
     <OutContainer>
       <PostDetailContainer $ismobile={isMobile}>
-        {/* 게시글 상세 내용 */}
-        <ContentWrapper>
-          <HeadWrapper $ismobile={isMobile}>
-            <MoviePoster
-              $ismobile={isMobile}
-              // src={post.moviePosterUrl}
-              src="https://image.tmdb.org/t/p/w500/zK2sFxZcelHJRPVr242rxy5VK4T.jpg"
-              alt="영화 포스터"
-              onClick={() => navigate(`/movie/${post.movieId}`)}
-            ></MoviePoster>
-            <PostHeader $ismobile={isMobile}>
-              <PostTitle $ismobile={isMobile}>{post.reviewTitle}</PostTitle>
-              <MovieInfo
-                $ismobile={isMobile}
-                onClick={() => navigate(`/movie/${post.movieId}`)}
-              >
-                <MovieTitle $ismobile={isMobile}>{post.movieTitle}</MovieTitle>
-              </MovieInfo>
-              <PostMeta $ismobile={isMobile}>
-                <span>작성자: {post.writerUserNickname}</span>
-                <span style={{ fontSize: "0.8em" }}>
-                  날짜: {utcToKstString(post.reviewCreatedAt)}
-                </span>
-              </PostMeta>
-            </PostHeader>
-          </HeadWrapper>
-          <ContentArea
-            className="review-content"
-            dangerouslySetInnerHTML={{ __html: post.reviewContent }}
-          />
-        </ContentWrapper>
-        {/* 좋아요 및 액션 버튼 */}
-        <ActionGroup $ismobile={isMobile}>
-          <ReviewLike $ismobile={isMobile}>
-            <Heart
-              $ismobile={isMobile}
-              $heartUrl={
-                post.isHeart
-                  ? "https://img.icons8.com/?size=100&id=V4c6yYlvXtzy&format=png&color=000000"
-                  : "https://img.icons8.com/?size=100&id=12306&format=png&color=000000"
-              }
-              onClick={() => handleLikeClick(post.reviewId)}
-            />
-            <LikeCount $ismobile={isMobile} />
-            {post.reviewLikeCount}
-          </ReviewLike>
-          <CommentImage
-            src="https://img.icons8.com/?size=100&id=61f1pL4hEqO1&format=png&color=000000"
-            alt="댓글"
-            $ismobile={isMobile}
-          ></CommentImage>
-          <CommentDisplay>{post.reviewCommentCount}</CommentDisplay>
-          <ButtonGroup $ismobile={isMobile}>
-            {post.isMine && ( // 본인 게시글일 경우에만 수정/삭제 버튼 표시
-              <>
-                <StyledButton
+        {post.isReviewActive ? (
+          <div>
+            <ContentWrapper>
+              <HeadWrapper $ismobile={isMobile}>
+                <MoviePoster
                   $ismobile={isMobile}
-                  onClick={() => navigate(`/community/edit/${post.reviewId}`)}
-                >
-                  수정
-                </StyledButton>
-                <DeleteButton $ismobile={isMobile} onClick={deletePost}>
-                  삭제
-                </DeleteButton>
-              </>
-            )}
-            <BackButton
-              $ismobile={isMobile}
-              onClick={() => navigate("/community")}
-            >
-              목록으로
-            </BackButton>
-          </ButtonGroup>
-        </ActionGroup>
-        {/* 댓글 섹션 (Comment 컴포넌트 사용) */}
-        <Comment
-          postId={post.reviewId}
-          onCommentAdded={increaseCommentCount}
-          onCommentDeleted={decreaseCommentCount}
-        />
+                  src={post.moviePosterUrl}
+                  alt="영화 포스터"
+                  onClick={() => navigate(`/movie/${post.movieId}`)}
+                ></MoviePoster>
+                <PostHeader $ismobile={isMobile}>
+                  <PostTitle $ismobile={isMobile}>{post.reviewTitle}</PostTitle>
+                  <MovieInfo
+                    $ismobile={isMobile}
+                    onClick={() => navigate(`/movie/${post.movieId}`)}
+                  >
+                    <MovieTitle $ismobile={isMobile}>
+                      {post.movieTitle}
+                    </MovieTitle>
+                  </MovieInfo>
+                  <PostMeta $ismobile={isMobile}>
+                    <span>
+                      {t("writer")}: {post.writerUserNickname}
+                    </span>
+                    <span style={{ fontSize: "0.8em" }}>
+                      {t("date")}: {utcToKstString(post.reviewCreatedAt)}
+                    </span>
+                  </PostMeta>
+                </PostHeader>
+              </HeadWrapper>
+              <ContentArea
+                className="review-content"
+                dangerouslySetInnerHTML={{ __html: post.reviewContent }}
+              />
+            </ContentWrapper>
+            <ActionGroup $ismobile={isMobile}>
+              <ReviewLike $ismobile={isMobile}>
+                <Heart
+                  $ismobile={isMobile}
+                  $heartUrl={
+                    post.isHeart
+                      ? "https://img.icons8.com/?size=100&id=V4c6yYlvXtzy&format=png&color=000000"
+                      : "https://img.icons8.com/?size=100&id=12306&format=png&color=000000"
+                  }
+                  onClick={() => handleLikeClick(post.reviewId)}
+                />
+                <LikeCount $ismobile={isMobile} />
+                {post.reviewLikeCount}
+              </ReviewLike>
+              <CommentImage
+                src="https://img.icons8.com/?size=100&id=61f1pL4hEqO1&format=png&color=000000"
+                alt="댓글"
+                $ismobile={isMobile}
+              ></CommentImage>
+              <CommentDisplay>{post.reviewCommentCount}</CommentDisplay>
+              <ButtonGroup $ismobile={isMobile}>
+                {post.isMine ? ( // 본인 게시글일 경우에만 수정/삭제 버튼 표시
+                  <>
+                    <StyledButton
+                      $ismobile={isMobile}
+                      onClick={() =>
+                        navigate(`/community/edit/${post.reviewId}`)
+                      }
+                    >
+                      {t("edit")}
+                    </StyledButton>
+                    <DeleteButton $ismobile={isMobile} onClick={deletePost}>
+                      {t("delete")}
+                    </DeleteButton>
+                    <BackButton
+                      $ismobile={isMobile}
+                      onClick={() => navigate("/community")}
+                    >
+                      {t("toList")}
+                    </BackButton>
+                  </>
+                ) : (
+                  <>
+                    <ReportButton $ismobile={isMobile} onClick={reportPost}>
+                      {t("report")}
+                    </ReportButton>
+                    <BackButton
+                      $ismobile={isMobile}
+                      onClick={() => navigate("/community")}
+                    >
+                      {t("toList")}
+                    </BackButton>
+                  </>
+                )}
+              </ButtonGroup>
+            </ActionGroup>
+            {/* 댓글 섹션 (Comment 컴포넌트 사용) */}
+            <Comment
+              postId={post.reviewId}
+              isUserActive={post.isUserActive}
+              onCommentAdded={increaseCommentCount}
+              onCommentDeleted={decreaseCommentCount}
+            />
+          </div>
+        ) : (
+          <WarningBox $ismobile={isMobile}>
+            🚫 {t("thisPostWasBlockedByAdmin")}
+          </WarningBox>
+        )}
       </PostDetailContainer>
+      {isReportOpen && <ReportModal setIsModalOpen={setIsReportOpen} />}
     </OutContainer>
   );
 };

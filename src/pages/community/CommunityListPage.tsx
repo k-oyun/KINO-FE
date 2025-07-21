@@ -4,9 +4,11 @@ import { useNavigate, useLocation } from "react-router-dom";
 import DetailReviewCard from "../../components/mypage/DetailReviewCard";
 import { useMediaQuery } from "react-responsive";
 import useReviewsApi from "../../api/reviews";
+import { useTranslation } from "react-i18next";
+import { useMypageApi } from "../../api/mypage";
 
 interface DetailReview {
-  reviewId: string;
+  reviewId: number;
   image: string;
   userProfile: string;
   userNickname: string;
@@ -72,6 +74,12 @@ const CreatePostButton = styled.button`
 
   &:hover {
     background-color: #fe5890d0;
+  }
+
+  &:disabled {
+    background-color: #ccc;
+    color: #666;
+    cursor: not-allowed;
   }
 
   @media (max-width: 767px) {
@@ -163,11 +171,13 @@ const InfoText = styled.div`
 // `;
 
 const CommunityListPage: React.FC = () => {
+  const { i18n, t } = useTranslation();
   const isMobile = useMediaQuery({ query: "(max-width: 768px)" });
   const navigate = useNavigate();
   const location = useLocation();
   const { getReviews } = useReviewsApi();
-
+  const { userInfoGet } = useMypageApi();
+  const [isUserActive, setIsUserActive] = useState<boolean>(true);
   const [posts, setPosts] = useState<DetailReview[]>([]);
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
@@ -200,7 +210,7 @@ const CommunityListPage: React.FC = () => {
       const res = await getReviews(page, pageSize);
       const content = res.data.data.content;
 
-      console.log("불러온 리뷰 데이터:", content);
+      console.log("불러온 리뷰 데이터:", res.data.data);
       setPosts((prev) => [...prev, ...content]);
       setPage((prev) => prev + 1);
       setTotalCount(res.data.data.totalElements);
@@ -216,7 +226,22 @@ const CommunityListPage: React.FC = () => {
     }
   };
 
+  const loadMyInfo = async () => {
+    try {
+      const res = userInfoGet();
+      res.then((data) => {
+        console.log("내 정보 불러오기 성공:", data.data.data);
+        if (!data.data.data.isUserActive) {
+          setIsUserActive(false);
+        }
+      });
+    } catch (e) {
+      console.error("내 정보를 불러오지 못했습니다", e);
+    }
+  };
+
   useEffect(() => {
+    loadMyInfo();
     loadMoreReviews();
   }, []);
 
@@ -251,15 +276,17 @@ const CommunityListPage: React.FC = () => {
     navigate("/community/new");
   };
 
-  const handlePostClick = (postId: string) => {
+  const handlePostClick = (postId: number) => {
     navigate(`/community/${postId}`);
   };
 
   return (
     <PageContainer>
       <PageHeader>
-        <PageTitle>영화 이야기</PageTitle>
-        <CreatePostButton onClick={handleCreatePost}>글쓰기</CreatePostButton>
+        <PageTitle>{t("movieStory")}</PageTitle>
+        <CreatePostButton onClick={handleCreatePost} disabled={!isUserActive}>
+          {t("write")}
+        </CreatePostButton>
       </PageHeader>
 
       {/* <div style={{ marginBottom: '20px' }}>
@@ -280,11 +307,9 @@ const CommunityListPage: React.FC = () => {
       </div> */}
 
       <PostListWrapper>
-        <InfoText>
-          총 <span>{totalCount}</span>개의 게시글이 있습니다
-        </InfoText>
+        <InfoText>{t("reviewCount", { count: totalCount })}</InfoText>
         {isLoading ? (
-          <EmptyState>게시글을 불러오는 중입니다...</EmptyState>
+          <EmptyState>{t("loadingReviews")}</EmptyState>
         ) : error ? (
           <EmptyState style={{ color: "red" }}>{error}</EmptyState>
         ) : posts.length > 0 ? (
@@ -301,11 +326,11 @@ const CommunityListPage: React.FC = () => {
             ))}
             <div ref={observerRef} style={{ height: 1 }} />{" "}
             {/* 감지용 sentinel */}
-            {isLoading && <EmptyState>불러오는 중...</EmptyState>}
-            {!hasMore && <EmptyState>더 이상 게시글이 없습니다.</EmptyState>}
+            {isLoading && <EmptyState>{t("loading")}</EmptyState>}
+            {!hasMore && <EmptyState>{t("noMoreReviews")}</EmptyState>}
           </ListContainer>
         ) : (
-          <EmptyState>첫 게시글을 작성해 주세요. ^^</EmptyState>
+          <EmptyState>{t("noReview")}</EmptyState>
         )}
       </PostListWrapper>
     </PageContainer>

@@ -11,14 +11,14 @@ interface SearchBarProps {
 const SearchWrapper = styled(motion.form)<{ $issearchbtnpos: boolean }>`
   display: ${(props) => (props.$issearchbtnpos ? "none" : "flex")};
   align-items: center;
-  position: absolute;
+  position: relative;
   /* color: ${({ theme }) => theme.textColor}; */
   color: white;
   svg {
     height: 25px;
     cursor: pointer;
   }
-  margin-right: 80px;
+  margin-right: 10px;
   z-index: 5000;
 `;
 
@@ -30,6 +30,7 @@ const Input = styled(motion.input)<{ $ismobile: boolean }>`
   width: 205px;
   height: 100%;
   padding-left: 40px;
+  padding-bottom: 5px;
   z-index: -1;
   /* color: ${({ theme }) => theme.textColor}; */
   color: white;
@@ -48,7 +49,7 @@ export const SearchBar = ({ keyword, setKeyword }: SearchBarProps) => {
   const [searchOpen, setSearchOpen] = useState(false);
   const [scope, animate] = useAnimate();
   const isMobile = useMediaQuery({ query: "(max-width: 767px)" });
-  const isSearchBtnPos = useMediaQuery({ query: "(max-width: 801px" });
+  const isSearchBtnPos = useMediaQuery({ query: "(max-width: 1258px" });
   const toggleSearch = () => {
     if (searchOpen) {
       animate(scope.current, { scaleX: 0 }, { ease: "linear" });

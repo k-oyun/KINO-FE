@@ -39,7 +39,8 @@ const HeaderMenuContainer = styled.div<styleType>`
 
 const HeaderMenuBtn = styled.button<styleType>`
   text-align: center;
-  background-color: ${({ theme }) => theme.backgroundColor};
+  /* background-color: ${({ theme }) => theme.backgroundColor}; */
+  background-color: transparent;
   color: ${({ theme }) => theme.textColor};
   position: relative;
   height: 100%;
@@ -52,8 +53,9 @@ const HeaderMenuBtn = styled.button<styleType>`
   border: none;
   cursor: pointer;
   &:hover {
-    background-color: ${({ theme }) => theme.hoverColor};
+    transform: scale(1.1);
   }
+  transition: 0.1s ease-in;
 `;
 
 const UserInfoContainer = styled.div<styleType>`
@@ -316,7 +318,7 @@ const Header = () => {
         </HeaderMenuContainer>
         <UserInfoContainer $ismobile={isMobile}>
           {user.nickname === "" ? (
-            <LoginBtn $ismobile={isMobile} onClick={() => navigate("/login")}>
+            <LoginBtn $ismobile={isMobile} onClick={() => navigate("/")}>
               {isMobile ? "로그인" : "로그인하러 가기"}
             </LoginBtn>
           ) : (

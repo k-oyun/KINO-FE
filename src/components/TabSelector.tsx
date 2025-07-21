@@ -14,12 +14,12 @@ interface StyleType {
 const TabContainer = styled.div<StyleType>`
   display: flex;
   justify-content: center;
-  border-bottom: ${({ theme }) => `1.5px solid ${theme.textColor}`};
+  border-bottom: ${({ theme }) => `1px solid #ccc`};
 `;
 
 const TabList = styled.ul<StyleType>`
   display: flex;
-  gap: ${(props) => (props.$ismobile ? "60px" : "240px")};
+  gap: ${(props) => (props.$ismobile ? "30px" : "140px")};
 `;
 
 const TabButton = styled.button<{ selected: boolean } & StyleType>`
@@ -27,10 +27,11 @@ const TabButton = styled.button<{ selected: boolean } & StyleType>`
   font-size: ${(props) => (props.$ismobile ? "16px" : "20px")};
   border: none;
   border-bottom: ${({ selected, theme }) =>
-    selected ? `3px solid ${theme.textColor}` : "none"};
+    selected ? `3px solid #f73c63` : "none"};
   background-color: transparent;
-  padding-bottom: 2px;
+  padding-bottom: 5px;
   color: ${({ theme }) => theme.textColor};
+  width: ${(props) => (props.$ismobile ? "80px" : "250px")};
 `;
 
 const TabSelector = <T extends string>({

@@ -8,8 +8,9 @@ import ShortReview from "../components/ShortReview";
 import Review from "../components/Review";
 import { useParams } from "react-router-dom";
 import useMovieDetailApi from "../api/details";
+import { useTranslation } from "react-i18next";
+import { useMypageApi } from "../api/mypage";
 
-// const movieDetail = {
 //   id: 603692,
 //   title: "Inside Out 2",
 //   original_title: "Inside Out 2",
@@ -51,9 +52,7 @@ import useMovieDetailApi from "../api/details";
 //     },
 //   ],
 //   homepage: "https://movies.disney.com/inside-out-2",
-//   imdb_id: "tt1234567",
-// };
-
+//   imdb_id: "tt1234567"
 interface MovieDetail {
   movieId: number;
   title: string;
@@ -61,40 +60,67 @@ interface MovieDetail {
   backdropUrl: string;
   releaseDate: string;
   runningTime: number;
-  ageRating: boolean;
+  ageRating: string;
   avgRating: number;
-  genres: string[];
+  genreIds: number[];
   director: string;
   actors: [{ name: string; profileUrl: string }];
   otts: [{ name: string; logoUrl: string; linkUrl: string }];
   teaserUrl: string;
 }
 
+interface styledType {
+  $ismobile?: boolean;
+}
+
 const MovieDetailContainer = styled.div`
   margin-top: 65px; /* 헤더 높이만큼 여백 */
 `;
 
-const Categories = styled.div<{ $ismobile: boolean }>`
-  padding: ${(props) => (props.$ismobile ? "20px" : "20px 50px")};
+const Wrapper = styled.div<styledType>`
+  width: ${(props) => (props.$ismobile ? "" : "80%")};
+  margin: ${(props) => (props.$ismobile ? "0" : "0 auto")};
 `;
 
-const tabs = [
-  { id: "info", label: "작품정보" },
-  { id: "shortReview", label: "한줄평" },
-  { id: "review", label: "상세 리뷰" },
-] as const;
-
-type Tabs = (typeof tabs)[number]["id"];
+const Categories = styled.div<{ $ismobile: boolean }>`
+  padding: ${(props) => (props.$ismobile ? "20px" : "20px 50px")};
+  margin-top: ${(props) => (props.$ismobile ? "8px" : "15px")};
+`;
 
 const MovieDetail = () => {
+  const { t } = useTranslation();
+  const tabs = [
+    { id: "info", label: t("information") },
+    { id: "shortReview", label: t("shortReview") },
+    { id: "review", label: t("detailedReview") },
+  ] as const;
+  type Tabs = (typeof tabs)[number]["id"];
+
   const isMobile = useMediaQuery({ query: "(max-width: 768px)" });
   const [selectedTab, setSelectedTab] = useState<Tabs>("info");
   const { id: movieId } = useParams<{ id: string }>();
   const [movieDetail, setMovieDetail] = useState<MovieDetail | null>(null);
   const { getMovieDetail } = useMovieDetailApi();
+  const [isUserActive, setIsUserActive] = useState<boolean>(true);
+  const { userInfoGet } = useMypageApi();
+
+  const loadMyInfo = async () => {
+    try {
+      const res = userInfoGet();
+      res.then((data) => {
+        console.log("내 정보 불러오기 성공:", data.data.data);
+        if (!data.data.data.isUserActive) {
+          setIsUserActive(false);
+        }
+      });
+    } catch (e) {
+      console.error("내 정보를 불러오지 못했습니다", e);
+    }
+  };
 
   useEffect(() => {
     // 초기 정보 불러오기
+    loadMyInfo();
     try {
       const res = getMovieDetail(Number(movieId));
       res.then((data) => {
@@ -112,23 +138,33 @@ const MovieDetail = () => {
     <div>
       <MovieDetailContainer>
         <GeneralMovieInfo isMobile={isMobile} movieDetail={movieDetail} />
-        <Categories $ismobile={isMobile}>
-          <TabSelector
-            isMobile={isMobile}
-            tabs={tabs}
-            selectedTab={selectedTab}
-            onChange={setSelectedTab}
-          />
-          {selectedTab === "info" && (
-            <MovieInfo isMobile={isMobile} movieDetail={movieDetail} />
-          )}
-          {selectedTab === "shortReview" && (
-            <ShortReview isMobile={isMobile} movieId={movieDetail.movieId} />
-          )}
-          {selectedTab === "review" && (
-            <Review isMobile={isMobile} movieId={movieDetail.movieId} />
-          )}
-        </Categories>
+        <Wrapper $ismobile={isMobile}>
+          <Categories $ismobile={isMobile}>
+            <TabSelector
+              isMobile={isMobile}
+              tabs={tabs}
+              selectedTab={selectedTab}
+              onChange={setSelectedTab}
+            />
+            {selectedTab === "info" && (
+              <MovieInfo isMobile={isMobile} movieDetail={movieDetail} />
+            )}
+            {selectedTab === "shortReview" && (
+              <ShortReview
+                isMobile={isMobile}
+                movieId={movieDetail.movieId}
+                isUserActive={isUserActive}
+              />
+            )}
+            {selectedTab === "review" && (
+              <Review
+                isMobile={isMobile}
+                movieId={movieDetail.movieId}
+                isUserActive={isUserActive}
+              />
+            )}
+          </Categories>
+        </Wrapper>
       </MovieDetailContainer>
     </div>
   );
