@@ -1,91 +1,64 @@
 import axios from "./AxiosInstance";
-import { useCallback } from 'react';
+import { useCallback, useMemo } from "react";
 
 export const useMypageApi = () => {
-    const mypageMain = async () => {
-        return await axios.get("/mypage/main");
-    };
+  const mypageMain = useCallback(() => axios.get("/mypage/main"), []);
+  const mypageMyPickMovie = useCallback(() => axios.get("/mypage/myPickMovie"), []);
+  const mypageReview = useCallback(() => axios.get("/mypage/review"), []);
+  const mypageShortReview = useCallback(() => axios.get("/mypage/shortReview"), []);
+  const userInfoGet = useCallback(() => axios.get("/user"), []);
+  const getFollower = useCallback((targetId: number) => axios.get(`/follow/followers/${targetId}`), []);
+  const getFollowing = useCallback((targetId: number) => axios.get(`/follow/following/${targetId}`), []);
+  const followUser = useCallback((targetId: number) => axios.post(`/follow/${targetId}`), []);
+  const unfollowUser = useCallback((targetId: number) => axios.delete(`/follow/${targetId}`), []);
+  const updateProfile = useCallback((formData: FormData) => {
+    return axios.post("/mypage/profile", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+  }, []);
+  const getGenre = useCallback(() => axios.get("/mypage/userGenres"), []);
+  const updateGenre = useCallback((genreIds: number[]) => axios.post("/mypage/userGenres", { genreIds }), []);
+  const updateShortReview = useCallback(
+    (reviewId: string, payload: { movieTitle: string; content: string; rating: number }) =>
+      axios.put(`/mypage/shortReview/${reviewId}`, payload),
+    []
+  );
+  const deleteShortReview = useCallback((reviewId: string) => axios.delete(`/mypage/shortReview/${reviewId}`), []);
 
-    const mypageMyPickMovie = async () => {
-        return await axios.get("/mypage/myPickMovie");
-    };
-    const mypageReview = async () => {
-        return await axios.get("/mypage/review");
-    };
-    const mypageShortReview = async () => {
-        return await axios.get("/mypage/shortReview");
-    };
-
-    const userInfoGet = async () => {
-        return await axios.get("/user");
-    };
-
-    const getFollower = useCallback(async (targetId: number) => {
-        return await axios.get(`/follow/followers/${targetId}`);
-    }, []);
-
-    const getFollowing = useCallback(async (targetId: number) => {
-        return await axios.get(`/follow/following/${targetId}`);
-    }, []);
-
-    const followUser = useCallback(async (targetId: number) => {
-        return await axios.post(`/follow/${targetId}`);
-    }, []);
-
-    const unfollowUser = useCallback(async (targetId: number) => {
-        return await axios.delete(`/follow/${targetId}`);
-    }, []);
-
-    const updateProfile = async (formData: FormData) => {
-        try {
-            const response = await axios.post("/mypage/profile", formData, {
-                headers: {
-                    "Content-Type": "multipart/form-data",
-                },
-            });
-
-            console.log("업데이트 성공:", response.data);
-            return response.data;
-        } catch (error) {
-            console.error("업데이트 실패:", error);
-            throw error;
-        }
-    };
-
-    const getGenre = async () => {
-        return await axios.get("/mypage/userGenres");
-    };
-
-    const updateGenre = async (genreIds: number[]) => {
-        return await axios.post("/mypage/userGenres", {
-            genreIds: genreIds,
-        });
-    };
-
-    const updateShortReview = async (reviewId: string, payload: { movieTitle: string; content: string; rating: number }) => {
-        return await axios.put(`/mypage/shortReview/${reviewId}`, payload);
-    };
-
-    const deleteShortReview = async (reviewId: string) => {
-        return await axios.delete(`/mypage/shortReview/${reviewId}`);
-    };
-
-
-    return {
-        mypageMain,
-        mypageMyPickMovie,
-        mypageReview,
-        mypageShortReview,
-        userInfoGet,
-        getFollower,
-        getFollowing,
-        followUser,
-        unfollowUser,
-        updateProfile,
-        getGenre,
-        updateGenre,
-        updateShortReview,
-        deleteShortReview,
-    };
+  return useMemo(
+    () => ({
+      mypageMain,
+      mypageMyPickMovie,
+      mypageReview,
+      mypageShortReview,
+      userInfoGet,
+      getFollower,
+      getFollowing,
+      followUser,
+      unfollowUser,
+      updateProfile,
+      getGenre,
+      updateGenre,
+      updateShortReview,
+      deleteShortReview,
+    }),
+    [
+      mypageMain,
+      mypageMyPickMovie,
+      mypageReview,
+      mypageShortReview,
+      userInfoGet,
+      getFollower,
+      getFollowing,
+      followUser,
+      unfollowUser,
+      updateProfile,
+      getGenre,
+      updateGenre,
+      updateShortReview,
+      deleteShortReview,
+    ]
+  );
 };
+
 export default useMypageApi;

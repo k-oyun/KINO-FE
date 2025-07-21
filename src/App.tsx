@@ -32,6 +32,8 @@ import { DialogProvider, useDialog } from "./context/DialogContext";
 import ConfirmDialog from "./components/ConfirmDialog";
 import { useEffect, useRef } from "react";
 import { useMediaQuery } from "react-responsive";
+import MyFollowingPage from "./pages/mypage/MyFavoriteMoviesPage";
+import MyFollowersPage from "./pages/mypage/MyFollowersPage";
 
 const HeaderSelector = ({ path }: { path: string }) => {
   if (path === "/") return null;
@@ -136,20 +138,13 @@ const AppContents = () => {
           <Route path="/admin" element={<Admin />}></Route>
 
           <Route path="/mypage" element={<MyPageMain />} />
-          <Route
-            path="/mypage/reviews/short"
-            element={<MyReviewsShortPage />}
-          />
-          <Route
-            path="/mypage/reviews/detail"
-            element={<MyReviewsDetailPage />}
-          />
-          <Route
-            path="/mypage/movies/favorite"
-            element={<MyFavoriteMoviesPage />}
-          />
+          <Route path="/mypage/reviews/short" element={<MyReviewsShortPage />}/>
+          <Route path="/mypage/reviews/detail" element={<MyReviewsDetailPage />}/>
+          <Route path="/mypage/movies/favorite" element={<MyFavoriteMoviesPage />}/>
           <Route path="/mypage/settings" element={<MySettingsPage />} />
           <Route path="/mypage/tags" element={<MyTagsPage />} />
+          <Route path="/mypage/followers" element={<MyFollowersPage />} />
+          <Route path="/mypage/following" element={<MyFollowingPage />} />
 
           <Route path="/comnmuniy" element={<CommunityListPage />} />
           <Route path="/community/:id" element={<CommunityDetailPage />} />
