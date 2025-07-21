@@ -1,29 +1,32 @@
 import styled from "styled-components";
 import { motion, useAnimate } from "framer-motion";
 import { useState, type ChangeEvent } from "react";
+import { useMediaQuery } from "react-responsive";
 
 interface SearchBarProps {
   keyword: string;
   setKeyword: (value: string) => void;
 }
 
-const SearchWrapper = styled(motion.form)`
-  display: flex;
+const SearchWrapper = styled(motion.form)<{ $issearchbtnpos: boolean }>`
+  display: ${(props) => (props.$issearchbtnpos ? "none" : "flex")};
   align-items: center;
-  position: relative;
+  position: absolute;
   /* color: ${({ theme }) => theme.textColor}; */
   color: white;
   svg {
     height: 25px;
     cursor: pointer;
   }
-  margin-right: 10px;
+  margin-right: 80px;
+  z-index: 5000;
 `;
 
-const Input = styled(motion.input)`
+const Input = styled(motion.input)<{ $ismobile: boolean }>`
   transform-origin: right center;
   position: absolute;
   right: 0;
+  width: 820%;
   width: 205px;
   height: 100%;
   padding-left: 40px;
@@ -34,6 +37,7 @@ const Input = styled(motion.input)`
   background-color: transparent;
   border: none;
   z-index: 3001;
+  /* background-color: red; */
   &:focus {
     outline: none !important;
     box-shadow: none !important;
@@ -43,7 +47,8 @@ const Input = styled(motion.input)`
 export const SearchBar = ({ keyword, setKeyword }: SearchBarProps) => {
   const [searchOpen, setSearchOpen] = useState(false);
   const [scope, animate] = useAnimate();
-
+  const isMobile = useMediaQuery({ query: "(max-width: 767px)" });
+  const isSearchBtnPos = useMediaQuery({ query: "(max-width: 801px" });
   const toggleSearch = () => {
     if (searchOpen) {
       animate(scope.current, { scaleX: 0 }, { ease: "linear" });
@@ -60,7 +65,7 @@ export const SearchBar = ({ keyword, setKeyword }: SearchBarProps) => {
   };
 
   return (
-    <SearchWrapper>
+    <SearchWrapper $issearchbtnpos={isSearchBtnPos}>
       <motion.svg
         ref={scope}
         onClick={toggleSearch}
@@ -87,6 +92,7 @@ export const SearchBar = ({ keyword, setKeyword }: SearchBarProps) => {
         />
       </motion.svg>
       <Input
+        $ismobile={isMobile}
         ref={scope}
         style={{ scaleX: 0 }}
         value={keyword}
