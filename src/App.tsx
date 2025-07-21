@@ -61,6 +61,7 @@ const AppContents = () => {
   const location = useLocation();
   const path = location.pathname;
   const isAdminPage = path === "/admin";
+  const isMainPage = path === "/home";
   const { openDialog, closeDialog } = useDialog();
   const errorTimeoutRef = useRef<number | null>(null);
   const isMobile = useMediaQuery({ query: "(max-width: 767px)" });
@@ -109,7 +110,15 @@ const AppContents = () => {
   return (
     <>
       <ThemeProvider
-        theme={isAdminPage ? lightTheme : isDarkMode ? darkTheme : lightTheme}
+        theme={
+          isAdminPage
+            ? lightTheme
+            : isMainPage
+            ? darkTheme
+            : isDarkMode
+            ? darkTheme
+            : lightTheme
+        }
       >
         <GlobalStyle />
         <HeaderSelector path={path} />

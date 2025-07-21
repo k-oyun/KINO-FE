@@ -5,7 +5,7 @@ import SurveyModal from "../components/SurveyModal";
 import useHomeApi from "../api/home";
 import { useMediaQuery } from "react-responsive";
 import logo from "../assets/img/Logo.png";
-import { AnimatePresence, hover, motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { KinoLogoPlaceholderSVG } from "../assets/svg/KinoLogoPlaceholder.tsx";
 import { KinoPosterPlaceholderSVG } from "../assets/svg/KinoPosterPlaceholder.tsx";
