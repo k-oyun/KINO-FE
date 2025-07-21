@@ -47,7 +47,7 @@ const MovieInfoContainer = styled.div<styleType>`
 `;
 
 const MovieOverview = styled.div<styleType>`
-  font-size: ${(props) => (props.$ismobile ? "16px" : "20px")};
+  font-size: ${(props) => (props.$ismobile ? "12px" : "16px")};
   border-bottom: 1px solid #ccc;
   padding: ${(props) => (props.$ismobile ? "20px 10px" : "30px 30px")};
   line-height: 1.5;

@@ -47,18 +47,16 @@ const PageHeader = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 25px;
+  margin-bottom: 15px;
 `;
 
 const PageTitle = styled.h2`
   font-size: 1.8em;
   font-weight: bold;
-
+  margin-left: 30px;
   @media (max-width: 767px) {
     font-size: 1.4em;
-  }
-  @media (max-width: 480px) {
-    font-size: 1.2em;
+    margin-left: 15px;
   }
 `;
 
@@ -91,7 +89,8 @@ const CreatePostButton = styled.button`
 const PostListWrapper = styled.div`
   padding: 25px;
   border-radius: 8px;
-  background-color: #eee;
+  background-color: ${({ theme }) =>
+    theme.backgroundColor === "#ffffff" ? "#f0f0f0" : "#222222"};
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
   margin-bottom: 16px;
 

@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { styled } from "styled-components";
+import styled, { useTheme } from "styled-components";
 import { formatDistanceToNow } from "date-fns";
 import { ko, se } from "date-fns/locale";
 import ReportModal from "../ReportModal";
@@ -38,8 +38,8 @@ interface styleType {
 }
 
 const CardBase = styled.div<styleType>`
-  background-color: #d9d9d9;
-  color: #000;
+  background-color: ${({ theme }) =>
+    theme.backgroundColor === "#ffffff" ? "#d9d9d9" : "#333"};
   border-radius: 8px;
   padding: ${(props) => (props.$ismobile ? "15px" : "25px")};
   margin-bottom: 10px;
@@ -65,7 +65,6 @@ const ReviewText = styled.div<styleType>`
   overflow: hidden;
   word-break: break-word;
   /* min-height: ${(props) => (props.$ismobile ? "5vh" : "2vh")}; */
-  color: #333;
 
   img {
     max-width: 100%;
@@ -95,7 +94,6 @@ const LikesDisplay = styled.span`
   display: flex;
   align-items: center;
   gap: 3px;
-  color: #000;
 `;
 
 const CommentImage = styled.img<styleType>`
@@ -109,7 +107,6 @@ const CommentDisplay = styled.span`
   display: flex;
   align-items: center;
   gap: 3px;
-  color: #000;
   margin-right: 5px;
 `;
 
@@ -143,8 +140,8 @@ const UserProfile = styled.div<styleType>`
 `;
 
 const UserImage = styled.img<styleType>`
-  width: ${(props) => (props.$ismobile ? "30px" : "60px")};
-  height: ${(props) => (props.$ismobile ? "30px" : "60px")};
+  width: ${(props) => (props.$ismobile ? "28px" : "50px")};
+  height: ${(props) => (props.$ismobile ? "28px" : "50px")};
   border: 2px solid #fd6782;
   object-fit: cover;
   border-radius: 50%;
@@ -156,13 +153,12 @@ const UserImage = styled.img<styleType>`
 const UserText = styled.div<styleType>`
   display: flex;
   flex-direction: column;
-  margin-left: ${(props) => (props.$ismobile ? "5px" : "10px")};
+  margin-left: ${(props) => (props.$ismobile ? "10px" : "10px")};
 `;
 
 const UserNickname = styled.div<styleType>`
   font-weight: bold;
-  font-size: ${(props) => (props.$ismobile ? "12px" : "18px")};
-  color: #333;
+  font-size: ${(props) => (props.$ismobile ? "14px" : "18px")};
 `;
 
 // 리뷰 스타일
@@ -191,7 +187,6 @@ const DetailReviewContentWrapper = styled.div`
 `;
 
 const DetailReviewTitleText = styled.h4<styleType>`
-  color: #222;
   font-size: ${(props) => (props.$ismobile ? "0.9em" : "1.2em")};
   margin-bottom: ${(props) => (props.$ismobile ? "5px" : "10px")};
   margin-top: 0;
@@ -258,6 +253,7 @@ const DetailReviewCard: React.FC<DetailReviewCardProps> = ({
   isMobile,
   onClick,
 }) => {
+  const theme = useTheme();
   const { t } = useTranslation();
   const navigate = useNavigate();
   const popMenuRef = useRef<HTMLUListElement | null>(null);
@@ -346,7 +342,11 @@ const DetailReviewCard: React.FC<DetailReviewCardProps> = ({
                 ></Heart>
                 <LikesDisplay>{review.likeCount}</LikesDisplay>
                 <CommentImage
-                  src="https://img.icons8.com/?size=100&id=61f1pL4hEqO1&format=png&color=000000"
+                  src={
+                    theme.backgroundColor === "#141414"
+                      ? "https://img.icons8.com/?size=100&id=11167&format=png&color=FFFFFF"
+                      : "https://img.icons8.com/?size=100&id=61f1pL4hEqO1&format=png&color=000000"
+                  }
                   alt="댓글"
                   $ismobile={isMobile}
                 ></CommentImage>

@@ -123,7 +123,7 @@ const AppContents = () => {
         }
       >
         <GlobalStyle />
-        <Language />
+        {path === "/" ? null : <Language />}
         <HeaderSelector path={path} />
         <Routes>
           <Route path="/" element={<Login />}></Route>
