@@ -285,7 +285,7 @@ const GenreTag = styled.span<styleType>`
   background: rgba(240, 98, 146, 0.44);
   border-radius: 50px;
   padding: ${(props) =>
-    props.$ismobile ? "2px 6px 2px 6px" : "3px 13px 2px 13px"};
+    props.$ismobile ? "2px 6px 2px 6px" : "1px 13px 3px 13px"};
   font-size: ${(props) => (props.$ismobile ? "5px" : "16px")};
   color: #f06292;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
@@ -627,6 +627,10 @@ const Main = () => {
     setMovieHoverProgress(0);
   };
   const { t } = useTranslation();
+
+  useEffect(() => {
+    console.log(hoveredReview?.reviewId);
+  }, [hoveredReview]);
   return (
     <>
       {isNewUser && <SurveyModal setIsNewUser={setIsNewUser} />}
