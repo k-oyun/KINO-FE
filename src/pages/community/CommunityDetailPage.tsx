@@ -1,5 +1,5 @@
 import React, { useState, useEffect, use } from "react";
-import styled from "styled-components";
+import styled, { useTheme } from "styled-components";
 import { useParams, useNavigate } from "react-router-dom";
 import Comment from "../../components/community/Comment";
 import { useMediaQuery } from "react-responsive";
@@ -184,7 +184,6 @@ const CommentDisplay = styled.span`
   display: flex;
   align-items: center;
   gap: 3px;
-  color: #000;
   margin-left: 3px;
   margin-right: auto;
 `;
@@ -259,6 +258,8 @@ const CommunityDetailPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [isReportOpen, setIsReportOpen] = useState<boolean>(false);
   const isMobile = useMediaQuery({ query: "(max-width: 768px)" });
+  const theme = useTheme();
+  console.log("Current theme:", theme);
 
   const { getReviewById, likeReview, deleteReview } = useReviewsApi();
 
@@ -408,7 +409,11 @@ const CommunityDetailPage: React.FC = () => {
                 {post.reviewLikeCount}
               </ReviewLike>
               <CommentImage
-                src="https://img.icons8.com/?size=100&id=61f1pL4hEqO1&format=png&color=000000"
+                src={
+                  theme.backgroundColor === "#141414"
+                    ? "https://img.icons8.com/?size=100&id=11167&format=png&color=FFFFFF"
+                    : "https://img.icons8.com/?size=100&id=11167&format=png&color=000000"
+                }
                 alt="댓글"
                 $ismobile={isMobile}
               ></CommentImage>
