@@ -5,11 +5,13 @@ import Comment from "../../components/community/Comment";
 import { useMediaQuery } from "react-responsive";
 import useReviewsApi from "../../api/reviews";
 import { utcToKstString } from "../../utils/date";
+import { useTranslation } from "react-i18next";
 
 // 필요한 타입은 이 파일 내에서 직접 정의합니다.
 interface DetailReview {
   movieId: number;
   movieTitle: string;
+  moviePosterUrl: string;
 
   reviewId: number;
   reviewTitle: string;
@@ -226,10 +228,11 @@ const LoadingState = styled.div`
 const ErrorState = styled(LoadingState)``;
 
 const CommunityDetailPage: React.FC = () => {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [post, setPost] = useState<DetailReview | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [post, setPost] = useState<DetailReview | null>(null);
   const [error, setError] = useState<string | null>(null);
   const isMobile = useMediaQuery({ query: "(max-width: 768px)" });
   const { getReviewById, likeReview, deleteReview } = useReviewsApi();
@@ -312,7 +315,7 @@ const CommunityDetailPage: React.FC = () => {
   };
 
   if (isLoading) {
-    return <LoadingState>게시글을 불러오는 중입니다...</LoadingState>;
+    return <LoadingState>{t("loadingPost")}</LoadingState>;
   }
 
   if (error) {
@@ -320,7 +323,7 @@ const CommunityDetailPage: React.FC = () => {
   }
 
   if (!post) {
-    return <ErrorState>게시글을 찾을 수 없습니다.</ErrorState>;
+    return <ErrorState>{t("loadingPost")}</ErrorState>;
   }
 
   return (
@@ -331,8 +334,7 @@ const CommunityDetailPage: React.FC = () => {
           <HeadWrapper $ismobile={isMobile}>
             <MoviePoster
               $ismobile={isMobile}
-              // src={post.moviePosterUrl}
-              src="https://image.tmdb.org/t/p/w500/zK2sFxZcelHJRPVr242rxy5VK4T.jpg"
+              src={post.moviePosterUrl}
               alt="영화 포스터"
               onClick={() => navigate(`/movie/${post.movieId}`)}
             ></MoviePoster>
@@ -345,9 +347,11 @@ const CommunityDetailPage: React.FC = () => {
                 <MovieTitle $ismobile={isMobile}>{post.movieTitle}</MovieTitle>
               </MovieInfo>
               <PostMeta $ismobile={isMobile}>
-                <span>작성자: {post.writerUserNickname}</span>
+                <span>
+                  {t("writer")}: {post.writerUserNickname}
+                </span>
                 <span style={{ fontSize: "0.8em" }}>
-                  날짜: {utcToKstString(post.reviewCreatedAt)}
+                  {t("date")}: {utcToKstString(post.reviewCreatedAt)}
                 </span>
               </PostMeta>
             </PostHeader>
@@ -385,10 +389,10 @@ const CommunityDetailPage: React.FC = () => {
                   $ismobile={isMobile}
                   onClick={() => navigate(`/community/edit/${post.reviewId}`)}
                 >
-                  수정
+                  {t("edit")}
                 </StyledButton>
                 <DeleteButton $ismobile={isMobile} onClick={deletePost}>
-                  삭제
+                  {t("delete")}
                 </DeleteButton>
               </>
             )}
@@ -396,7 +400,7 @@ const CommunityDetailPage: React.FC = () => {
               $ismobile={isMobile}
               onClick={() => navigate("/community")}
             >
-              목록으로
+              {t("toList")}
             </BackButton>
           </ButtonGroup>
         </ActionGroup>

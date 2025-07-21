@@ -13,7 +13,7 @@ interface UserProfileType {
 }
 
 interface DetailReviewType {
-  reviewId: string;
+  reviewId: number;
   image: string;
   userProfile: string;
   userNickname: string;
@@ -285,7 +285,7 @@ const MyReviewsDetailPage: React.FC = () => {
     return 0;
   });
 
-  const handleReviewClick = (reviewId: string) => {
+  const handleReviewClick = (reviewId: number) => {
     // 상세 리뷰 클릭 시 상세 페이지로 이동
     navigate(`/reviews/detail/${reviewId}`);
   };

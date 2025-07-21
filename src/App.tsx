@@ -32,6 +32,7 @@ import { DialogProvider, useDialog } from "./context/DialogContext";
 import ConfirmDialog from "./components/ConfirmDialog";
 import { useEffect, useRef } from "react";
 import { useMediaQuery } from "react-responsive";
+import Language from "./components/Language";
 
 const HeaderSelector = ({ path }: { path: string }) => {
   if (path === "/") return null;
@@ -112,6 +113,7 @@ const AppContents = () => {
         theme={isAdminPage ? lightTheme : isDarkMode ? darkTheme : lightTheme}
       >
         <GlobalStyle />
+        <Language />
         <HeaderSelector path={path} />
         <Routes>
           <Route path="/" element={<Login />}></Route>
@@ -142,7 +144,7 @@ const AppContents = () => {
           <Route path="/mypage/settings" element={<MySettingsPage />} />
           <Route path="/mypage/tags" element={<MyTagsPage />} />
 
-          <Route path="/comnmuniy" element={<CommunityListPage />} />
+          <Route path="/community" element={<CommunityListPage />} />
           <Route path="/community/:id" element={<CommunityDetailPage />} />
           <Route path="/community/new" element={<CommunityCreatePage />} />
           <Route path="/community/edit/:id" element={<CommunityCreatePage />} />

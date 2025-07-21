@@ -5,6 +5,7 @@ import useReviewsApi from "../../api/reviews";
 import { useMediaQuery } from "react-responsive";
 import { CKEditor } from "@ckeditor/ckeditor5-react";
 import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
+import { useTranslation } from "react-i18next";
 
 // 필요한 타입은 이 파일 내에서 직접 정의합니다.
 // interface CreatePostRequest {
@@ -99,6 +100,7 @@ const ErrorMessage = styled.div`
 `;
 
 const CommunityCreatePage: React.FC = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
@@ -199,10 +201,10 @@ const CommunityCreatePage: React.FC = () => {
   return (
     <OutContainer>
       <PageWrapper $ismobile={isMobile}>
-        <PageTitle $ismobile={isMobile}>새 게시글 작성</PageTitle>
+        <PageTitle $ismobile={isMobile}>{t("writeNewReview")}</PageTitle>
         {/* TODO: 영화 선택 UI 및 로직 추가 (예: 드롭다운 또는 검색 모달) */}
         <FormGroup>
-          <Label htmlFor="movie">영화 선택 (선택 사항)</Label>
+          <Label htmlFor="movie">{t("movie")}</Label>
           <StyledInput
             id="movie"
             type="text"
@@ -216,12 +218,12 @@ const CommunityCreatePage: React.FC = () => {
         </FormGroup>
         <form onSubmit={handleSubmit}>
           <FormGroup>
-            <Label htmlFor="title">제목</Label>
+            <Label htmlFor="title">{t("title")}</Label>
             <StyledInput
               $ismobile={isMobile}
               id="title"
               type="text"
-              placeholder="제목을 입력하세요"
+              placeholder={t("titlePlaceholder")}
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               disabled={isLoading}
@@ -237,7 +239,7 @@ const CommunityCreatePage: React.FC = () => {
                   setContent(editor.getData()); // HTML string 저장
                 }}
                 config={{
-                  placeholder: "내용을 입력하세요...",
+                  placeholder: t("contentPlaceholder"),
                   licenseKey: "GPL",
                   extraPlugins: [uploadPlugin],
                 }}
@@ -259,7 +261,7 @@ const CommunityCreatePage: React.FC = () => {
               disabled={isLoading}
               onClick={handleSubmit}
             >
-              {isLoading ? "작성 중..." : "작성 완료"}
+              {isLoading ? t("writing") : t("completed")}
             </SubmitButton>
           </div>
         </form>
