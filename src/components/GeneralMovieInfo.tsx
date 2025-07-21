@@ -13,7 +13,7 @@ interface GeneralMovieProps {
     runningTime: number;
     ageRating: string;
     avgRating: number;
-    genres: string[];
+    genreIds: number[];
     director: string;
     actors: [{ name: string; profileUrl: string }];
     otts: [{ name: string; logoUrl: string; linkUrl: string }];
