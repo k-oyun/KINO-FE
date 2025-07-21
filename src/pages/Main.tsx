@@ -367,6 +367,19 @@ const TeaserDetailBtn = styled(motion.button)<styleType>`
   z-index: 10;
 `;
 
+const ContentArea = styled.div`
+  font-size: 1em;
+  line-height: 1.6;
+  min-height: 200px;
+  white-space: pre-wrap;
+  padding: 20px;
+  img {
+    max-width: 100%;
+    object-fit: cover;
+    height: auto;
+    display: block;
+  }
+`;
 interface TeaserType {
   movieId: number;
   title: string;
@@ -880,7 +893,12 @@ const Main = () => {
               <InfoSection>
                 <MovieTitle>{hoveredReview.movieTitle}</MovieTitle>
                 <MovieTitle>{hoveredReview.reviewTitle}</MovieTitle>
-                <MoviePlot>{hoveredReview.content}</MoviePlot>
+                <ContentArea>
+                  <ContentArea
+                    className="review-content"
+                    dangerouslySetInnerHTML={{ __html: hoveredReview.content }}
+                  />
+                </ContentArea>
               </InfoSection>
             </ModalBox>
           </ModalContainer>
