@@ -9,24 +9,26 @@ interface UpdateShortReviewPayload {
 
 export const useMypageApi = () => {
   const mypageMain = useCallback(() => axios.get("/mypage/main"), []);
-  const mypageMyPickMovie = useCallback(
-  (userId?: number) => {
-    if (userId) {
-      return axios.get(`/users/${userId}/myPickMovies`);
-    }
-    return axios.get("/mypage/myPickMovie");
-  },
-  []
-);
-  const mypageReview = useCallback(
-  (userId?: number) => {
-    if (userId) {
-      return axios.get(`/users/${userId}/reviews`);
-    }
-    return axios.get("/mypage/review");
-  },
-  []
-);
+  const mypageMyPickMovie = useCallback(() => axios.get("/mypage/myPickMovie"), []);
+  const mypageReview = useCallback(() => axios.get("/mypage/review"), []);
+//   const mypageMyPickMovie = useCallback(
+//   (userId?: number) => {
+//     if (userId) {
+//       return axios.get(`/users/${userId}/myPickMovies`);
+//     }
+//     return axios.get("/mypage/myPickMovie");
+//   },
+//   []
+// );
+//   const mypageReview = useCallback(
+//   (userId?: number) => {
+//     if (userId) {
+//       return axios.get(`/users/${userId}/reviews`);
+//     }
+//     return axios.get("/mypage/review");
+//   },
+//   []
+// );
   const mypageShortReview = useCallback(() => axios.get("/mypage/shortReview"), []);
   const userInfoGet = useCallback(() => axios.get("/user"), []);
   const getFollower = useCallback((targetId: number) => axios.get(`/follow/followers/${targetId}`), []);
