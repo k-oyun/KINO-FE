@@ -10,6 +10,7 @@ import { useNavigate } from "react-router-dom";
 import { KinoLogoPlaceholderSVG } from "../assets/svg/KinoLogoPlaceholder.tsx";
 import { KinoPosterPlaceholderSVG } from "../assets/svg/KinoPosterPlaceholder.tsx";
 import ProgressCircle from "../components/ProgressCycle.tsx";
+import { useTranslation } from "react-i18next";
 
 interface styleType {
   $ismobile: boolean;
@@ -457,7 +458,6 @@ const Main = () => {
   const navigate = useNavigate();
   const [isReviewLoading, setIsReviewLoading] = useState(true);
   const [isMovieLoading, setIsMovieLoading] = useState(true);
-
   const [teaser, setTeaser] = useState<TeaserType>({
     movieId: 0,
     title: "",
@@ -487,7 +487,7 @@ const Main = () => {
   const [hoveredMovie, setHoveredMovie] = useState<MovieList | null>(null);
   const [hoveredReview, setHoveredReview] =
     useState<TopLikeReviewListType | null>(null);
-
+  const [language, setLanguage] = useState<string | null>("");
   const getHomeData = async () => {
     setIsReviewLoading(true);
     setIsMovieLoading(true);
@@ -511,6 +511,8 @@ const Main = () => {
   useEffect(() => {
     getHomeData();
     console.log("새로운 유저인가 : ", isNewUser);
+    const lang = localStorage.getItem("language");
+    setLanguage(lang);
   }, []);
 
   useEffect(() => {
@@ -524,13 +526,24 @@ const Main = () => {
     }
   }, [teaser.stillCutUrl]);
 
-  const reviewData = [{ prefix: "사용자 좋아요", highlight: "TOP 10 리뷰" }];
+  const reviewData = [
+    {
+      prefix: "userLikeTop10ReviewsPrefix",
+      highlight: "userLikeTop10ReviewsHighlight",
+    },
+  ];
   const movieData = [
-    { prefix: "사용자 좋아요", highlight: "TOP 10 영화" },
-    { prefix: "현재 상영작 박스 오피스", highlight: "TOP 10 영화" },
-    { prefix: "일별 조회수", highlight: "TOP 10 영화" },
-    { prefix: "월별 조회수", highlight: "TOP 10 영화" },
-    { prefix: "추천 TOP 10 영화", highlight: "" },
+    {
+      prefix: "userLikeTop10MoviesPrefix",
+      highlight: "userLikeTop10MoviesHighlight",
+    },
+    {
+      prefix: "currentBoxOfficePrefix",
+      highlight: "currentBoxOfficeHighlight",
+    },
+    { prefix: "dailyTopPrefix", highlight: "dailyTopHighlight" },
+    { prefix: "monthlyTopPrefix", highlight: "monthlyTopHighlight" },
+    { prefix: "recommendedTopPrefix", highlight: "recommendedTopHighlight" },
   ];
 
   const reviewLists = [topLikeReviewList];
@@ -613,6 +626,7 @@ const Main = () => {
     setMovieProgressKey(null);
     setMovieHoverProgress(0);
   };
+  const { t } = useTranslation();
   return (
     <>
       {isNewUser && <SurveyModal setIsNewUser={setIsNewUser} />}
@@ -671,12 +685,15 @@ const Main = () => {
                   </TeaserExplainContainer>
 
                   <TeaserMetaContainer $ismobile={isMobile}>
-                    <span>개봉일: {teaser.releaseDate || "개봉 예정"}</span>
                     <span>
-                      러닝타임:
+                      {t("releaseDate")}:{" "}
+                      {teaser.releaseDate || t("releaseUpcoming")}
+                    </span>
+                    <span>
+                      {t("runningTime")}:
                       {teaser.runningTime
-                        ? ` ${teaser.runningTime}분`
-                        : " 개봉 예정"}
+                        ? ` ${teaser.runningTime}${t("minutes")}`
+                        : t("releaseUpcoming")}
                     </span>
                   </TeaserMetaContainer>
                   <TeaserMetaContainer $ismobile={isMobile}>
@@ -728,7 +745,7 @@ const Main = () => {
                         filter: { duration: 0.22 },
                       }}
                     >
-                      상세보기
+                      {t("detailView")}
                     </TeaserDetailBtn>
                   </TeaserBtnContainer>
                 </VideoHiddenContainer>
@@ -755,7 +772,7 @@ const Main = () => {
                   $ismobile={isMobile}
                   style={{ marginTop: "0px" }}
                 >
-                  <span>검색 결과</span>
+                  <span>{t("searchResults")}</span>
                 </SliderTypeTxt>
                 <MoviesSlider $ismobile={isMobile}>
                   {searchedMovieList.map((movie, i) => (
@@ -803,7 +820,7 @@ const Main = () => {
             <ListContainer $ismobile={isMobile}>
               <MovieContainer>
                 <SliderTypeTxt $ismobile={isMobile}>
-                  <span>검색 결과가 없습니다.</span>
+                  <span>{t("noSearchResults")}</span>
                 </SliderTypeTxt>
               </MovieContainer>
             </ListContainer>
@@ -816,7 +833,7 @@ const Main = () => {
                   $ismobile={isMobile}
                   style={{ marginTop: "0px" }}
                 >
-                  {prefix} <strong>{highlight}</strong>
+                  {t(prefix)} <strong>{t(highlight)}</strong>
                 </SliderTypeTxt>
                 <MoviesSlider $ismobile={isMobile}>
                   {isReviewLoading ? (
@@ -874,7 +891,7 @@ const Main = () => {
                       </Movies>
                     ))
                   ) : (
-                    <div>리뷰가 존재하지 않습니다.</div>
+                    <div>{t("noReviews")}</div>
                   )}
                 </MoviesSlider>
               </MovieContainer>
@@ -882,7 +899,7 @@ const Main = () => {
             {movieData.map(({ prefix, highlight }, idx) => (
               <MovieContainer key={idx}>
                 <SliderTypeTxt $ismobile={isMobile}>
-                  {prefix} <strong>{highlight}</strong>
+                  {t(prefix)} <strong>{t(highlight)}</strong>
                 </SliderTypeTxt>
                 <MoviesSlider $ismobile={isMobile}>
                   {isMovieLoading ? (
@@ -940,7 +957,7 @@ const Main = () => {
                       </Movies>
                     ))
                   ) : (
-                    <div>영화가 존재하지 않습니다.</div>
+                    <div>{t("noMovies")}</div>
                   )}
                 </MoviesSlider>
               </MovieContainer>
@@ -987,16 +1004,39 @@ const Main = () => {
                   ))}
                 </MovieGenre>
                 <MoviePlot>
-                  {hoveredMovie.plot ? hoveredMovie.plot : "내용이 없습니다."}
+                  {hoveredMovie.plot ? hoveredMovie.plot : t("noPlot")}
                 </MoviePlot>
                 <MovieMeta>
-                  <span>개봉일: {hoveredMovie.release_date}</span>
                   <span>
-                    러닝 타임:{" "}
-                    {hoveredMovie.running_time === 0
-                      ? "- "
-                      : hoveredMovie.running_time}
-                    분
+                    {language === "ko" ? (
+                      <>
+                        {t("releaseDate")}: {hoveredMovie.release_date}
+                      </>
+                    ) : (
+                      <>
+                        {t("releaseDate")}:<br />
+                        {hoveredMovie.release_date}
+                      </>
+                    )}
+                  </span>
+                  <span>
+                    {language === "ko" ? (
+                      <>
+                        {t("runningTime")}:{" "}
+                        {hoveredMovie.running_time === 0
+                          ? "- "
+                          : hoveredMovie.running_time}
+                        {t("minutes")}
+                      </>
+                    ) : (
+                      <>
+                        {t("runningTime")}:<br />
+                        {hoveredMovie.running_time === 0
+                          ? "- "
+                          : hoveredMovie.running_time}
+                        {t("minutes")}
+                      </>
+                    )}
                   </span>
                 </MovieMeta>
                 <MoreBtn
@@ -1005,7 +1045,7 @@ const Main = () => {
                     navigate(`/movie/${hoveredMovie.movie_id}`);
                   }}
                 >
-                  상세보기
+                  {t("detailView")}
                 </MoreBtn>
               </InfoSection>
             </ModalBox>
@@ -1014,7 +1054,7 @@ const Main = () => {
 
         {!isMobile && hoveredReview && (
           <ModalContainer
-            style={{ width: "1000px" }}
+            style={{ width: "1200px" }}
             onMouseEnter={() => setHoveredReview(hoveredReview)}
             onMouseLeave={() => setHoveredReview(null)}
           >
@@ -1051,17 +1091,40 @@ const Main = () => {
                   ))}
                 </MovieGenre>
                 <MoviePlot>
-                  {hoveredReview.plot ? hoveredReview.plot : "내용이 없습니다."}
+                  {hoveredReview.plot ? hoveredReview.plot : t("noReviews")}
                 </MoviePlot>
 
                 <MovieMeta>
-                  <span>개봉일: {hoveredReview.releaseDate}</span>
                   <span>
-                    러닝 타임:{" "}
-                    {hoveredReview.runningTime === 0
-                      ? "- "
-                      : hoveredReview.runningTime}
-                    분
+                    {language === "ko" ? (
+                      <>
+                        {t("releaseDate")}: {hoveredReview.releaseDate}
+                      </>
+                    ) : (
+                      <>
+                        {t("releaseDate")}:<br />
+                        {hoveredReview.releaseDate}
+                      </>
+                    )}
+                  </span>
+                  <span>
+                    {language === "ko" ? (
+                      <>
+                        {t("runningTime")}:{" "}
+                        {hoveredReview.runningTime === 0
+                          ? "- "
+                          : hoveredReview.runningTime}
+                        {t("minutes")}
+                      </>
+                    ) : (
+                      <>
+                        {t("runningTime")}:<br />
+                        {hoveredReview.runningTime === 0
+                          ? "- "
+                          : hoveredReview.runningTime}
+                        {t("minutes")}
+                      </>
+                    )}
                   </span>
                 </MovieMeta>
                 {hoveredReview.content ? (
@@ -1069,15 +1132,16 @@ const Main = () => {
                     dangerouslySetInnerHTML={{ __html: hoveredReview.content }}
                   />
                 ) : (
-                  "내용이 없습니다."
+                  t("noPlot")
                 )}
                 <MoreBtn
                   onClick={(e) => {
                     e.stopPropagation();
                     navigate(`/community/${hoveredReview.reviewId}`);
                   }}
+                  style={{ marginLeft: "85%" }}
                 >
-                  상세보기
+                  {t("detailView")}
                 </MoreBtn>
               </InfoSection>
             </ReviewModalBox>

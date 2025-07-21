@@ -9,6 +9,7 @@ import useAuthApi from "../api/auth";
 import MainConfirmDialog from "./MainConfirmDialog";
 import profileIconWhite from "../assets/img/profileIconWhite.png";
 import logoutIcon from "../assets/img/LogoutIcon.png";
+import { useTranslation } from "react-i18next";
 
 interface styleType {
   $ismobile: boolean;
@@ -221,12 +222,13 @@ const MainHeader = ({ keyword, setKeyword, setIsNewUser }: HeaderProps) => {
   const imageRef = useRef<HTMLImageElement>(null);
   const isMobile = useMediaQuery({ query: "(max-width: 767px)" });
   const { userInfoGet, logout } = useAuthApi();
+  const { t } = useTranslation();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const menuItems = [
-    { label: "홈", path: "/home" },
-    { label: "커뮤니티", path: "/community" },
-    { label: "영화", path: "/movie" },
-    { label: "내가 찜한 리스트", path: "/wish" },
+    { label: "home", path: "/home" },
+    { label: "community", path: "/community" },
+    { label: "movie", path: "/movie" },
+    { label: "myPickMovies", path: "/mypage/movies/favorite" },
   ];
 
   const handlePopup = () => {
@@ -296,7 +298,7 @@ const MainHeader = ({ keyword, setKeyword, setIsNewUser }: HeaderProps) => {
         <Logo
           $ismobile={isMobile}
           src={logoText}
-          alt="로고 이미지"
+          alt="logo"
           onClick={() => navigate("/home")}
         />
         <HeaderMenuContainer $ismobile={isMobile}>
@@ -308,7 +310,7 @@ const MainHeader = ({ keyword, setKeyword, setIsNewUser }: HeaderProps) => {
                   setIsMenuPopupOpen((prev) => !prev);
                 }}
               >
-                메뉴
+                {t("menu")}
                 <MenuPopupText $ismenupopupopen={isMenuPopupOpen}>
                   ▼
                 </MenuPopupText>
@@ -328,7 +330,7 @@ const MainHeader = ({ keyword, setKeyword, setIsNewUser }: HeaderProps) => {
                       style={{ width: "100%" }}
                       onClick={() => handleMenuPopup(path)}
                     >
-                      {label}
+                      {t(label)}
                     </HeaderMenuBtn>
                   ))}
                 </MenuPopup>
@@ -342,7 +344,7 @@ const MainHeader = ({ keyword, setKeyword, setIsNewUser }: HeaderProps) => {
                   $ismobile={isMobile}
                   onClick={() => handleMenuPopup(path)}
                 >
-                  {label}
+                  {t(label)}
                 </HeaderMenuBtn>
               ))}
             </>
@@ -356,7 +358,7 @@ const MainHeader = ({ keyword, setKeyword, setIsNewUser }: HeaderProps) => {
 
           {user.nickname === "" ? (
             <LoginBtn $ismobile={isMobile} onClick={() => navigate("/")}>
-              {isMobile ? "로그인" : "로그인하러 가기"}
+              {isMobile ? t("login") : t("goToLogin")}
             </LoginBtn>
           ) : (
             <>
@@ -382,18 +384,18 @@ const MainHeader = ({ keyword, setKeyword, setIsNewUser }: HeaderProps) => {
         >
           <PopupBtn onClick={onClickMypage} $ismobile={isMobile}>
             <PopupImg src={profileIconWhite} $width="20px" $mr="5px" />
-            마이페이지
+            {t("mypage")}
           </PopupBtn>
           <PopupBtn onClick={onClickLogout} $ismobile={isMobile}>
             <PopupImg src={logoutIcon} $width="15px" $mr="10px" />
-            로그아웃
+            {t("logout")}
           </PopupBtn>
         </Popup>
       )}
       <MainConfirmDialog
         isOpen={isModalOpen}
-        title="알림"
-        message={"로그아웃 되었습니다!"}
+        title={t("notification")}
+        message={t("logoutMessage")}
         onConfirm={() => {
           navigate("/");
         }}
