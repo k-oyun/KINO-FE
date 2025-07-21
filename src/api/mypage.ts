@@ -1,10 +1,32 @@
 import axios from "./AxiosInstance";
 import { useCallback, useMemo } from "react";
 
+interface UpdateShortReviewPayload {
+  content: string;
+  rating: number;
+  movieTitle?: string; // 선택
+}
+
 export const useMypageApi = () => {
   const mypageMain = useCallback(() => axios.get("/mypage/main"), []);
-  const mypageMyPickMovie = useCallback(() => axios.get("/mypage/myPickMovie"), []);
-  const mypageReview = useCallback(() => axios.get("/mypage/review"), []);
+  const mypageMyPickMovie = useCallback(
+  (userId?: number) => {
+    if (userId) {
+      return axios.get(`/users/${userId}/myPickMovies`);
+    }
+    return axios.get("/mypage/myPickMovie");
+  },
+  []
+);
+  const mypageReview = useCallback(
+  (userId?: number) => {
+    if (userId) {
+      return axios.get(`/users/${userId}/reviews`);
+    }
+    return axios.get("/mypage/review");
+  },
+  []
+);
   const mypageShortReview = useCallback(() => axios.get("/mypage/shortReview"), []);
   const userInfoGet = useCallback(() => axios.get("/user"), []);
   const getFollower = useCallback((targetId: number) => axios.get(`/follow/followers/${targetId}`), []);
@@ -19,11 +41,16 @@ export const useMypageApi = () => {
   const getGenre = useCallback(() => axios.get("/mypage/userGenres"), []);
   const updateGenre = useCallback((genreIds: number[]) => axios.post("/mypage/userGenres", { genreIds }), []);
   const updateShortReview = useCallback(
-    (reviewId: string, payload: { movieTitle: string; content: string; rating: number }) =>
-      axios.put(`/mypage/shortReview/${reviewId}`, payload),
-    []
-  );
-  const deleteShortReview = useCallback((reviewId: string) => axios.delete(`/mypage/shortReview/${reviewId}`), []);
+  (movieId: number, shortReviewId: string, payload: UpdateShortReviewPayload) =>
+    axios.put(`/${movieId}/short-reviews/${shortReviewId}`, payload),
+  []
+);
+
+const deleteShortReview = useCallback(
+  (movieId: number, shortReviewId: string) =>
+    axios.delete(`/${movieId}/short-reviews/${shortReviewId}`),
+  []
+);
 
   return useMemo(
     () => ({

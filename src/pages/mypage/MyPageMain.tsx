@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useState, useCallback } from "react";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
+
 
 import UserProfileSection from "../../components/mypage/UserProfileSection";
 import ShortReviewCard from "../../components/mypage/ShortReviewCard";
@@ -167,6 +169,7 @@ interface Follow {
 }
 
 interface ShortReviewType {
+  movieId: number;
   shortReviewId: string;
   movieTitle: string;
   content: string;
@@ -250,6 +253,7 @@ const MyPageMain: React.FC = () => {
   const loadShortReviews = useCallback(async () => {
     const res = await mypageShortReview();
     const arr = Array.isArray(res.data?.data?.shortReviews) ? res.data.data.shortReviews : [];
+    console.log("shortReviews raw:", arr);
     setShortReviews(arr);
   }, [mypageShortReview]);
 
@@ -261,7 +265,7 @@ const MyPageMain: React.FC = () => {
 
   const loadFavoriteMovies = useCallback(async () => {
     const res = await mypageMyPickMovie();
-    const arr = Array.isArray(res.data?.data?.myPickMoives) ? res.data.data.myPickMoives : [];
+    const arr = Array.isArray(res.data?.data?.myPickMovies) ? res.data.data.myPickMovies : [];
     setFavoriteMovies(arr);
   }, [mypageMyPickMovie]);
 
@@ -314,29 +318,50 @@ const MyPageMain: React.FC = () => {
   };
 
   const handleEditShortReview = async (updated: ShortReviewType) => {
-    try {
-      await updateShortReview(updated.shortReviewId, {
-        movieTitle: updated.movieTitle,
-        content: updated.content,
-        rating: updated.rating,
-      });
-      await loadShortReviews();
-    } catch (err) {
-      console.error("한줄평 수정 실패:", err);
-      alert("한줄평 수정에 실패했습니다. 다시 시도해주세요.");
-    }
-  };
+  // 1) 값 확인
+  console.log("[handleEditShortReview] incoming updated:", updated);
 
-  const handleDeleteShortReview = async (reviewId: string) => {
-    if (!window.confirm("정말 삭제하시겠습니까?")) return;
-    try {
-      await deleteShortReview(reviewId);
-      await loadShortReviews();
-    } catch (err) {
-      console.error("한줄평 삭제 실패:", err);
-      alert("삭제에 실패했습니다. 다시 시도해주세요.");
+  // 2) movieId 방어
+  if (updated.movieId == null) {
+    alert("movieId가 없어 수정 요청을 보낼 수 없습니다.");
+    return;
+  }
+
+  try {
+    // 3) 호출 직전 로깅
+    const payload = {
+      content: updated.content,
+      rating: updated.rating,
+      // movieTitle: updated.movieTitle,  // 서버가 받으면 주석 해제
+    };
+    console.log("[handleEditShortReview] PUT", {
+      url: `/${updated.movieId}/short-reviews/${updated.shortReviewId}`,
+      payload,
+    });
+
+    await updateShortReview(updated.movieId, updated.shortReviewId, payload);
+    await loadShortReviews();
+  } catch (err) {
+    if (axios.isAxiosError(err)) {
+      console.error("[handleEditShortReview] status:", err.response?.status);
+      console.error("[handleEditShortReview] resp data:", err.response?.data);
+      console.error("[handleEditShortReview] req url:", err.config?.url);
+      console.error("[handleEditShortReview] req data:", err.config?.data);
     }
-  };
+    console.error("한줄평 수정 실패:", err);
+    alert("한줄평 수정에 실패했습니다. 콘솔 로그를 확인하세요.");
+  }
+};
+
+  const handleDeleteShortReview = async (movieId: number, reviewId: string) => {
+   console.log("[handleDeleteShortReview] movieId:", movieId, "reviewId:", reviewId);
+  try {
+    await deleteShortReview(movieId, reviewId);
+    await loadShortReviews();
+  } catch (err) {
+    console.error("한줄평 삭제 실패:", err);
+  }
+};
 
   if (!userProfile || !userFollow) return null;
 
@@ -389,17 +414,17 @@ const MyPageMain: React.FC = () => {
           </SortOptions>
         </SectionHeader>
         <PreviewContent>
-          {sortedShortReviews.length > 0 ? (
-            sortedShortReviews.slice(0, 3).map((review) => (
-              <ShortReviewCard
-                key={review.shortReviewId}
-                review={review}
-                onClick={() => handleShortReviewClick(review.shortReviewId)}
-                onEdit={handleEditShortReview}
-                onDelete={handleDeleteShortReview}
-              />
-            ))
-          ) : (
+{sortedShortReviews.length > 0 ? (
+  sortedShortReviews.slice(0, 3).map((review) => (
+    <ShortReviewCard
+      key={review.shortReviewId}
+      review={review}
+      onClick={() => handleShortReviewClick(review.shortReviewId)}
+      onEdit={handleEditShortReview}
+      onDelete={(movieId, reviewId) => handleDeleteShortReview(movieId, reviewId)}
+    />
+  ))
+) : (
             <EmptyState>작성한 한줄평이 없습니다.</EmptyState>
           )}
         </PreviewContent>

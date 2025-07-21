@@ -7,6 +7,7 @@ import VideoBackground from "../../components/VideoBackground";
 import Pagination from "../../components/Pagenation";
 
 interface ShortReviewType {
+  movieId: number;
   shortReviewId: string;
   movieTitle: string;
   content: string;
@@ -167,7 +168,7 @@ const MyReviewsShortPage: React.FC = () => {
   const [sortOrder, setSortOrder] = useState<"latest" | "likes" | "rating">(
     "latest"
   );
-  const { mypageShortReview } = useMypageApi(); 
+  const { mypageShortReview, updateShortReview, deleteShortReview } = useMypageApi();
 
   const [shortReviews, setShortReviews] = useState<ShortReviewType[]>([]);
 
@@ -231,11 +232,9 @@ const MyReviewsShortPage: React.FC = () => {
     navigate(`/reviews/short/${reviewId}`);
   };
 
-const { updateShortReview, deleteShortReview } = useMypageApi();
-
 const handleEditReview = async (updatedReview: ShortReviewType) => {
   try {
-    await updateShortReview(updatedReview.shortReviewId, {
+    await updateShortReview(updatedReview.movieId, updatedReview.shortReviewId, {
       movieTitle: updatedReview.movieTitle,
       content: updatedReview.content,
       rating: updatedReview.rating,
@@ -252,10 +251,10 @@ const handleEditReview = async (updatedReview: ShortReviewType) => {
   }
 };
 
-const handleDeleteReview = async (reviewId: string) => {
+const handleDeleteReview = async (movieId: number, reviewId: string) => {
   if (window.confirm("이 한줄평을 정말 삭제할까요?")) {
     try {
-      await deleteShortReview(reviewId);
+      await deleteShortReview(movieId, reviewId); // movieId 추가
       setShortReviews((prev) => prev.filter((r) => r.shortReviewId !== reviewId));
     } catch (error) {
       console.error(error);
@@ -322,7 +321,7 @@ const handleDeleteReview = async (reviewId: string) => {
                   review={review}
                   onClick={() => handleReviewClick(review.shortReviewId)}
                   onEdit={handleEditReview}
-                  onDelete={handleDeleteReview}
+                  onDelete={(reviewId) =>handleDeleteReview(Number(review.movieId), String(reviewId))}
                 />
               ))}
             </ReviewList>

@@ -3,6 +3,7 @@ import styled from "styled-components";
 import { FaThumbsUp, FaEllipsisV, FaStar, FaRegStar } from "react-icons/fa";
 
 interface ShortReview {
+  movieId: number;            // 부모에서 꼭 전달되도록!
   shortReviewId: string;
   movieTitle: string;
   content: string;
@@ -14,8 +15,8 @@ interface ShortReview {
 interface ShortReviewCardProps {
   review: ShortReview;
   onClick: () => void;
-  onEdit: (updatedReview: ShortReview) => void; 
-  onDelete: (reviewId: string) => void; 
+  onEdit: (updatedReview: ShortReview) => void;
+  onDelete: (movieId: number, reviewId: string) => void;
   isMobile?: boolean;
 }
 
@@ -41,7 +42,12 @@ const CardBase = styled.div<styleType>`
   }
 `;
 
-const ThreeDotsMenu = styled.button`
+const ShortReviewCardContainer = styled(CardBase)`
+  position: relative;
+`;
+
+/* 버튼 대신 div로 변경해 nested <button> 경고 제거 */
+const MenuTrigger = styled.div`
   background: none;
   border: none;
   color: #888;
@@ -49,6 +55,7 @@ const ThreeDotsMenu = styled.button`
   cursor: pointer;
   padding: 0 5px;
   position: relative;
+
   &:hover {
     color: #f0f0f0;
   }
@@ -67,31 +74,25 @@ const DropdownMenu = styled.div`
   min-width: 80px;
   z-index: 100;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
-
-  button {
-    background: none;
-    border: none;
-    color: #f0f0f0;
-    padding: 8px 12px;
-    text-align: left;
-    cursor: pointer;
-    white-space: nowrap; /* 텍스트가 줄바꿈되지 않도록 */
-    &:hover {
-      background: #444;
-    }
-  }
 `;
 
-const ShortReviewCardContainer = styled(CardBase)`
-  position: relative;
+const DropdownItem = styled.button`
+  background: none;
+  border: none;
+  width: 100%;
+  color: #f0f0f0;
+  padding: 8px 12px;
+  text-align: left;
+  cursor: pointer;
+  white-space: nowrap;
+  &:hover {
+    background: #444;
+  }
 `;
 
 const ModalBackdrop = styled.div`
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  inset: 0;
   background: rgba(0, 0, 0, 0.6);
   display: flex;
   justify-content: center;
@@ -112,15 +113,13 @@ const ModalContent = styled.div`
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.8);
 
   h3 {
-    margin-top: 0;
-    margin-bottom: 10px;
+    margin: 0 0 10px 0;
     color: #e0e0e0;
     text-align: center;
   }
 
   input[type="text"],
-  textarea,
-  input[type="number"] {
+  textarea {
     width: calc(100% - 20px);
     padding: 10px;
     border: 1px solid #444;
@@ -151,28 +150,38 @@ const ModalContent = styled.div`
     cursor: pointer;
   }
 
-  button {
-    padding: 10px 15px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 1em;
-    transition: background-color 0.2s ease;
+  .actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
   }
+`;
 
-  .save-button {
-    background-color: #ff69b4;
-    color: white;
-    &:hover {
-      background-color: #e05cb0;
-    }
+const SaveButton = styled.button`
+  padding: 10px 15px;
+  border: none;
+  border-radius: 4px;
+  background-color: #ff69b4;
+  color: #fff;
+  font-size: 1em;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  &:hover {
+    background-color: #e05cb0;
   }
-  .cancel-button {
-    background-color: #555;
-    color: white;
-    &:hover {
-      background-color: #777;
-    }
+`;
+
+const CancelButton = styled.button`
+  padding: 10px 15px;
+  border: none;
+  border-radius: 4px;
+  background-color: #555;
+  color: #fff;
+  font-size: 1em;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  &:hover {
+    background-color: #777;
   }
 `;
 
@@ -222,7 +231,7 @@ const Likes = styled.div`
 const RatingStars = styled.div`
   display: flex;
   align-items: center;
-  color: #ffc107; /* 별 색상 */
+  color: #ffc107;
   gap: 2px;
   svg {
     font-size: 0.9em;
@@ -238,63 +247,73 @@ const ShortReviewCard: React.FC<ShortReviewCardProps> = ({
 }) => {
   const [isMenuOpen, setMenuOpen] = useState(false);
   const [isEditModalOpen, setEditModalOpen] = useState(false);
-  const [editData, setEditData] = useState<ShortReview>(review); 
+  const [editContent, setEditContent] = useState(review.content);
+  const [editRating, setEditRating] = useState(review.rating);
 
+  /* 카드 클릭 시: 메뉴가 열려 있으면 닫기만, 아니면 부모 onClick */
   const handleCardClick = (e: React.MouseEvent) => {
     if (isMenuOpen) {
       setMenuOpen(false);
-      e.stopPropagation(); 
+      e.stopPropagation();
     } else {
       onClick();
     }
   };
 
-  const handleEdit = () => {
-    setEditData(review);
+  /* 메뉴 > 수정 */
+  const handleEdit = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEditContent(review.content);
+    setEditRating(review.rating);
     setEditModalOpen(true);
     setMenuOpen(false);
   };
 
-  const handleDelete = () => {
+  /* 메뉴 > 삭제 */
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
     setMenuOpen(false);
+    if (review.movieId == null) {
+      alert("movieId가 없어 삭제할 수 없습니다.");
+      return;
+    }
     if (window.confirm("이 한줄평을 정말 삭제할까요?")) {
-      onDelete(review.shortReviewId);
+      onDelete(review.movieId, review.shortReviewId);
     }
   };
 
+  /* 수정 저장 */
   const handleEditSubmit = () => {
-    onEdit({ ...editData, createdAt: new Date().toLocaleString("ko-KR", {
-      year: "numeric", month: "2-digit", day: "2-digit",
-      hour: "2-digit", minute: "2-digit"
-    }).replace(/\. /g, '.').replace(/\.$/, '')});
+    if (review.movieId == null) {
+      alert("movieId가 없어 수정할 수 없습니다.");
+      return;
+    }
+
+    // 부모로 movieId 포함해 전달 (중요!)
+    onEdit({
+      ...review,
+      content: editContent,
+      rating: editRating,
+      // createdAt 그대로 유지 (서버에서 갱신)
+    });
+
     setEditModalOpen(false);
   };
 
   const renderStars = (rating: number) => {
     const stars = [];
     for (let i = 0; i < 5; i++) {
-      if (i < Math.floor(rating)) {
-        stars.push(<FaStar key={i} />);
-      } else if (i === Math.floor(rating) && rating % 1 !== 0) {
-        stars.push(<FaStar key={i} />); 
-      } else {
-        stars.push(<FaRegStar key={i} />);
-      }
+      stars.push(i < rating ? <FaStar key={i} /> : <FaRegStar key={i} />);
     }
     return stars;
   };
-
-  const handleRatingChange = (newRating: number) => {
-    setEditData((prev) => ({ ...prev, rating: newRating }));
-  };
-
 
   return (
     <>
       <ShortReviewCardContainer onClick={handleCardClick} $ismobile={isMobile}>
         <CardHeader>
           <MovieTitle>{review.movieTitle}</MovieTitle>
-          <ThreeDotsMenu
+          <MenuTrigger
             onClick={(e) => {
               e.stopPropagation();
               setMenuOpen(!isMenuOpen);
@@ -303,11 +322,11 @@ const ShortReviewCard: React.FC<ShortReviewCardProps> = ({
             <FaEllipsisV />
             {isMenuOpen && (
               <DropdownMenu>
-                <button onClick={handleEdit}>수정</button>
-                <button onClick={handleDelete}>삭제</button>
+                <DropdownItem onClick={handleEdit}>수정</DropdownItem>
+                <DropdownItem onClick={handleDelete}>삭제</DropdownItem>
               </DropdownMenu>
             )}
-          </ThreeDotsMenu>
+          </MenuTrigger>
         </CardHeader>
 
         <CardContent>{review.content}</CardContent>
@@ -329,19 +348,12 @@ const ShortReviewCard: React.FC<ShortReviewCardProps> = ({
             <h3>한줄평 수정</h3>
             <input
               type="text"
-              placeholder="영화 제목"
-              value={editData.movieTitle}
-              onChange={(e) =>
-                setEditData({ ...editData, movieTitle: e.target.value })
-              }
+              value={review.movieTitle}
               readOnly
             />
             <textarea
-              placeholder="내용"
-              value={editData.content}
-              onChange={(e) =>
-                setEditData({ ...editData, content: e.target.value })
-              }
+              value={editContent}
+              onChange={(e) => setEditContent(e.target.value)}
             />
             <div className="rating-input">
               <span>별점:</span>
@@ -349,15 +361,15 @@ const ShortReviewCard: React.FC<ShortReviewCardProps> = ({
                 <span
                   key={star}
                   className="star-icon"
-                  onClick={() => handleRatingChange(star)}
+                  onClick={() => setEditRating(star)}
                 >
-                  {star <= editData.rating ? <FaStar /> : <FaRegStar />}
+                  {star <= editRating ? <FaStar /> : <FaRegStar />}
                 </span>
               ))}
             </div>
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
-                <button className="cancel-button" onClick={() => setEditModalOpen(false)}>취소</button>
-                <button className="save-button" onClick={handleEditSubmit}>저장</button>
+            <div className="actions">
+              <CancelButton onClick={() => setEditModalOpen(false)}>취소</CancelButton>
+              <SaveButton onClick={handleEditSubmit}>저장</SaveButton>
             </div>
           </ModalContent>
         </ModalBackdrop>

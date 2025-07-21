@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import DetailReviewCard from "../../components/mypage/DetailReviewCard";
 import useMypageApi from "../../api/mypage";
 import VideoBackground from "../../components/VideoBackground";
-import Pagination from "../../components/PageNation"; // ✅ 동일 Pagination 재사용
+import Pagination from "../../components/Pagenation";
 
 interface UserProfileType {
   userId: number;

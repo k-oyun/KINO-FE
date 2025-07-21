@@ -281,6 +281,7 @@ import React, { useState, useEffect, useMemo } from 'react';
                 pageContentAmount={pageInfo.pageContentAmount}
                 setPageInfo={setPageInfo}
                 pageInfo={pageInfo}
+                selectedOption=''
               />
             )}
           </>
