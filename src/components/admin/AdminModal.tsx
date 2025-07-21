@@ -1,10 +1,10 @@
 import { useEffect, useState, type ChangeEvent } from "react";
 import { useMediaQuery } from "react-responsive";
 import { styled } from "styled-components";
-import logo from "../assets/img/Logo.png";
+import logo from "../../assets/img/Logo.png";
 import { motion } from "framer-motion";
 import axios from "axios";
-import { useFormatDate } from "../hooks/useFormatDate";
+import { useFormatDate } from "../../hooks/useFormatDate";
 
 interface styleType {
   $ismobile: boolean;

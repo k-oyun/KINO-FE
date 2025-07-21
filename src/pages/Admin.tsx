@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { useMediaQuery } from "react-responsive";
 import styled from "styled-components";
-import AdminList from "../components/AdminList";
-import AdminModal from "../components/AdminModal";
+import AdminList from "../components/admin/AdminList";
+import AdminModal from "../components/admin/AdminModal";
 import Pagenation from "../components/Pagenation";
 
 interface styleProp {

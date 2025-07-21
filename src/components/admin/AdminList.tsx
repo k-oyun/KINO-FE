@@ -10,8 +10,8 @@ import {
 } from "react-swipeable-list";
 import "react-swipeable-list/dist/styles.css";
 import axios from "axios";
-import { useFormatDate } from "../hooks/useFormatDate";
-import AdminConfirmDialog from "../components/AdminConfirmDialog";
+import { useFormatDate } from "../../hooks/useFormatDate";
+import AdminConfirmDialog from "../../components/admin/AdminConfirmDialog";
 
 interface User {
   id: number;
