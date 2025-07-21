@@ -472,7 +472,7 @@ const ShortReview = ({ isMobile, movieId, isUserActive }: ShortReviewProps) => {
                       </ShortButton>
                     </EditBtns>
                   </EditBox>
-                ) : review.isReviewActive ? (
+                ) : !review.isReviewActive ? (
                   <WarningBoxWrapper $ismobile={isMobile}>
                     {" "}
                     <WarningBox $ismobile={isMobile}>
