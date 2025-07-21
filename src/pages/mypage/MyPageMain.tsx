@@ -583,7 +583,7 @@ const MyPageMain: React.FC = () => {
     navigate(`/mypage/reviews/short/${reviewId}`);
   };
 
-  const handleDetailReviewClick = (reviewId: string) => {
+  const handleDetailReviewClick = (reviewId: number) => {
     navigate(`/mypage/reviews/detail/${reviewId}`);
   };
 
