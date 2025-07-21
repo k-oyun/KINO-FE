@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import DetailReviewCard from "../../components/mypage/DetailReviewCard";
 import useMypageApi from "../../api/mypage";
 import VideoBackground from "../../components/VideoBackground";
-import Pagination from "../../components/Pagenation";
+import Pagination from "../../components/Pagenation"; // Pagenation 컴포넌트 import 확인
 
 interface UserProfileType {
   userId: number;
@@ -31,9 +31,9 @@ interface DetailReviewType {
 }
 
 interface PageInfo {
-  currentPage: number;       
-  size: number;              
-  pageContentAmount: number; 
+  currentPage: number;
+  size: number;
+  pageContentAmount: number;
 }
 
 /** 한 페이지에 보여줄 상세 리뷰 수. 상세카드는 길이가 길 수 있으니 필요 시 조정하세요. */
@@ -44,6 +44,7 @@ const parseDateString = (dateStr: string): Date => {
   return new Date(parts[0], parts[1] - 1, parts[2], parts[3], parts[4]);
 };
 
+// --- styled-components (이 부분은 변경 없음) ---
 const PageContainer = styled.div`
   max-width: 1200px;
   margin: 0 auto;
@@ -178,13 +179,15 @@ const PinkText = styled.span`
   font-weight: bold;
   margin-left: 0.25em;
 `;
+// --- styled-components 끝 ---
 
 const MyReviewsDetailPage: React.FC = () => {
   const navigate = useNavigate();
-  const { mypageReview } = useMypageApi();
+  const { mypageReview, userInfoGet } = useMypageApi(); // userInfoGet 추가
 
   const [sortOrder, setSortOrder] = useState<"latest" | "views" | "likes">("latest");
   const [detailReviews, setDetailReviews] = useState<DetailReviewType[]>([]);
+  const [userProfile, setUserProfile] = useState<UserProfileType | null>(null); // userProfile 상태 추가
 
   const [pageInfo, setPageInfo] = useState<PageInfo>({
     currentPage: 0,
@@ -192,22 +195,48 @@ const MyReviewsDetailPage: React.FC = () => {
     pageContentAmount: 0,
   });
 
+  // 사용자 프로필 정보를 가져오는 useEffect
   useEffect(() => {
-    const myReviewGet = async () => {
+    const fetchUserProfile = async () => {
       try {
-        const res = await mypageReview();
-        const review = Array.isArray(res?.data?.data?.reviews)
-          ? res.data.data.reviews
-          : [];
-        console.log("[MyReviewsDetailPage] reviews", review);
-        setDetailReviews(review);
+        const res = await userInfoGet();
+        setUserProfile(res.data?.data || null);
       } catch (err) {
-        console.error("[MyReviewsDetailPage] fetch error", err);
+        console.error("[MyReviewsDetailPage] 사용자 프로필 로드 실패:", err);
+        setUserProfile(null); // 에러 발생 시 프로필 초기화
+      }
+    };
+    fetchUserProfile();
+  }, [userInfoGet]); // userInfoGet은 useCallback으로 메모이제이션되어 있으므로 의존성에 추가
+
+  // 상세 리뷰를 로드하는 useEffect (userProfile.userId에 의존)
+  useEffect(() => {
+    const loadDetailReviews = async () => {
+      // userProfile이 존재하고 userId가 유효할 때만 API 호출
+      if (userProfile && userProfile.userId != null) {
+        try {
+          const res = await mypageReview(userProfile.userId); // userProfile.userId 사용
+          const review = Array.isArray(res?.data?.data?.reviews)
+            ? res.data.data.reviews
+            : [];
+          setDetailReviews(review);
+        } catch (err) {
+          console.error("[MyReviewsDetailPage] 상세 리뷰 로드 실패:", err);
+          setDetailReviews([]); // 에러 발생 시 빈 배열로 설정
+        }
+      } else if (userProfile === null) {
+        // userProfile이 아직 로드되지 않았거나 로드 중일 때
+        // (로딩 상태를 보여주거나 아무것도 하지 않을 수 있습니다)
+        console.log("사용자 프로필 로드 대기 중...");
+      } else {
+        // userProfile은 로드되었지만 userId가 null인 경우 (예: 로그인 안됨)
+        console.warn("사용자 ID를 찾을 수 없어 상세 리뷰를 로드할 수 없습니다.");
         setDetailReviews([]);
       }
     };
-    myReviewGet();
-  }, [mypageReview]);
+
+    loadDetailReviews();
+  }, [mypageReview, userProfile]); // mypageReview와 userProfile을 의존성에 추가
 
   const sortedReviews = useMemo(() => {
     const arr = [...detailReviews];
@@ -225,31 +254,43 @@ const MyReviewsDetailPage: React.FC = () => {
     return arr;
   }, [detailReviews, sortOrder]);
 
+  // 페이지네이션 정보 업데이트
   useEffect(() => {
     const totalPages = Math.ceil(sortedReviews.length / ITEMS_PER_PAGE) || 0;
     setPageInfo((prev) => {
+      // 현재 페이지가 총 페이지 수를 초과하면 첫 페이지로 이동
       const currentPage = prev.currentPage >= totalPages ? 0 : prev.currentPage;
       return {
         ...prev,
         currentPage,
         size: ITEMS_PER_PAGE,
-        pageContentAmount: totalPages,
+        pageContentAmount: totalPages, // 총 페이지 수로 변경
       };
     });
-  }, [sortedReviews]);
+  }, [sortedReviews]); // 정렬된 리뷰 목록이 변경될 때마다 페이지네이션 정보 업데이트
 
   const handleSortChange = (order: "latest" | "views" | "likes") => {
     setSortOrder(order);
-    setPageInfo((prev) => ({ ...prev, currentPage: 0 }));
+    setPageInfo((prev) => ({ ...prev, currentPage: 0 })); // 정렬 변경 시 첫 페이지로
   };
 
   const startIdx = pageInfo.currentPage * ITEMS_PER_PAGE;
   const endIdx = startIdx + ITEMS_PER_PAGE;
   const currentPageReviews = sortedReviews.slice(startIdx, endIdx);
 
-  const handleReviewClick = (reviewId: string) => {
+  const handleReviewClick = (reviewId: number) => {
     navigate(`/reviews/detail/${reviewId}`);
   };
+
+  // 프로필 정보 로딩 중일 때 로딩 스피너 등을 보여줄 수 있습니다.
+  if (!userProfile) {
+    return (
+      <PageContainer>
+        <VideoBackground />
+        <EmptyState>프로필 정보를 로드 중입니다...</EmptyState>
+      </PageContainer>
+    );
+  }
 
   return (
     <PageContainer>
@@ -313,15 +354,15 @@ const MyReviewsDetailPage: React.FC = () => {
               ))}
             </ReviewList>
 
-            {pageInfo.pageContentAmount > 1 && (
+            {pageInfo.pageContentAmount > 1 && ( // 총 페이지가 1보다 클 때만 Pagination 표시
               <Pagination
-                size={pageInfo.size}          
-                itemsPerPage={ITEMS_PER_PAGE} 
-                pageContentAmount={pageInfo.pageContentAmount} 
-                currentPage={pageInfo.currentPage} 
-                setPageInfo={setPageInfo}          
-                pageInfo={pageInfo}                
-                selectedOption={sortOrder}         
+                size={pageInfo.size}
+                itemsPerPage={ITEMS_PER_PAGE}
+                pageContentAmount={pageInfo.pageContentAmount}
+                currentPage={pageInfo.currentPage}
+                setPageInfo={setPageInfo}
+                pageInfo={pageInfo}
+                selectedOption={sortOrder}
               />
             )}
           </>

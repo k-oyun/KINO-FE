@@ -4,9 +4,11 @@ import { styled } from "styled-components";
 import { formatDistanceToNow } from "date-fns";
 import { ko, se } from "date-fns/locale";
 import ReportModal from "../ReportModal";
+import { useTranslation } from "react-i18next";
+import { useReviewsApi } from '../../api/reviews';
 
 interface DetailReview {
-  reviewId: string;
+  reviewId: number;
   userProfile: string;
   userNickname: string;
   title: string;
