@@ -237,7 +237,7 @@ const Header = () => {
     } finally {
       localStorage.removeItem("accessToken");
       localStorage.removeItem("refreshToken");
-      navigate("/login");
+      navigate("/");
     }
   };
   const [mounted, setMounted] = useState(false);

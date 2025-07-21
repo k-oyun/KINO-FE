@@ -7,6 +7,8 @@ import { useMediaQuery } from "react-responsive";
 import logo from "../assets/img/Logo.png";
 import { AnimatePresence, hover, motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import { KinoLogoPlaceholderSVG } from "../assets/svg/KinoLogoPlaceholder.tsx";
+import { KinoPosterPlaceholderSVG } from "../assets/svg/KinoPosterPlaceholder.tsx";
 
 interface styleType {
   $ismobile: boolean;
@@ -46,7 +48,7 @@ const ListContainer = styled.div<styleType>`
   width: 100vw;
   height: auto;
   top: ${(props) => (props.$ismobile ? "32vh" : " 77vh")};
-  padding-top: 15px;
+  padding-top: ${(props) => (props.$ismobile ? "0px" : "15px")};
   overflow-x: hidden;
   background-color: #141414;
   margin-top: 10px;
@@ -104,11 +106,13 @@ const VideoSkeletonBox = styled(motion.div)`
   z-index: 2;
 `;
 
-const SliderTypeTxt = styled.span<styleType>`
+const SliderTypeTxt = styled.div<styleType>`
   font-size: ${(props) => (props.$ismobile ? "16px;" : "18px")};
   font-weight: 400;
-  margin-top: 30px;
-  padding-left: ${(props) => (props.$ismobile ? "30px" : "60px")};
+  margin-top: 15px;
+  border-left: 4px solid #f06292;
+  margin-left: ${(props) => (props.$ismobile ? "30px" : "60px")};
+  padding-left: 10px;
   /* color: ${({ theme }) => theme.textColor}; */
   color: white;
 `;
@@ -218,6 +222,21 @@ const MoviePoster = styled.img`
   box-shadow: 0 8px 32px 0 rgba(240, 98, 146, 1), 0 2px 14px 0 rgba(0, 0, 0, 1);
   background: #19191b;
   margin-right: 8px;
+`;
+
+const PosterWrapper = styled.div`
+  width: 140px;
+  min-width: 140px;
+  max-width: 140px;
+  height: 200px;
+  border-radius: 14px;
+  box-shadow: 0 8px 32px 0 rgba(240, 98, 146, 1), 0 2px 14px 0 rgba(0, 0, 0, 1);
+  background: #19191b;
+  margin-right: 8px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 `;
 
 const InfoSection = styled.div`
@@ -348,6 +367,19 @@ const TeaserDetailBtn = styled(motion.button)<styleType>`
   z-index: 10;
 `;
 
+const ContentArea = styled.div`
+  font-size: 1em;
+  line-height: 1.6;
+  min-height: 200px;
+  white-space: pre-wrap;
+  padding: 20px;
+  img {
+    max-width: 100%;
+    object-fit: cover;
+    height: auto;
+    display: block;
+  }
+`;
 interface TeaserType {
   movieId: number;
   title: string;
@@ -611,7 +643,10 @@ const Main = () => {
           searchedMovieList.length > 0 ? (
             <ListContainer $ismobile={isMobile}>
               <MovieContainer>
-                <SliderTypeTxt $ismobile={isMobile}>
+                <SliderTypeTxt
+                  $ismobile={isMobile}
+                  style={{ marginTop: "0px" }}
+                >
                   <span>검색 결과</span>
                 </SliderTypeTxt>
                 <MoviesSlider $ismobile={isMobile}>
@@ -636,10 +671,14 @@ const Main = () => {
                       onMouseEnter={() => setHoveredMovie(movie)}
                       onMouseLeave={() => setHoveredMovie(null)}
                     >
-                      <MoviePosterImg
-                        src={movie.still_cut_url}
-                        alt={movie.title}
-                      />
+                      {movie.still_cut_url ? (
+                        <MoviePosterImg
+                          src={movie.still_cut_url}
+                          alt={movie.title}
+                        />
+                      ) : (
+                        <KinoLogoPlaceholderSVG />
+                      )}
                     </Movies>
                   ))}
                 </MoviesSlider>
@@ -658,7 +697,10 @@ const Main = () => {
           <ListContainer $ismobile={isMobile}>
             {reviewData.map(({ prefix, highlight }, idx) => (
               <MovieContainer key={idx}>
-                <SliderTypeTxt $ismobile={isMobile}>
+                <SliderTypeTxt
+                  $ismobile={isMobile}
+                  style={{ marginTop: "0px" }}
+                >
                   {prefix} <strong>{highlight}</strong>
                 </SliderTypeTxt>
                 <MoviesSlider $ismobile={isMobile}>
@@ -747,10 +789,14 @@ const Main = () => {
                         onMouseEnter={() => setHoveredMovie(movie)}
                         onMouseLeave={() => setHoveredMovie(null)}
                       >
-                        <MoviePosterImg
-                          src={movie.still_cut_url}
-                          alt={movie.title}
-                        />
+                        {movie.still_cut_url ? (
+                          <MoviePosterImg
+                            src={movie.still_cut_url}
+                            alt={movie.title}
+                          />
+                        ) : (
+                          <KinoLogoPlaceholderSVG />
+                        )}
                       </Movies>
                     ))
                   ) : (
@@ -777,10 +823,18 @@ const Main = () => {
                 ease: [0.44, 0.06, 0.36, 1],
               }}
             >
-              <MoviePoster
-                src={hoveredMovie.poster_url}
-                alt={hoveredMovie.title}
-              />
+              {hoveredMovie.poster_url ? (
+                <MoviePoster
+                  src={hoveredMovie.poster_url}
+                  alt={hoveredMovie.title}
+                />
+              ) : (
+                <PosterWrapper>
+                  {" "}
+                  <KinoPosterPlaceholderSVG />
+                </PosterWrapper>
+              )}
+
               <InfoSection>
                 <MovieTitle>{hoveredMovie.title}</MovieTitle>
                 <MovieGenre>
@@ -793,10 +847,18 @@ const Main = () => {
                     </GenreTag>
                   ))}
                 </MovieGenre>
-                <MoviePlot>{hoveredMovie.plot}</MoviePlot>
+                <MoviePlot>
+                  {hoveredMovie.plot ? hoveredMovie.plot : "내용이 없습니다."}
+                </MoviePlot>
                 <MovieMeta>
                   <span>개봉일: {hoveredMovie.release_date}</span>
-                  <span>러닝 타임: {hoveredMovie.running_time}분</span>
+                  <span>
+                    러닝 타임:{" "}
+                    {hoveredMovie.running_time === 0
+                      ? "- "
+                      : hoveredMovie.running_time}
+                    분
+                  </span>
                 </MovieMeta>
                 <MoreBtn
                   onClick={(e) => {
@@ -831,7 +893,12 @@ const Main = () => {
               <InfoSection>
                 <MovieTitle>{hoveredReview.movieTitle}</MovieTitle>
                 <MovieTitle>{hoveredReview.reviewTitle}</MovieTitle>
-                <MoviePlot>{hoveredReview.content}</MoviePlot>
+                <ContentArea>
+                  <ContentArea
+                    className="review-content"
+                    dangerouslySetInnerHTML={{ __html: hoveredReview.content }}
+                  />
+                </ContentArea>
               </InfoSection>
             </ModalBox>
           </ModalContainer>
