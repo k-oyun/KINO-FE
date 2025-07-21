@@ -5,6 +5,18 @@ export const useMovieDetailApi = () => {
     return await axios.get(`/${movieId}/info`);
   };
 
+  const getIsPicked = async (movieId: number) => {
+    return await axios.get(`/mypick/${movieId}`);
+  };
+
+  const postMyPick = async (movieId: number) => {
+    return await axios.post(`/mypick/${movieId}`);
+  };
+
+  const deleteMyPick = async (movieId: number) => {
+    return await axios.delete(`/mypick/${movieId}`);
+  };
+
   const postShortReview = async (
     movieId: number,
     rating: number,
@@ -43,6 +55,9 @@ export const useMovieDetailApi = () => {
 
   return {
     getMovieDetail,
+    getIsPicked,
+    postMyPick,
+    deleteMyPick,
     postShortReview,
     updateShortReview,
     deleteShortReview,

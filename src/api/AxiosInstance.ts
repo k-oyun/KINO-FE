@@ -11,7 +11,7 @@ AxiosInstance.interceptors.request.use((config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
-  config.headers["Accept-Language"] = i18n.language || "ko";
+  config.headers["X-Target-Lang"] = i18n.language || "ko";
   return config;
 });
 
