@@ -1,6 +1,24 @@
 import styled from "styled-components";
 import { useTranslation } from "react-i18next";
 
+const genreMap: Record<number, string> = {
+  12: "Adventure",
+  14: "Fantasy",
+  16: "Animation",
+  18: "Drama",
+  27: "Horror",
+  28: "Action",
+  35: "Comedy",
+  53: "Thriller",
+  80: "Crime",
+  99: "Documentary",
+  878: "Science Fiction",
+  9648: "Mystery",
+  10749: "Romance",
+  10751: "Family",
+  10752: "War",
+};
+
 interface MovieInfoProps {
   isMobile: boolean;
   movieDetail: {
@@ -12,7 +30,7 @@ interface MovieInfoProps {
     runningTime: number;
     ageRating: string;
     avgRating: number;
-    genres: string[];
+    genreIds: number[];
     director: string;
     actors: [{ name: string; profileUrl: string }];
     otts: [{ name: string; logoUrl: string; linkUrl: string }];
@@ -144,7 +162,7 @@ const MovieInfo = ({ isMobile, movieDetail }: MovieInfoProps) => {
         <InfoItem $ismobile={isMobile}>
           <InfoLabel>{t("genres")}</InfoLabel>
           <InfoValue>
-            {movieDetail.genres.map((genre) => genre).join(", ")}
+            {movieDetail.genreIds.map((id) => t(genreMap[id])).join(", ")}
           </InfoValue>
         </InfoItem>
         <InfoItem $ismobile={isMobile}>
