@@ -63,6 +63,7 @@ const AppContents = () => {
   const path = location.pathname;
   const isAdminPage = path === "/admin";
   const isMainPage = path === "/home";
+  const isMyPage = path.startsWith("/mypage");
   const { openDialog, closeDialog } = useDialog();
   const errorTimeoutRef = useRef<number | null>(null);
   const isMobile = useMediaQuery({ query: "(max-width: 767px)" });
@@ -114,7 +115,7 @@ const AppContents = () => {
         theme={
           isAdminPage
             ? lightTheme
-            : isMainPage
+            : isMainPage || isMyPage
             ? darkTheme
             : isDarkMode
             ? darkTheme

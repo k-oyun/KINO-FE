@@ -1,6 +1,6 @@
 import styled from "styled-components";
 import MainHeader from "../components/MainHeader";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import SurveyModal from "../components/SurveyModal";
 import useHomeApi from "../api/home";
 import { useMediaQuery } from "react-responsive";
@@ -9,6 +9,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { KinoLogoPlaceholderSVG } from "../assets/svg/KinoLogoPlaceholder.tsx";
 import { KinoPosterPlaceholderSVG } from "../assets/svg/KinoPosterPlaceholder.tsx";
+import ProgressCircle from "../components/ProgressCycle.tsx";
 
 interface styleType {
   $ismobile: boolean;
@@ -140,6 +141,7 @@ const VideoHiddenContainer = styled(motion.div)<{
   justify-content: center;
   z-index: 1;
   margin-bottom: 100px;
+  padding-bottom: 10px;
   padding-left: ${(props) => (props.$ismobile ? "30px" : "140px")};
   font-size: 32;
   font-weight: bold;
@@ -201,6 +203,20 @@ const ModalBox = styled(motion.div)`
   display: flex;
   width: 590px;
   /* height: 500px; */
+  background-color: rgba(0, 0, 0, 0.7);
+  border: 1.5px solid rgba(240, 98, 146, 0.4);
+  border-radius: 20px;
+  box-shadow: 0 12px 48px 0 rgba(0, 0, 0, 0.53),
+    0 0 0 2px rgba(229, 132, 165, 0.07);
+  backdrop-filter: blur(12px) saturate(125%);
+  padding: 38px 38px 34px 40px;
+  gap: 36px;
+  transition: box-shadow 0.22s cubic-bezier(0.44, 0.06, 0.36, 1);
+`;
+
+const ReviewModalBox = styled(motion.div)`
+  display: flex;
+  width: 590px;
   background-color: rgba(0, 0, 0, 0.7);
   border: 1.5px solid rgba(240, 98, 146, 0.4);
   border-radius: 20px;
@@ -311,13 +327,18 @@ const MoreBtn = styled.button`
   width: 90px;
   height: 35px;
   border-radius: 15px;
-  padding: 7px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* padding: 7px 10px; */
+  padding-top: 2px;
   font-size: 13px;
   box-shadow: 0 3px 10px rgba(240, 98, 146, 0.11);
   cursor: pointer;
   margin-top: 16px;
   margin-left: auto;
   transition: filter 0.16s, transform 0.12s;
+  padding-bottom: 6px;
   &:hover {
     filter: brightness(94%);
     transform: scale(1.05);
@@ -357,10 +378,16 @@ const TeaserDetailBtn = styled(motion.button)<styleType>`
   border-radius: ${(props) => (props.$ismobile ? "4px" : "15px")};
   width: ${(props) => (props.$ismobile ? "30px" : "100px")};
   height: ${(props) => (props.$ismobile ? "14px" : "40px")};
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
   position: absolute;
-  top: ${(props) => (props.$ismobile ? "20px" : "10px")};
+  padding-bottom: ${(props) => (props.$ismobile ? "0px" : "3px")};
+  top: ${(props) => (props.$ismobile ? "7%" : "6%")};
   right: ${(props) => (props.$ismobile ? "35px" : "170px")};
-  padding: ${({ $ismobile }) => ($ismobile ? "2px 6px" : "7px 26px")};
+  /* padding: ${({ $ismobile }) =>
+    $ismobile ? "2px 6px" : "2px 13px 4px  13px"}; */
   font-size: ${({ $ismobile }) => ($ismobile ? "4px" : "13px")};
   cursor: pointer;
   overflow: hidden;
@@ -370,8 +397,14 @@ const TeaserDetailBtn = styled(motion.button)<styleType>`
 const ContentArea = styled.div`
   font-size: 1em;
   line-height: 1.6;
-  min-height: 200px;
+  width: 100%;
+  /* min-height: 200px; */
+  max-height: 300px;
+  overflow: auto;
   white-space: pre-wrap;
+  border: 1px solid #d9d9d9;
+  border-radius: 15px;
+
   padding: 20px;
   img {
     max-width: 100%;
@@ -397,6 +430,13 @@ interface TopLikeReviewListType {
   content: string;
   movieId: number;
   movieTitle: string;
+  releaseDate: string;
+  runningTime: number;
+  plot: string;
+  ageRating: string;
+  genres: string[];
+  stillCutUrl: string;
+  posterUrl: string;
 }
 
 interface MovieList {
@@ -409,7 +449,6 @@ interface MovieList {
   running_time: number;
   genres: string[];
 }
-
 const Main = () => {
   const [keyword, setKeyword] = useState("");
   const [isNewUser, setIsNewUser] = useState(false);
@@ -505,6 +544,75 @@ const Main = () => {
   // useEffect(() => {
   //   console.log(hoveredMovie);
   // }, [hoveredMovie]);
+  const [reviewProgressIdx, setReviewProgressIdx] = useState<number | null>(
+    null
+  );
+  const [reviewHoverProgress, setReviewHoverProgress] = useState(0);
+  const reviewHoverTimer = useRef<number | null>(null);
+  const reviewProgressTimer = useRef<number | null>(null);
+
+  const [movieHoverProgress, setMovieHoverProgress] = useState(0);
+  const movieHoverTimer = useRef<number | null>(null);
+  const movieProgressTimer = useRef<number | null>(null);
+  const [movieProgressKey, setMovieProgressKey] = useState<string | null>(null);
+
+  const handleReviewHoverEnter = (i: number, review: TopLikeReviewListType) => {
+    setReviewProgressIdx(i);
+    setReviewHoverProgress(0);
+
+    let start = Date.now();
+    reviewProgressTimer.current = window.setInterval(() => {
+      const elapsed = Date.now() - start;
+      const percent = Math.min(100, (elapsed / 1000) * 100);
+      setReviewHoverProgress(percent);
+      if (percent >= 100) clearInterval(reviewProgressTimer.current!);
+    }, 16);
+
+    reviewHoverTimer.current = window.setTimeout(() => {
+      setHoveredReview(review);
+      setReviewHoverProgress(0);
+      setReviewProgressIdx(null);
+    }, 1000);
+  };
+
+  const handleReviewHoverLeave = () => {
+    if (reviewHoverTimer.current) clearTimeout(reviewHoverTimer.current);
+    if (reviewProgressTimer.current) clearInterval(reviewProgressTimer.current);
+    setHoveredReview(null);
+    setReviewHoverProgress(0);
+    setReviewProgressIdx(null);
+  };
+
+  const handleMovieHoverEnter = (
+    sliderKey: string,
+    idx: number,
+    movie: any
+  ) => {
+    const key = `${sliderKey}-${idx}`;
+    setMovieProgressKey(key);
+    setMovieHoverProgress(0);
+
+    let start = Date.now();
+    movieProgressTimer.current = window.setInterval(() => {
+      const elapsed = Date.now() - start;
+      const percent = Math.min(100, (elapsed / 1000) * 100);
+      setMovieHoverProgress(percent);
+      if (percent >= 100) clearInterval(movieProgressTimer.current!);
+    }, 16);
+
+    movieHoverTimer.current = window.setTimeout(() => {
+      setHoveredMovie(movie);
+      setMovieHoverProgress(0);
+    }, 1000);
+  };
+
+  const handleMovieHoverLeave = () => {
+    if (movieHoverTimer.current) clearTimeout(movieHoverTimer.current);
+    if (movieProgressTimer.current) clearInterval(movieProgressTimer.current);
+    setHoveredMovie(null);
+    setMovieProgressKey(null);
+    setMovieHoverProgress(0);
+  };
   return (
     <>
       {isNewUser && <SurveyModal setIsNewUser={setIsNewUser} />}
@@ -668,9 +776,16 @@ const Main = () => {
                       onClick={() => {
                         navigate(`/movie/${movie.movie_id}`);
                       }}
-                      onMouseEnter={() => setHoveredMovie(movie)}
-                      onMouseLeave={() => setHoveredMovie(null)}
+                      onMouseEnter={() =>
+                        handleMovieHoverEnter("searched", i, movie)
+                      }
+                      onMouseLeave={handleMovieHoverLeave}
                     >
+                      {movieProgressKey === `searched-${i}` &&
+                        movieHoverProgress > 0 &&
+                        movieHoverProgress < 100 && (
+                          <ProgressCircle progress={movieHoverProgress} />
+                        )}
                       {movie.still_cut_url ? (
                         <MoviePosterImg
                           src={movie.still_cut_url}
@@ -736,9 +851,27 @@ const Main = () => {
                           stiffness: 250,
                           damping: 18,
                         }}
-                        onMouseEnter={() => setHoveredReview(review)}
-                        onMouseLeave={() => setHoveredReview(null)}
-                      ></Movies>
+                        onClick={() =>
+                          navigate(`/community/${review.reviewId}`)
+                        }
+                        onMouseEnter={() => handleReviewHoverEnter(i, review)}
+                        onMouseLeave={() => handleReviewHoverLeave()}
+                      >
+                        {reviewProgressIdx === i &&
+                          reviewHoverProgress > 0 &&
+                          reviewHoverProgress < 100 && (
+                            <ProgressCircle progress={reviewHoverProgress} />
+                          )}
+
+                        {review.stillCutUrl ? (
+                          <MoviePosterImg
+                            src={review.stillCutUrl}
+                            alt={review.movieTitle}
+                          />
+                        ) : (
+                          <KinoLogoPlaceholderSVG />
+                        )}
+                      </Movies>
                     ))
                   ) : (
                     <div>리뷰가 존재하지 않습니다.</div>
@@ -768,10 +901,10 @@ const Main = () => {
                       />
                     ))
                   ) : movieLists[idx] && movieLists[idx].length > 0 ? (
-                    movieLists[idx].map((movie) => (
+                    movieLists[idx].map((movie, i) => (
                       <Movies
                         $ismobile={isMobile}
-                        key={movie.movie_id}
+                        key={movie.movie_id ?? i}
                         whileHover={{
                           scale: 1.1,
                           boxShadow: "0 30px 30px rgba(0,0,0,0.25)",
@@ -786,9 +919,16 @@ const Main = () => {
                         onClick={() => {
                           navigate(`/movie/${movie.movie_id}`);
                         }}
-                        onMouseEnter={() => setHoveredMovie(movie)}
-                        onMouseLeave={() => setHoveredMovie(null)}
+                        onMouseEnter={() =>
+                          handleMovieHoverEnter(`slider${idx}`, i, movie)
+                        }
+                        onMouseLeave={() => handleMovieHoverLeave()}
                       >
+                        {movieProgressKey === `slider${idx}-${i}` &&
+                          movieHoverProgress > 0 &&
+                          movieHoverProgress < 100 && (
+                            <ProgressCircle progress={movieHoverProgress} />
+                          )}
                         {movie.still_cut_url ? (
                           <MoviePosterImg
                             src={movie.still_cut_url}
@@ -809,7 +949,7 @@ const Main = () => {
         )}
       </MainContainer>
       <AnimatePresence>
-        {hoveredMovie && (
+        {!isMobile && hoveredMovie && (
           <ModalContainer
             onMouseEnter={() => setHoveredMovie(hoveredMovie)}
             onMouseLeave={() => setHoveredMovie(null)}
@@ -830,7 +970,6 @@ const Main = () => {
                 />
               ) : (
                 <PosterWrapper>
-                  {" "}
                   <KinoPosterPlaceholderSVG />
                 </PosterWrapper>
               )}
@@ -872,12 +1011,14 @@ const Main = () => {
             </ModalBox>
           </ModalContainer>
         )}
-        {hoveredReview && (
+
+        {!isMobile && hoveredReview && (
           <ModalContainer
+            style={{ width: "1000px" }}
             onMouseEnter={() => setHoveredReview(hoveredReview)}
             onMouseLeave={() => setHoveredReview(null)}
           >
-            <ModalBox
+            <ReviewModalBox
               initial={{ opacity: 0, y: 32 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 32 }}
@@ -886,21 +1027,60 @@ const Main = () => {
                 ease: [0.44, 0.06, 0.36, 1],
               }}
             >
-              {/* <MoviePoster
-                src={hoveredReview.poster_url}
-                alt={hoveredReview.title}
-              /> */}
+              {hoveredReview.posterUrl ? (
+                <MoviePoster
+                  src={hoveredReview.posterUrl}
+                  alt={hoveredReview.movieTitle}
+                />
+              ) : (
+                <PosterWrapper>
+                  <KinoPosterPlaceholderSVG />
+                </PosterWrapper>
+              )}
+
               <InfoSection>
                 <MovieTitle>{hoveredReview.movieTitle}</MovieTitle>
-                <MovieTitle>{hoveredReview.reviewTitle}</MovieTitle>
-                <ContentArea>
+                <MovieGenre>
+                  {(Array.isArray(hoveredReview.genres)
+                    ? hoveredReview.genres
+                    : []
+                  ).map((g: string, idx: number) => (
+                    <GenreTag $ismobile={isMobile} key={g + idx}>
+                      {g.trim()}
+                    </GenreTag>
+                  ))}
+                </MovieGenre>
+                <MoviePlot>
+                  {hoveredReview.plot ? hoveredReview.plot : "내용이 없습니다."}
+                </MoviePlot>
+
+                <MovieMeta>
+                  <span>개봉일: {hoveredReview.releaseDate}</span>
+                  <span>
+                    러닝 타임:{" "}
+                    {hoveredReview.runningTime === 0
+                      ? "- "
+                      : hoveredReview.runningTime}
+                    분
+                  </span>
+                </MovieMeta>
+                {hoveredReview.content ? (
                   <ContentArea
-                    className="review-content"
                     dangerouslySetInnerHTML={{ __html: hoveredReview.content }}
                   />
-                </ContentArea>
+                ) : (
+                  "내용이 없습니다."
+                )}
+                <MoreBtn
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate(`/community/${hoveredReview.reviewId}`);
+                  }}
+                >
+                  상세보기
+                </MoreBtn>
               </InfoSection>
-            </ModalBox>
+            </ReviewModalBox>
           </ModalContainer>
         )}
       </AnimatePresence>
