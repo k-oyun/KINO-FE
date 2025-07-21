@@ -350,7 +350,9 @@ const MainHeader = ({ keyword, setKeyword, setIsNewUser }: HeaderProps) => {
         </HeaderMenuContainer>
 
         <UserInfoContainer $ismobile={isMobile}>
-          {!isMobile && <SearchBar keyword={keyword} setKeyword={setKeyword} />}
+          {!isMobile && user.nickname !== "" && (
+            <SearchBar keyword={keyword} setKeyword={setKeyword} />
+          )}
 
           {user.nickname === "" ? (
             <LoginBtn $ismobile={isMobile} onClick={() => navigate("/")}>
