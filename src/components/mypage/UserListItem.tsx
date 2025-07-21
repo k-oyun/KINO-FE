@@ -9,7 +9,10 @@ interface UserListItemProps {
     profileImageUrl: string;
     isFollowing?: boolean;
   };
-  onFollowToggle?: (userId: string, isCurrentlyFollowing: boolean) => void;
+  // 이 부분을 수정해야 합니다.
+  // 기존: onFollowToggle?: (userId: string, isCurrentlyFollowing: boolean) => void;
+  // 변경: nickname 인자 추가 및 Promise<void> 반환 타입 지정
+  onFollowToggle?: (userId: string, isCurrentlyFollowing: boolean, nickname: string) => Promise<void>;
   type: 'follower' | 'following' | 'searchResult';
 }
 
@@ -62,7 +65,7 @@ const Nickname = styled.span`
   }
 `;
 
-const FollowButton = styled.button<{ $isFollowing: boolean }>` 
+const FollowButton = styled.button<{ $isFollowing: boolean }>`
   background-color: ${props => (props.$isFollowing ? '#555' : '#ff69b4')};
   color: #fff;
   border: none;
@@ -85,17 +88,21 @@ const FollowButton = styled.button<{ $isFollowing: boolean }>`
 const UserListItem: React.FC<UserListItemProps> = ({ user, onFollowToggle, type }) => {
   const navigate = useNavigate();
   const currentIsFollowingStatus = user.isFollowing ?? (type === 'following');
+
   const handleUserClick = () => {
     navigate(`/profile/${user.id}`);
   };
 
   const handleFollowButtonClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
+    e.stopPropagation(); // 이벤트 버블링 방지 (UserInfo의 onClick이 호출되지 않도록)
     if (onFollowToggle) {
-      onFollowToggle(user.id, currentIsFollowingStatus);
+      // 닉네임을 세 번째 인자로 전달
+      onFollowToggle(user.id, currentIsFollowingStatus, user.nickname);
     }
   };
 
+  // 'searchResult' 타입일 때도 팔로우/언팔로우 버튼을 보여주려면 이 조건이 필요합니다.
+  // 'follower' 타입은 팔로우 해제만, 'following' 타입은 팔로잉 중인 것을 나타냄.
   const shouldShowFollowButton = onFollowToggle && (type === 'follower' || type === 'following' || type === 'searchResult');
 
   return (
