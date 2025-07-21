@@ -5,6 +5,8 @@ import kakao from "../assets/img/kakaoBtn.png";
 import naver from "../assets/img/naverBtn.png";
 import google from "../assets/img/googleBtn.png";
 import { useMediaQuery } from "react-responsive";
+import useAuthApi from "../api/auth";
+import { useDialog } from "../context/DialogContext";
 
 interface styleProp {
   $ismobile: boolean;
@@ -47,10 +49,37 @@ const LoginBtn = styled.img<styleProp>`
 const Login = () => {
   const isMobile = useMediaQuery({ query: "(max-width: 767px)" });
   const loginButtons = [
-    { src: naver, alt: "naver" },
-    { src: kakao, alt: "kakao" },
-    { src: google, alt: "google" },
+    { src: naver, alt: "naver", value: "naver" },
+    { src: kakao, alt: "kakao", value: "kakao" },
+    { src: google, alt: "google", value: "google" },
   ];
+  const { login } = useAuthApi();
+  const { openDialog, closeDialog } = useDialog();
+  const handleLogin = async (provider: string) => {
+    try {
+      const res = await login(provider);
+      console.log("로그인", res);
+    } catch (error: any) {
+      const redirectUri =
+        error?.response?.data?.redirectUri || error?.response?.data?.data;
+      if (redirectUri) {
+        window.location.href = redirectUri;
+      } else {
+        console.error("로그인", error);
+        setTimeout(() => {
+          openDialog({
+            title: "서버에 문제가 발생했습니다",
+            message: isMobile
+              ? "잠시 후 다시 시도해주세요."
+              : "일시적인 문제일 수 있으니 잠시 후 다시 시도해주세요.",
+            showCancel: false,
+            isRedButton: true,
+            onConfirm: () => closeDialog(),
+          });
+        }, 1000);
+      }
+    }
+  };
   return (
     <>
       <LoginContainer>
@@ -61,6 +90,7 @@ const Login = () => {
             src={btn.src}
             alt={`${btn.alt}`}
             $ismobile={isMobile}
+            onClick={() => handleLogin(btn.value)}
           />
         ))}
       </LoginContainer>

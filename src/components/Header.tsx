@@ -1,10 +1,13 @@
 import { useEffect, useRef, useState } from "react";
-import styled from "styled-components";
+import styled, { useTheme } from "styled-components";
 import { motion } from "framer-motion";
 import { useMediaQuery } from "react-responsive";
-import profileIcon from "../assets/img/profileIcon.png";
 import logoText from "../assets/img/LogoTxt.png";
-
+import { useNavigate } from "react-router-dom";
+import useAuthApi from "../api/auth";
+import profileIcon from "../assets/img/profileIcon.png";
+import profileIconBlack from "../assets/img/profileIconBlack.png";
+import logoutIcon from "../assets/img/LogoutIcon.png";
 interface styleType {
   $ismobile: boolean;
 }
@@ -132,7 +135,10 @@ const PopupBtn = styled.button`
   }
   transition: transform 0.2s ease-in-out;
 `;
-
+const PopupImg = styled.img<{ $width: string; $mr: string }>`
+  width: ${(props) => props.$width};
+  margin-right: ${(props) => props.$mr};
+`;
 const MenuPopup = styled(motion.div)`
   display: flex;
   flex-direction: column;
@@ -156,35 +162,53 @@ const MenuPopupText = styled.span<{ $ismenupopupopen: boolean }>`
   transition: transform 0.4s ease;
   font-family: sans-serif;
 `;
+interface UserType {
+  userId: number;
+  nickname: string;
+  image: string;
+  email: string;
+  isFirstLogin: boolean;
+}
 
 const Header = () => {
-  const [nickname, setNickname] = useState("오윤");
-  const [userImg, setUserImg] = useState("");
+  const [user, setUser] = useState<UserType>({
+    userId: 0,
+    nickname: "",
+    image: "",
+    email: "",
+    isFirstLogin: false,
+  });
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [isMenuPopupOpen, setIsMenuPopupOpen] = useState(false);
   const popupRef = useRef<HTMLDivElement>(null);
   const menuPopupRef = useRef<HTMLDivElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
   const isMobile = useMediaQuery({ query: "(max-width: 767px)" });
+  const { userInfoGet, logout } = useAuthApi();
   const menuItems = [
-    { label: "홈", path: "/" },
-    { label: "커뮤니티", path: "/comnmuniy" },
-    { label: "영화", path: "/movies" },
+    { label: "홈", path: "/home" },
+    { label: "커뮤니티", path: "/community" },
+    { label: "영화", path: "/movie" },
     { label: "내가 찜한 리스트", path: "/wish" },
   ];
+  const navigate = useNavigate();
 
   const handlePopup = () => {
     setIsPopupOpen((prev) => !prev);
     setIsMenuPopupOpen(false);
   };
 
-  const handleMenuPopup = () => {
+  const handleMenuPopup = (path: string) => {
     setIsMenuPopupOpen((prev) => !prev);
     setIsPopupOpen(false);
+    console.log("dasdsad");
+    navigate(`${path}`);
   };
 
   const onClickMypage = () => {
     setIsPopupOpen(false);
+    console.log("딸깍");
+    navigate("/mypage");
   };
 
   useEffect(() => {
@@ -207,21 +231,47 @@ const Header = () => {
     };
   }, [isPopupOpen, isMenuPopupOpen]);
 
+  const onClickLogout = async () => {
+    try {
+      await logout();
+    } finally {
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("refreshToken");
+      navigate("/");
+    }
+  };
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
     setMounted(true);
+    const userDataGet = async () => {
+      const res = await userInfoGet();
+      setUser(res.data.data);
+    };
+    userDataGet();
   }, []);
+
+  const theme = useTheme();
 
   if (!mounted) return null;
 
   return (
     <>
       <HeaderContainer $ismobile={isMobile}>
-        <Logo $ismobile={isMobile} src={logoText} alt="로고 이미지" />
+        <Logo
+          $ismobile={isMobile}
+          src={logoText}
+          alt="로고 이미지"
+          onClick={() => navigate("/home")}
+        />
         <HeaderMenuContainer $ismobile={isMobile}>
           {isMobile ? (
             <>
-              <HeaderMenuBtn $ismobile={isMobile} onClick={handleMenuPopup}>
+              <HeaderMenuBtn
+                $ismobile={isMobile}
+                onClick={() => {
+                  setIsMenuPopupOpen(true);
+                }}
+              >
                 메뉴
                 <MenuPopupText $ismenupopupopen={isMenuPopupOpen}>
                   ▼
@@ -240,7 +290,9 @@ const Header = () => {
                       key={path}
                       $ismobile={isMobile}
                       style={{ width: "100%" }}
-                      onClick={handleMenuPopup}
+                      onClick={() => {
+                        handleMenuPopup(path);
+                      }}
                     >
                       {label}
                     </HeaderMenuBtn>
@@ -251,7 +303,11 @@ const Header = () => {
           ) : (
             <>
               {menuItems.map(({ label, path }) => (
-                <HeaderMenuBtn key={path} $ismobile={isMobile}>
+                <HeaderMenuBtn
+                  key={path}
+                  $ismobile={isMobile}
+                  onClick={() => handleMenuPopup(path)}
+                >
                   {label}
                 </HeaderMenuBtn>
               ))}
@@ -259,17 +315,17 @@ const Header = () => {
           )}
         </HeaderMenuContainer>
         <UserInfoContainer $ismobile={isMobile}>
-          {nickname === "" ? (
-            <LoginBtn $ismobile={isMobile}>
+          {user.nickname === "" ? (
+            <LoginBtn $ismobile={isMobile} onClick={() => navigate("/login")}>
               {isMobile ? "로그인" : "로그인하러 가기"}
             </LoginBtn>
           ) : (
             <>
-              <HeaderText $ismobile={isMobile}>{nickname}</HeaderText>
+              <HeaderText $ismobile={isMobile}>{user.nickname}</HeaderText>
               <UserImageContainer
                 ref={imageRef}
                 $ismobile={isMobile}
-                $image={userImg ? userImg : profileIcon}
+                $image={user.image ? user.image : profileIcon}
                 onClick={handlePopup}
               />
             </>
@@ -285,8 +341,14 @@ const Header = () => {
           exit={{ opacity: 0, y: -20 }}
           transition={{ duration: 0.3 }}
         >
-          <PopupBtn onClick={onClickMypage}>마이페이지</PopupBtn>
-          <PopupBtn>로그아웃</PopupBtn>
+          <PopupBtn onClick={onClickMypage}>
+            <PopupImg src={theme.profileImg} $width="20px" $mr="5px" />
+            마이페이지
+          </PopupBtn>
+          <PopupBtn onClick={onClickLogout}>
+            <PopupImg src={logoutIcon} $width="15px" $mr="10px" />
+            로그아웃
+          </PopupBtn>
         </Popup>
       )}
     </>

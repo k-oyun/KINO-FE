@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useMediaQuery } from "react-responsive";
 import styled from "styled-components";
+import useHomeApi from "../api/home";
 
 interface userStateProps {
   setIsNewUser: (value: boolean) => void;
@@ -60,10 +61,10 @@ const SubText = styled.span`
 `;
 
 const GenreBtn = styled.button<{ $selected: boolean; $ismobile: boolean }>`
-  width: ${(props) => (props.$ismobile ? "60px" : "70px")};
-  height: ${(props) => (props.$ismobile ? "35px" : "35px")};
+  width: ${(props) => (props.$ismobile ? "55px" : "80px")};
+  height: ${(props) => (props.$ismobile ? "30px" : "35px")};
   text-align: center;
-  font-size: 0.8rem;
+  font-size: ${(props) => (props.$ismobile ? "0.6rem" : "0.8rem")};
   background-color: ${({ $selected }) => ($selected ? "#FE5890" : "#d9d9d9")};
   border: none;
   border-radius: 14px;
@@ -109,18 +110,42 @@ const ConfirmBtn = styled.button<{ $isbtnpos: boolean; $ismobile: boolean }>`
 
 const SurveyModal = ({ setIsNewUser }: userStateProps) => {
   const [username, setUsername] = useState("권오윤");
-  const [selectedGenre, setSelectedGenre] = useState<string[]>([]);
+  const [selectedGenre, setSelectedGenre] = useState<number[]>([]);
   const [isBtnPos, setIsBtnPos] = useState(false);
   const isMobile = useMediaQuery({ query: "(max-width: 767px)" });
   const genreGroups = [
-    ["코미디", "로맨스", "스릴러"],
-    ["공포", "재난", "범죄", "좀비", "역사"],
-    ["애니", "다큐", "액션", "판타지", "드라마"],
+    [
+      { genre: "코미디", id: 35 },
+      { genre: "로맨스", id: 10749 },
+      { genre: "스릴러", id: 53 },
+    ],
+    [
+      { genre: "공포", id: 27 },
+      { genre: "전쟁", id: 10752 },
+      { genre: "범죄", id: 80 },
+      { genre: "역사", id: 36 },
+      { genre: "드라마", id: 18 },
+    ],
+    [
+      { genre: "애니메이션", id: 16 },
+      { genre: "다큐멘터리", id: 99 },
+      { genre: "액션", id: 28 },
+      { genre: "판타지", id: 14 },
+      { genre: "가족", id: 10751 },
+    ],
+    [
+      { genre: "음악", id: 10402 },
+      { genre: "미스터리", id: 9648 },
+      { genre: "서부", id: 37 },
+      { genre: "TV 영화", id: 10770 },
+      { genre: "모험", id: 12 },
+    ],
   ];
+  const { surveyApi } = useHomeApi();
 
-  const handleGenreClick = (genre: string) => {
+  const handleGenreClick = (id: number) => {
     setSelectedGenre((prev) =>
-      prev.includes(genre) ? prev.filter((g) => g !== genre) : [...prev, genre]
+      prev.includes(id) ? prev.filter((g) => g !== id) : [...prev, id]
     );
   };
 
@@ -130,7 +155,13 @@ const SurveyModal = ({ setIsNewUser }: userStateProps) => {
     } else {
       setIsBtnPos(false);
     }
+    console.log(selectedGenre);
   }, [selectedGenre]);
+
+  const postSurvey = async (genres: number[]) => {
+    const res = await surveyApi(genres);
+    console.log("설문조사 제출 결과:", res);
+  };
 
   return (
     <ModalContainer $ismobile={isMobile}>
@@ -148,8 +179,8 @@ const SurveyModal = ({ setIsNewUser }: userStateProps) => {
         <GenreBtn
           style={{ marginTop: "50px" }}
           $ismobile={isMobile}
-          $selected={selectedGenre.includes("SF")}
-          onClick={() => handleGenreClick("SF")}
+          $selected={selectedGenre.includes(878)}
+          onClick={() => handleGenreClick(878)}
         >
           # SF
         </GenreBtn>
@@ -157,12 +188,12 @@ const SurveyModal = ({ setIsNewUser }: userStateProps) => {
           <GenreContainer key={idx}>
             {group.map((genre) => (
               <GenreBtn
-                key={genre}
+                key={genre.genre}
                 $ismobile={isMobile}
-                $selected={selectedGenre.includes(genre)}
-                onClick={() => handleGenreClick(genre)}
+                $selected={selectedGenre.includes(genre.id)}
+                onClick={() => handleGenreClick(genre.id)}
               >
-                # {genre}
+                # {genre.genre}
               </GenreBtn>
             ))}
           </GenreContainer>
@@ -173,6 +204,7 @@ const SurveyModal = ({ setIsNewUser }: userStateProps) => {
           disabled={!isBtnPos}
           onClick={() => {
             console.log("clicked");
+            postSurvey(selectedGenre);
           }}
         >
           확인
@@ -180,6 +212,7 @@ const SurveyModal = ({ setIsNewUser }: userStateProps) => {
         <SkipBtn
           onClick={() => {
             setIsNewUser(false);
+            postSurvey([]);
           }}
         >
           건너뛰기

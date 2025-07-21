@@ -1,4 +1,4 @@
-import axios from "./axiosInstance";
+import axios from "./AxiosInstance";
 import { useCallback } from 'react';
 
 export const useMypageApi = () => {

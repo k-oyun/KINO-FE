@@ -1,55 +1,85 @@
-import React, { useEffect, useMemo, useState } from "react";
-import styled from "styled-components";
-import { useNavigate } from "react-router-dom";
-import MovieCard from "../../components/mypage/MovieCard";
-import useMypageApi from "../../api/mypage";
-import VideoBackground from '../../components/VideoBackground';
-import Pagination from "../../components/PageNation";
+import React, { useState, useEffect, useMemo } from 'react';
+  import styled from 'styled-components';
+  import { useNavigate } from 'react-router-dom';
+  import axios from 'axios';
 
-interface FavoriteMovieType {
-    myPickId: string;
-    movieTitle: string;
-    director: string;
-    releaseDate: string;
-    posterUrl: string;
-}
+  import UserListItem from '../../components/mypage/UserListItem';
+  import VideoBackground from '../../components/VideoBackground';
+  import useMyPageApi from '../../api/mypage';
+  import Pagination from '../../components/Pagenation';
 
-const PageContainer = styled.div`
+
+  export interface FollowingApiResponse {
+    status: number;
+    success: boolean;
+    message: string;
+    data: Array<{
+      userId: number;
+      nickname: string;
+      follow: boolean;
+      profileImageUrl?: string;
+    }>;
+  }
+
+  interface FollowingType {
+    id: string; 
+    nickname: string;
+    profileImageUrl: string;
+    isFollowing: boolean;
+  }
+
+  interface PageInfo {
+    currentPage: number;       
+    size: number;              
+    pageContentAmount: number; 
+  }
+
+  const ITEMS_PER_PAGE = 20; 
+
+
+  const PageContainer = styled.div`
     max-width: 1200px;
     margin: 0 auto;
     padding-top: 300px;
     background-color: transparent;
+    min-height: calc(100vh - 60px);
     color: #f0f0f0;
+
     display: flex;
     flex-direction: column;
-    @media (max-width: 767px) {
-        padding: 20px 15px;
-        padding-top: 80px;
-    }
-`;
 
-const SectionWrapper = styled.div`
+    @media (max-width: 767px) {
+      padding: 20px 15px;
+      padding-top: 80px;
+    }
+  `;
+
+  const SectionWrapper = styled.div`
     background-color: rgba(0, 0, 0, 0.7);
     padding: 25px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-    @media (max-width: 767px) {
-        padding: 20px;
-    }
-`;
+    flex-grow: 1; 
+    overflow-y: auto;
 
-const PageHeader = styled.div`
+    @media (max-width: 767px) {
+      padding: 20px;
+    }
+  `;
+
+  const PageHeader = styled.div`
     display: flex;
     align-items: center;
     margin-bottom: 20px;
+    
     @media (max-width: 767px) {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 10px;
-        margin-bottom: 15px;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: 15px;
     }
-`;
+  `;
 
-const BackButton = styled.button`
+  const BackButton = styled.button`
     background: none;
     border: none;
     color: #f0f0f0;
@@ -57,219 +87,210 @@ const BackButton = styled.button`
     margin-right: 15px;
     cursor: pointer;
     transition: transform 0.2s ease-in-out;
-    &:hover {
-        transform: translateX(-5px);
-    }
-    svg {
-        width: 24px;
-        height: 24px;
-        vertical-align: middle;
-    }
-    @media (max-width: 767px) {
-        margin-right: 0;
-        margin-bottom: 10px;
-        align-self: flex-start;
-    }
-`;
 
-const PageTitle = styled.h1`
+    &:hover {
+      transform: translateX(-5px);
+    }
+
+    svg {
+      width: 24px;
+      height: 24px;
+      viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M15 5L9 12L15 19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+    }
+
+    @media (max-width: 767px) {
+      margin-right: 0;
+      margin-bottom: 10px;
+      align-self: flex-start;
+    }
+  `;
+
+  const PageTitle = styled.h1`
     font-size: 1.8em;
     font-weight: bold;
     color: #e0e0e0;
+
     @media (max-width: 767px) {
-        font-size: 1.4em;
+      font-size: 1.4em;
     }
     @media (max-width: 480px) {
-        font-size: 1.2em;
+      font-size: 1.2em;
     }
-`;
+  `;
 
-const SortOptions = styled.div`
-  display: flex;
-  gap: 10px;
-  font-size: 0.9em;
-  margin-bottom: 20px;
-  justify-content: flex-end;
-  @media (max-width: 767px) {
-    font-size: 0.8em;
-    justify-content: flex-start;
-  }
-`;
-const SortButton = styled.button<{ $isActive: boolean }>`
-  background: none;
-  border: none;
-  color: ${props => (props.$isActive ? '#e0e0e0' : '#888')};
-  font-weight: ${props => (props.$isActive ? 'bold' : 'normal')};
-  cursor: pointer;
-  padding: 5px 0;
-  position: relative;
-  &:hover {
-    color: #f0f0f0;
-  }
-  ${props =>
-    props.$isActive &&
-    `
-    &::after {
-      content: '';
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      height: 2px;
-      background-color: #e0e0e0;
-    }
-  `}
-`;
+  const UserList = styled.div`
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
 
-const MovieCardGrid = styled.div`
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    gap: 20px;
-    padding-top: 10px;
     @media (max-width: 767px) {
-        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-        gap: 15px;
+      gap: 10px;
     }
-    @media (max-width: 480px) {
-        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-        gap: 10px;
-    }
-`;
+  `;
 
-const EmptyState = styled.div`
+  const EmptyState = styled.div`
     color: #aaa;
     text-align: center;
     padding: 30px 0;
     font-size: 1.1em;
+
     @media (max-width: 767px) {
-        padding: 20px 0;
-        font-size: 1em;
+      padding: 20px 0;
+      font-size: 1em;
     }
-`;
+  `;
 
-const PinkText = styled.span`
-  color: #ff69b4;
-  font-weight: bold;
-  margin-left: 0.25em;
-`;
+  const PinkText = styled.span`
+    color: #ff69b4;
+    font-weight: bold;
+    margin-left: 0.25em;
+  `;
 
-interface PageInfo {
-  currentPage: number;
-  size: number;
-  pageContentAmount: number;
-}
 
-const ITEMS_PER_PAGE = 12; // 페이지당 영화 수
-
-const MyFavoriteMoviesPage: React.FC = () => {
+  const MyFollowingPage: React.FC = () => {
     const navigate = useNavigate();
-    const { mypageMyPickMovie } = useMypageApi();
-    const [sortOrder, setSortOrder] = useState<"latest" | "title">("latest");
-    const [favoriteMovies, setFavoriteMovies] = useState<FavoriteMovieType[]>([]);
+    const { getFollowing, followUser, unfollowUser } = useMyPageApi(); 
+
+    const [following, setFollowing] = useState<FollowingType[]>([]);
+    const [loading, setLoading] = useState<boolean>(true);
+    const [error, setError] = useState<string | null>(null);
+
+    const myUserId = "1"; 
+    
     const [pageInfo, setPageInfo] = useState<PageInfo>({
       currentPage: 0,
       size: ITEMS_PER_PAGE,
       pageContentAmount: 0,
     });
-
+    
     useEffect(() => {
-        const myPickGet = async () => {
-            const res = await mypageMyPickMovie();
-            const pick = Array.isArray(res.data.data.myPickMoives)
-                ? res.data.data.myPickMoives
-                : [];
-            setFavoriteMovies(pick);
-        };
-        myPickGet();
-    }, []);
-
-    const sortedMovies = useMemo(() => {
-        const arr = [...favoriteMovies];
-        if (sortOrder === "latest") {
-          return arr.sort((a, b) => new Date(b.releaseDate).getTime() - new Date(a.releaseDate).getTime());
+      const loadFollowing = async () => {
+        setLoading(true);
+        setError(null);
+        try {
+          const res = await getFollowing(Number(myUserId));
+          const data: FollowingApiResponse["data"] | null = res.data.data;
+          if (data) {
+            const mappedFollowing: FollowingType[] = data.map(followedUser => ({
+              id: String(followedUser.userId), 
+              nickname: followedUser.nickname,
+              profileImageUrl: followedUser.profileImageUrl || 
+              `https://via.placeholder.com/50/CCCCCC/FFFFFF?text=${followedUser.nickname.substring(0,1)}`, 
+              isFollowing: followedUser.follow,
+            }));
+            setFollowing(mappedFollowing);
+          } else {
+            setFollowing([]);
+          }
+        } catch (err) {
+          console.error("팔로잉 데이터 불러오기 실패:", err);
+          if (axios.isAxiosError(err) && err.response?.status === 401) {
+            console.log("401 Unauthorized: Access token invalid or expired. Redirecting to login.");
+            localStorage.removeItem("accessToken");
+            navigate("/login");
+            return;
+          } else {
+            setError("팔로잉 목록을 불러오는 데 실패했습니다.");
+          }
+        } finally {
+          setLoading(false);
         }
-          //  else if (sortOrder === "title") {
-        //   return arr.sort((a, b) => a.movieTitle.localeCompare(b.movieTitle));
-        // }
-        return arr;
-    }, [favoriteMovies, sortOrder]);
+      };
 
+      loadFollowing();
+    }, [getFollowing, myUserId, navigate]); 
+    
     useEffect(() => {
-      const totalPages = Math.ceil(sortedMovies.length / ITEMS_PER_PAGE) || 0;
-      setPageInfo(prev => ({
-        ...prev,
-        currentPage: prev.currentPage >= totalPages ? 0 : prev.currentPage,
-        pageContentAmount: totalPages,
-      }));
-    }, [sortedMovies]);
+        const totalPages = Math.ceil(following.length / ITEMS_PER_PAGE) || 0;
+        setPageInfo((prev) => ({
+          ...prev,
+          currentPage: prev.currentPage >= totalPages ? 0 : prev.currentPage,
+          size: ITEMS_PER_PAGE,
+          pageContentAmount: totalPages,
+        }));
+      }, [following]);
+    
+      const currentFollowing = useMemo(() => {
+        const startIdx = pageInfo.currentPage * pageInfo.size;
+        const endIdx = startIdx + pageInfo.size;
+        return following.slice(startIdx, endIdx);
+      }, [following, pageInfo]);
 
-    const startIdx = pageInfo.currentPage * ITEMS_PER_PAGE;
-    const endIdx = startIdx + ITEMS_PER_PAGE;
-    const currentMovies = sortedMovies.slice(startIdx, endIdx);
+    const handleFollowToggle = async (
+      targetUserId: string,
+      isCurrentlyFollowing: boolean
+    ) => {
+      try {
+        if (isCurrentlyFollowing) {
+          await unfollowUser(Number(targetUserId)); 
+          console.log(`User ${targetUserId} 언팔로우 성공`);
+          setFollowing(prevFollowing => 
+            prevFollowing.filter(user => user.id !== targetUserId) 
+          );
+        } else {
+          await followUser(Number(targetUserId));
+          console.log(`User ${targetUserId} 팔로우 성공`);
+          setFollowing(
+            prevFollowing =>
+              prevFollowing.map(u => u.id === targetUserId ? { ...u, isFollowing: true } : u)
+          );
+        }
+      } catch (err) {
+        console.error(`팔로우/언팔로우 실패 for user ${targetUserId}:`, err);
+        alert("팔로우/언팔로우 처리 중 오류가 발생했습니다.");
+      }
+    };
+
 
     return (
-        <PageContainer>
-          <VideoBackground />
-            <SectionWrapper>
-                <PageHeader>
-                    <BackButton onClick={() => navigate("/mypage")}>
-                        <svg
-                            width="24"
-                            height="24"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
-                        >
-                            <path
-                                d="M15 5L9 12L15 19"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                            />
-                        </svg>
-                    </BackButton>
-                    <PageTitle>내가 <PinkText>찜한 영화</PinkText></PageTitle>
-                </PageHeader>
-                <SortOptions>
-                    <SortButton
-                      $isActive={sortOrder === "latest"}
-                      onClick={() => setSortOrder("latest")}
-                    >
-                      최신순
-                    </SortButton>
-                    {/* <SortButton
-                      $isActive={sortOrder === "title"}
-                      onClick={() => setSortOrder("title")}
-                    >
-                      제목순
-                    </SortButton> */}
-                </SortOptions>
-                {currentMovies && currentMovies.length > 0 ? (
-                    <>
-                      <MovieCardGrid>
-                          {currentMovies.map((movie: FavoriteMovieType) => (
-                              <MovieCard key={movie.myPickId} movie={movie} />
-                          ))}
-                      </MovieCardGrid>
-                      {pageInfo.pageContentAmount > 1 && (
-                        <Pagination
-                          size={pageInfo.size}
-                          itemsPerPage={ITEMS_PER_PAGE}
-                          pageContentAmount={pageInfo.pageContentAmount}
-                          currentPage={pageInfo.currentPage}
-                          setPageInfo={setPageInfo}
-                          pageInfo={pageInfo}
-                          selectedOption={sortOrder}
-                        />
-                      )}
-                    </>
-                ) : (
-                    <EmptyState>찜한 영화가 없습니다.</EmptyState>
-                )}
-            </SectionWrapper>
-        </PageContainer>
+      <PageContainer>
+        <VideoBackground /> 
+        <SectionWrapper>
+          <PageHeader>
+            <BackButton onClick={() => navigate('/mypage')}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M15 5L9 12L15 19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </BackButton>
+            <PageTitle><PinkText>팔로잉</PinkText></PageTitle> 
+          </PageHeader>
+          {loading ? (
+            <EmptyState>팔로잉 목록을 불러오는 중...</EmptyState>
+          ) : error ? (
+            <EmptyState>오류 발생: {error}</EmptyState>
+          ) : following.length > 0 ? (
+          <>
+            <UserList>
+              {currentFollowing.map((followedUser) => (
+                <UserListItem
+                  key={followedUser.id}
+                  user={followedUser}
+                  onFollowToggle={handleFollowToggle}
+                  type="following" 
+                />
+              ))}
+            </UserList>
+              
+            {pageInfo.pageContentAmount > 1 && (
+              <Pagination
+                size={pageInfo.size}
+                itemsPerPage={ITEMS_PER_PAGE}
+                currentPage={pageInfo.currentPage}
+                pageContentAmount={pageInfo.pageContentAmount}
+                setPageInfo={setPageInfo}
+                pageInfo={pageInfo}
+                selectedOption=''
+              />
+            )}
+          </>
+          ) : (
+            <EmptyState>아직 팔로잉하는 사용자가 없습니다.</EmptyState> 
+          )}
+        </SectionWrapper>
+      </PageContainer>
     );
-};
+  };
 
-export default MyFavoriteMoviesPage;
+  export default MyFollowingPage;

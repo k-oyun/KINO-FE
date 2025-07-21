@@ -3,9 +3,16 @@ import { useMediaQuery } from "react-responsive";
 import styled from "styled-components";
 import AdminList from "../components/AdminList";
 import AdminModal from "../components/AdminModal";
+import Pagenation from "../components/Pagenation";
 
 interface styleProp {
   $ismobile: boolean;
+}
+
+interface PageType {
+  currentPage: number;
+  size: number;
+  pageContentAmount: number;
 }
 
 const AmdinContainer = styled.div<styleProp>`
@@ -68,6 +75,8 @@ const ManagementInfoContainer = styled.div<styleProp>`
   width: ${(props) => (props.$ismobile ? "auto" : "80%")};
   height: ${(props) => (props.$ismobile ? "auto" : "80%")};
   border: ${(props) => (props.$ismobile ? "none" : "1.5px solid #d9d9d9")};
+  margin-top: 40px;
+
   border-radius: 1px;
 `;
 const Admin = () => {
@@ -79,13 +88,15 @@ const Admin = () => {
   const [selectedReportId, setSelectedReportId] = useState(0);
   const [isConfirmBtnPrs, setIsConfirmBtnprs] = useState(false);
 
+  const [pageInfo, setPageInfo] = useState<PageType>({
+    currentPage: 0,
+    size: 12,
+    pageContentAmount: 0,
+  });
+
   const handleOptionClick = (option: string) => {
     setSelectedOption(option);
   };
-
-  //   useEffect(() => {
-  //     console.log(selectedOption);
-  //   }, [selectedOption]);
 
   const reportTypeSend = () => {
     if (selectedOption === "게시글") {
@@ -100,6 +111,9 @@ const Admin = () => {
     return "defaultType";
   };
 
+  useEffect(() => {
+    setPageInfo((prev) => ({ ...prev, currentPage: 0 }));
+  }, [selectedOption]);
   return (
     <>
       <AmdinContainer $ismobile={isMobile}>
@@ -124,8 +138,21 @@ const Admin = () => {
               setSelectedReportId={setSelectedReportId}
               setIsConfirmBtnprs={setIsConfirmBtnprs}
               isConfirmBtnPrs={isConfirmBtnPrs}
+              pageInfo={pageInfo}
+              setPageInfo={setPageInfo}
             />
           </ManagementInfoContainer>
+          {!isMobile && (
+            <Pagenation
+              size={pageInfo.size}
+              itemsPerPage={5}
+              pageContentAmount={pageInfo.pageContentAmount}
+              currentPage={pageInfo.currentPage}
+              setPageInfo={setPageInfo}
+              pageInfo={pageInfo}
+              selectedOption={selectedOption}
+            />
+          )}
         </ManagementContainer>
       </AmdinContainer>
       {isModalOpen && (

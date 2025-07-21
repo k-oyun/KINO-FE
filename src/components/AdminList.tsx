@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import type { Dispatch, SetStateAction } from "react";
 import { useMediaQuery } from "react-responsive";
 import styled from "styled-components";
 import {
@@ -11,7 +12,6 @@ import "react-swipeable-list/dist/styles.css";
 import axios from "axios";
 import { useFormatDate } from "../hooks/useFormatDate";
 import AdminConfirmDialog from "../components/AdminConfirmDialog";
-
 
 interface User {
   id: number;
@@ -32,13 +32,19 @@ interface Report {
 interface StyleProps {
   $ismobile: boolean;
 }
-
+interface PageType {
+  currentPage: number;
+  size: number;
+  pageContentAmount: number;
+}
 interface adminProps {
   selectedOption: string;
   isConfirmBtnPrs: boolean;
   setIsModalOpen: (value: boolean) => void;
   setIsConfirmBtnprs: (value: boolean) => void;
   setSelectedReportId: (value: number) => void;
+  setPageInfo: Dispatch<SetStateAction<PageType>>;
+  pageInfo: PageType;
 }
 
 const TableContainer = styled.div`
@@ -140,6 +146,8 @@ const AdminList = ({
   setSelectedReportId,
   isConfirmBtnPrs,
   setIsConfirmBtnprs,
+  pageInfo,
+  setPageInfo,
 }: adminProps) => {
   const [selectedUser, setSelectedUser] = useState<number[]>([]);
   const isMobile = useMediaQuery({ query: "(max-width: 767px)" });
@@ -155,16 +163,34 @@ const AdminList = ({
     createdAt: "",
   });
 
+  const [selectedOnly, setSelectedOnly] = useState(0);
+
+  // const selectAllUser = () => {
+  //   if (selectedUser.length === users.length) {
+  //     setSelectedUser([]);
+  //   } else {
+  //     setSelectedUser(users.map((user) => user.id));
+  //   }
+  // };
+
+  const bannedIds = users
+    .filter((user) => user.role === "BAN_USER")
+    .map((user) => user.id);
+
+  const isAllBannedChecked =
+    bannedIds.length > 0 &&
+    bannedIds.every((id) => selectedUser.includes(id)) &&
+    selectedUser.length === bannedIds.length;
+
   const selectAllUser = () => {
-    if (selectedUser.length === users.length) {
+    if (isAllBannedChecked) {
       setSelectedUser([]);
     } else {
-      setSelectedUser(users.map((user) => user.id));
+      setSelectedUser(bannedIds);
     }
   };
-
   const selectUser = (userId: number, userStatus: string) => {
-    if (userStatus === "BAN" || userStatus === "ADMIN") return;
+    if (userStatus === "USER" || userStatus === "ADMIN") return;
     setSelectedUser((prev) =>
       prev.includes(userId)
         ? prev.filter((id) => id !== userId)
@@ -172,21 +198,21 @@ const AdminList = ({
     );
   };
 
-  //--버릴 코드--
   const [revokedUsers, setRevokedUsers] = useState<number[]>([]);
   const handleRevoke = (userId: number) => {
     if (!revokedUsers.includes(userId)) {
       setRevokedUsers((prev) => [...prev, userId]);
     }
   };
-  //------------
 
-  const hiddenDeleteSection = (userId: number) => (
+  const hiddenDeleteSection = (userId: number, userRole: string) => (
     <TrailingActions>
       <SwipeAction
         onClick={() => {
           handleRevoke(userId);
-          userActive(userId);
+          selectUser(userId, userRole);
+          console.log(selectedUser);
+          usersActive();
         }}
         destructive={true}
       >
@@ -196,22 +222,29 @@ const AdminList = ({
   );
 
   const userGet = async () => {
-    const res = await axios.get("http://43.203.218.183:8080/api/admin/user");
+    const res = await axios.get(
+      `http://43.203.218.183:8080/api/admin/user?page=${pageInfo.currentPage}&size=${pageInfo.size}`
+    );
+
     return res.data;
   };
 
   const reviewReportGet = async () => {
-    const res = await axios.get("http://43.203.218.183:8080/api/admin/review");
+    const res = await axios.get(
+      `http://43.203.218.183:8080/api/admin/review?page=${pageInfo.currentPage}&size=${pageInfo.size}`
+    );
     return res.data;
   };
   const shortReviewReportGet = async () => {
     const res = await axios.get(
-      "http://43.203.218.183:8080/api/admin/shortreview"
+      `http://43.203.218.183:8080/api/admin/shortreview?page=${pageInfo.currentPage}&size=${pageInfo.size}`
     );
     return res.data;
   };
   const commentReportGet = async () => {
-    const res = await axios.get("http://43.203.218.183:8080/api/admin/comment");
+    const res = await axios.get(
+      `http://43.203.218.183:8080/api/admin/comment?page=${pageInfo.currentPage}&size=${pageInfo.size}`
+    );
     return res.data;
   };
 
@@ -220,7 +253,11 @@ const AdminList = ({
       const fetchData = async () => {
         try {
           const res = await userGet();
-          setUsers(res.data);
+          setUsers(res.data.content);
+          setPageInfo((prev) => ({
+            ...prev,
+            pageContentAmount: res.data.totalPages,
+          }));
         } catch (error) {
           console.error("사용자 조회 실패:", error);
         }
@@ -232,7 +269,12 @@ const AdminList = ({
         try {
           const res = await reviewReportGet();
           console.log("게시글 신고 내역", res.data);
-          setReportDatas(res.data);
+          setReportDatas(res.data.content);
+          console.log("토탈 페이지 ", res.data.totalPages);
+          setPageInfo((prev) => ({
+            ...prev,
+            pageContentAmount: res.data.totalPages,
+          }));
         } catch (error) {
           console.log("게시글 신고 실패:", error);
         }
@@ -244,7 +286,11 @@ const AdminList = ({
         try {
           const res = await shortReviewReportGet();
           console.log("한줄평 신고 내역", res.data);
-          setReportDatas(res.data);
+          setReportDatas(res.data.content);
+          setPageInfo((prev) => ({
+            ...prev,
+            pageContentAmount: res.data.totalPages,
+          }));
         } catch (error) {
           console.log("한줄평 신고 실패:", error);
         }
@@ -256,13 +302,35 @@ const AdminList = ({
         try {
           const res = await commentReportGet();
           console.log("댓글 신고 내역", res.data);
-          setReportDatas(res.data);
+          setReportDatas(res.data.content);
+          setPageInfo((prev) => ({
+            ...prev,
+            pageContentAmount: res.data.totalPages,
+          }));
         } catch (error) {
           console.log("댓글 신고 실패:", error);
         }
       };
       fetchData();
     }
+  };
+
+  const usersActive = async () => {
+    const res = await axios.post(
+      "http://43.203.218.183:8080/api/admin/active",
+      selectedUser
+    );
+    setSelectedUser([]);
+    listGet();
+  };
+
+  const userActive = async () => {
+    const res = await axios.post(
+      "http://43.203.218.183:8080/api/admin/active",
+      [selectedOnly]
+    );
+    setSelectedUser([]);
+    listGet();
   };
 
   useEffect(() => {
@@ -273,77 +341,193 @@ const AdminList = ({
     listGet();
   }, [selectedOption]);
 
-  const userActive = async (id: number) => {
-    const res = await axios.post(
-      `http://43.203.218.183:8080/api/admin/active/${id}`
-    );
-    console.log(res);
+  useEffect(() => {
     listGet();
-  };
+  }, [pageInfo.currentPage]);
 
-  // 12명으로 페이지네이션
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  const [mobilePage, setMobilePage] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
 
+  const mobileListGet = useCallback(async () => {
+    try {
+      if (selectedOption === "회원관리") {
+        const res = await axios.get(
+          `http://43.203.218.183:8080/api/admin/user?page=${mobilePage}&size=12`
+        );
+        setUsers((prev) => {
+          const ids = new Set(prev.map((u) => u.id));
+          const newItems = res.data.data.content.filter(
+            (u: User) => !ids.has(u.id)
+          );
+          return [...prev, ...newItems];
+        });
+        const totalPages = res.data.data.totalPages;
+        setHasMore(mobilePage + 1 < totalPages);
+      }
+      if (selectedOption === "게시글") {
+        const res = await axios.get(
+          `http://43.203.218.183:8080/api/admin/review?page=${mobilePage}&size=12`
+        );
+        setReportDatas((prev) => {
+          const ids = new Set(prev.map((d) => d.reportId));
+          const newItems = res.data.data.content.filter(
+            (d: Report) => !ids.has(d.reportId)
+          );
+          return [...prev, ...newItems];
+        });
+        const totalPages = res.data.data.totalPages;
+        setHasMore(mobilePage + 1 < totalPages);
+      }
+      if (selectedOption === "한줄평") {
+        const res = await axios.get(
+          `http://43.203.218.183:8080/api/admin/shortreview?page=${mobilePage}&size=12`
+        );
+        setReportDatas((prev) => {
+          const ids = new Set(prev.map((d) => d.reportId));
+          const newItems = res.data.data.content.filter(
+            (d: Report) => !ids.has(d.reportId)
+          );
+          return [...prev, ...newItems];
+        });
+        const totalPages = res.data.data.totalPages;
+        setHasMore(mobilePage + 1 < totalPages);
+      }
+      if (selectedOption === "댓글") {
+        const res = await axios.get(
+          `http://43.203.218.183:8080/api/admin/comment?page=${mobilePage}&size=12`
+        );
+        setReportDatas((prev) => {
+          const ids = new Set(prev.map((d) => d.reportId));
+          const newItems = res.data.data.content.filter(
+            (d: Report) => !ids.has(d.reportId)
+          );
+          return [...prev, ...newItems];
+        });
+        const totalPages = res.data.data.totalPages;
+        setHasMore(mobilePage + 1 < totalPages);
+      }
+    } catch (err) {
+      console.error("모바일 infinite load 실패:", err);
+    }
+  }, [selectedOption, mobilePage]);
+
+  const lastElementRef = useCallback(
+    (node: HTMLElement | null) => {
+      if (!isMobile) return;
+      if (observerRef.current) observerRef.current.disconnect();
+
+      observerRef.current = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting && hasMore) {
+          setMobilePage((prev) => prev + 1);
+        }
+      });
+
+      if (node) observerRef.current.observe(node);
+    },
+    [hasMore, isMobile]
+  );
+
+  useEffect(() => {
+    if (isMobile) {
+      mobileListGet();
+    }
+  }, [mobilePage]);
+
+  useEffect(() => {
+    if (!isMobile) {
+      listGet();
+    } else {
+      mobileListGet;
+    }
+  }, [selectedOption]);
+
+  useEffect(() => {
+    if (!isMobile) {
+      setUsers([]);
+      setReportDatas([]);
+      listGet();
+    }
+    if (isMobile) {
+      setUsers([]);
+      setMobilePage(0);
+      setReportDatas([]);
+      mobileListGet();
+    }
+  }, [isMobile]);
+
+  useEffect(() => {
+    setSelectedUser([]);
+  }, [pageInfo]);
+
+  useEffect(() => {
+    console.log(selectedUser);
+  }, [selectedUser]);
   return (
     <>
       {selectedOption === "회원관리" ? (
         isMobile ? (
           <MobileAdminList>
             <SwipeableList threshold={0.25} fullSwipe={false}>
-              {users.map((user) => {
+              {users.map((user, idx) => {
                 const showSwipe =
-                  selectedOption === "회원관리" && user.role === "BAN";
-
+                  selectedOption === "회원관리" && user.role === "BAN_USER";
+                const isLast = idx === users.length - 1;
                 return (
                   <CustomSwipeableListItem
                     key={user.id}
                     trailingActions={
-                      showSwipe ? hiddenDeleteSection(user.id) : false
+                      showSwipe
+                        ? hiddenDeleteSection(user.id, user.role)
+                        : false
                     }
                   >
-                    <MobileContainer>
-                      <MobileInfoContainer
-                        onClick={() => {
-                          selectedOption !== "회원관리"
-                            ? setIsModalOpen(true)
-                            : null;
-                        }}
-                      >
-                        <div>
-                          <MobileTitleTxt>닉네임 : </MobileTitleTxt>
-                          <MobileContentTxt>{user.nickname}</MobileContentTxt>
-                        </div>
-                        <div>
-                          <MobileTitleTxt>계정 : </MobileTitleTxt>
-                          <MobileContentTxt>{user.email}</MobileContentTxt>
-                        </div>
-                        <div>
-                          <MobileTitleTxt>회원상태 : </MobileTitleTxt>
+                    <div>
+                      <MobileContainer ref={isLast ? lastElementRef : null}>
+                        <MobileInfoContainer
+                          onClick={() => {
+                            selectedOption !== "회원관리"
+                              ? setIsModalOpen(true)
+                              : null;
+                          }}
+                        >
+                          <div>
+                            <MobileTitleTxt>닉네임 : </MobileTitleTxt>
+                            <MobileContentTxt>{user.nickname}</MobileContentTxt>
+                          </div>
+                          <div>
+                            <MobileTitleTxt>계정 : </MobileTitleTxt>
+                            <MobileContentTxt>{user.email}</MobileContentTxt>
+                          </div>
+                          <div>
+                            <MobileTitleTxt>회원상태 : </MobileTitleTxt>
 
-                          <Status
-                            $ismobile={isMobile}
-                            $status={
-                              user.role === "USER"
+                            <Status
+                              $ismobile={isMobile}
+                              $status={
+                                user.role === "USER"
+                                  ? "정상"
+                                  : user.role === "BAN_USER"
+                                  ? "정지"
+                                  : "관리자"
+                              }
+                            >
+                              {user.role === "USER"
                                 ? "정상"
-                                : user.role === "BAN"
+                                : user.role === "BAN_USER"
                                 ? "정지"
-                                : "관리자"
-                            }
-                          >
-                            {user.role === "USER"
-                              ? "정상"
-                              : user.role === "BAN"
-                              ? "정지"
-                              : "관리자"}
-                          </Status>
-                        </div>
-                        <div>
-                          <MobileTitleTxt>가입일 : </MobileTitleTxt>
-                          <MobileContentTxt>
-                            {useFormatDate(user.createdAt)}
-                          </MobileContentTxt>
-                        </div>
-                      </MobileInfoContainer>
-                    </MobileContainer>
+                                : "관리자"}
+                            </Status>
+                          </div>
+                          <div>
+                            <MobileTitleTxt>가입일 : </MobileTitleTxt>
+                            <MobileContentTxt>
+                              {useFormatDate(user.createdAt)}
+                            </MobileContentTxt>
+                          </div>
+                        </MobileInfoContainer>
+                      </MobileContainer>
+                    </div>
                   </CustomSwipeableListItem>
                 );
               })}
@@ -355,7 +539,11 @@ const AdminList = ({
               <thead>
                 <tr>
                   <Th>
-                    <CheckBox type="checkbox" onClick={selectAllUser} />
+                    <CheckBox
+                      type="checkbox"
+                      checked={isAllBannedChecked}
+                      onChange={selectAllUser}
+                    />
                   </Th>
                   {selectedOption === "회원관리" ? (
                     <>
@@ -369,7 +557,6 @@ const AdminList = ({
                           $ismobile={isMobile}
                           onClick={() => {
                             setIsConfirmModalOpen(true);
-                            // 12명 유저 활성화 해제
                           }}
                         >
                           정지 철회
@@ -394,7 +581,10 @@ const AdminList = ({
                       <CheckBox
                         type="checkbox"
                         checked={selectedUser.includes(user.id)}
-                        onChange={() => selectUser(user.id, user.role)}
+                        onChange={() => {
+                          selectUser(user.id, user.role);
+                          setSelectedUserForDialog(user);
+                        }}
                       />
                     </Td>
                     <Td>{user.nickname}</Td>
@@ -405,14 +595,14 @@ const AdminList = ({
                         $status={
                           user.role === "USER"
                             ? "정상"
-                            : user.role === "BAN"
+                            : user.role === "BAN_USER"
                             ? "정지"
                             : "관리자"
                         }
                       >
                         {user.role === "USER"
                           ? "정상"
-                          : user.role === "BAN"
+                          : user.role === "BAN_USER"
                           ? "정지"
                           : "관리자"}
                       </Status>
@@ -420,12 +610,15 @@ const AdminList = ({
                     <Td>{useFormatDate(user.createdAt)}</Td>
 
                     <Td>
-                      {user.role == "BAN" && (
+                      {user.role == "BAN_USER" && (
                         <ManageBtn
                           $ismobile={isMobile}
                           onClick={() => {
                             setIsConfirmModalOpen(true);
                             setSelectedUserForDialog(user);
+                            // selectUser(user.id, user.role);
+                            setSelectedOnly(user.id);
+                            setSelectedUser([]);
                           }}
                         >
                           정지 철회
@@ -441,20 +634,20 @@ const AdminList = ({
       ) : isMobile ? (
         <MobileAdminList>
           <SwipeableList threshold={0.25} fullSwipe={false}>
-            {reportDatas.map((data) => {
-              const showSwipe = selectedOption === "회원관리";
-
+            {reportDatas.map((data, idx) => {
+              const isLast = idx === reportDatas.length - 1;
               return (
                 <CustomSwipeableListItem
                   key={data.reportId}
                   trailingActions={false}
                 >
-                  <MobileContainer>
+                  <MobileContainer ref={isLast ? lastElementRef : null}>
                     <MobileInfoContainer
                       onClick={() => {
                         selectedOption !== "회원관리"
                           ? setIsModalOpen(true)
                           : null;
+                        setSelectedReportId(data.reportId);
                       }}
                     >
                       <div>
@@ -477,14 +670,14 @@ const AdminList = ({
                           $status={
                             data.reportedRole === "USER"
                               ? "정상"
-                              : data.reportedRole === "BAN"
+                              : data.reportedRole === "BAN_USER"
                               ? "정지"
                               : "관리자"
                           }
                         >
                           {data.reportedRole === "USER"
                             ? "정상"
-                            : data.reportedRole === "BAN"
+                            : data.reportedRole === "BAN_USER"
                             ? "정지"
                             : "관리자"}
                         </Status>
@@ -528,14 +721,14 @@ const AdminList = ({
                       $status={
                         data.reportedRole === "USER"
                           ? "정상"
-                          : data.reportedRole === "BAN"
+                          : data.reportedRole === "BAN_USER"
                           ? "정지"
                           : "관리자"
                       }
                     >
                       {data.reportedRole === "USER"
                         ? "정상"
-                        : data.reportedRole === "BAN"
+                        : data.reportedRole === "BAN_USER"
                         ? "정지"
                         : "관리자"}
                     </Status>
@@ -562,11 +755,15 @@ const AdminList = ({
       <AdminConfirmDialog
         isOpen={isConfirmModalOpen}
         title="정지 철회"
-        message={`${selectedUserForDialog.nickname}님을 철회하시겠습니까?`}
+        message={
+          selectedUser.length > 1
+            ? "선택된 회원들의 정지 상태를 철회하시겠습니까?"
+            : `${selectedUserForDialog.nickname} 님을 철회하시겠습니까?`
+        }
         onConfirm={() => {
           setIsConfirmModalOpen(false);
           setIsConfirmModalOk(true);
-          userActive(selectedUserForDialog.id);
+          selectedUser.length === 0 ? userActive() : usersActive();
           listGet();
         }}
         onCancel={() => {

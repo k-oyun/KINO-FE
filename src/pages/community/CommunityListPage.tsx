@@ -1,22 +1,22 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import styled from 'styled-components';
-import { useNavigate, useLocation } from 'react-router-dom';
-import PostCard from '../../components/community/PostCard';
-// import axios from 'axios';
+import React, { useState, useEffect, useRef } from "react";
+import styled from "styled-components";
+import { useNavigate, useLocation } from "react-router-dom";
+import DetailReviewCard from "../../components/mypage/DetailReviewCard";
+import { useMediaQuery } from "react-responsive";
+import useReviewsApi from "../../api/reviews";
 
-// 필요한 PostType 인터페이스를 이 파일 내에 직접 정의합니다.
-interface PostType {
-  id: string;
+interface DetailReview {
+  reviewId: string;
+  image: string;
+  userProfile: string;
+  userNickname: string;
   title: string;
   content: string;
-  username: string;
-  createdAt: string;
-  views: number;
+  isMine: boolean;
   likeCount: number;
-  isLiked: boolean;
-  tags: string[];
-  movieId: string | null;
-  movieTitle: string | null;
+  totalViews: number;
+  commentCount: number;
+  createdAt: string;
 }
 
 // interface PostsResponse {
@@ -25,173 +25,13 @@ interface PostType {
 //   totalPages: number;
 // }
 
-const DUMMY_POSTS: PostType[] = [
-  {
-    id: "post-1",
-    title: "첫 번째 더미 게시글",
-    content: "이것은 첫 번째 게시글의 내용입니다. 더미 데이터로 테스트 중입니다.",
-    username: "더미유저1",
-    createdAt: "2024-07-16T10:00:00Z",
-    views: 5,
-    likeCount: 2,
-    isLiked: false,
-    tags: ["리뷰", "영화"],
-    movieId: "movie-1",
-    movieTitle: "인셉션",
-  },
-  {
-    id: "post-2",
-    title: "두 번째 더미 게시글",
-    content: "두 번째 게시글 내용입니다. 기능 테스트를 위해 작성되었습니다.",
-    username: "더미유저2",
-    createdAt: "2024-07-15T14:30:00Z",
-    views: 12,
-    likeCount: 7,
-    isLiked: true,
-    tags: ["정보", "뉴스"],
-    movieId: "movie-2",
-    movieTitle: "인터스텔라",
-  },
-  {
-    id: "post-3",
-    title: "세 번째 테스트 게시글",
-    content: "테스트를 위한 세 번째 게시글입니다. 영화 관련 내용입니다.",
-    username: "더미유저3",
-    createdAt: "2024-07-14T09:15:00Z",
-    views: 8,
-    likeCount: 3,
-    isLiked: false,
-    tags: ["리뷰"],
-    movieId: "movie-1",
-    movieTitle: "인셉션",
-  },
-  {
-    id: "post-4",
-    title: "네 번째 게시글 제목",
-    content: "네 번째 게시글의 상세 내용입니다. 더미 데이터 추가.",
-    username: "더미유저1",
-    createdAt: "2024-07-13T11:00:00Z",
-    views: 20,
-    likeCount: 10,
-    isLiked: true,
-    tags: ["자유"],
-    movieId: null,
-    movieTitle: null,
-  },
-  {
-    id: "post-5",
-    title: "다섯 번째 더미 게시글",
-    content: "다섯 번째 게시글 내용입니다.",
-    username: "더미유저5",
-    createdAt: "2024-07-12T10:00:00Z",
-    views: 5,
-    likeCount: 2,
-    isLiked: false,
-    tags: ["리뷰"],
-    movieId: "movie-1",
-    movieTitle: "인셉션",
-  },
-  {
-    id: "post-6",
-    title: "여섯 번째 더미 게시글",
-    content: "여섯 번째 게시글 내용입니다.",
-    username: "더미유저6",
-    createdAt: "2024-07-11T14:30:00Z",
-    views: 12,
-    likeCount: 7,
-    isLiked: true,
-    tags: ["정보"],
-    movieId: "movie-2",
-    movieTitle: "인터스텔라",
-  },
-  {
-    id: "post-7",
-    title: "일곱 번째 테스트 게시글",
-    content: "일곱 번째 게시글 내용입니다.",
-    username: "더미유저7",
-    createdAt: "2024-07-10T09:15:00Z",
-    views: 8,
-    likeCount: 3,
-    isLiked: false,
-    tags: ["리뷰"],
-    movieId: "movie-1",
-    movieTitle: "인셉션",
-  },
-  {
-    id: "post-8",
-    title: "여덟 번째 게시글 제목",
-    content: "여덟 번째 게시글 내용입니다.",
-    username: "더미유저8",
-    createdAt: "2024-07-09T11:00:00Z",
-    views: 20,
-    likeCount: 10,
-    isLiked: true,
-    tags: ["자유"],
-    movieId: null,
-    movieTitle: null,
-  },
-  {
-    id: "post-9",
-    title: "아홉 번째 더미 게시글",
-    content: "아홉 번째 게시글 내용입니다.",
-    username: "더미유저9",
-    createdAt: "2024-07-08T10:00:00Z",
-    views: 5,
-    likeCount: 2,
-    isLiked: false,
-    tags: ["리뷰"],
-    movieId: "movie-1",
-    movieTitle: "인셉션",
-  },
-  {
-    id: "post-10",
-    title: "열 번째 더미 게시글",
-    content: "열 번째 게시글 내용입니다.",
-    username: "더미유저10",
-    createdAt: "2024-07-07T14:30:00Z",
-    views: 12,
-    likeCount: 7,
-    isLiked: true,
-    tags: ["정보"],
-    movieId: "movie-2",
-    movieTitle: "인터스텔라",
-  },
-  {
-    id: "post-11",
-    title: "열한 번째 테스트 게시글",
-    content: "열한 번째 게시글 내용입니다.",
-    username: "더미유저11",
-    createdAt: "2024-07-06T09:15:00Z",
-    views: 8,
-    likeCount: 3,
-    isLiked: false,
-    tags: ["리뷰"],
-    movieId: "movie-1",
-    movieTitle: "인셉션",
-  },
-  {
-    id: "post-12",
-    title: "열두 번째 게시글 제목",
-    content: "열두 번째 게시글 내용입니다.",
-    username: "더미유저12",
-    createdAt: "2024-07-05T11:00:00Z",
-    views: 20,
-    likeCount: 10,
-    isLiked: true,
-    tags: ["자유"],
-    movieId: null,
-    movieTitle: null,
-  },
-];
-
 const PageContainer = styled.div`
   max-width: 1200px;
   margin: 0 auto;
-  padding-top: 100px;
-  background-color: #000000;
+  padding: 25px;
+  padding-top: 65px;
   min-height: calc(100vh - 60px);
-  color: #f0f0f0;
-
+  /* color: #f0f0f0; */
   display: flex;
   flex-direction: column;
 
@@ -211,7 +51,6 @@ const PageHeader = styled.div`
 const PageTitle = styled.h2`
   font-size: 1.8em;
   font-weight: bold;
-  color: #e0e0e0;
 
   @media (max-width: 767px) {
     font-size: 1.4em;
@@ -232,7 +71,7 @@ const CreatePostButton = styled.button`
   transition: background-color 0.2s ease;
 
   &:hover {
-    background-color: #fe5890D0;
+    background-color: #fe5890d0;
   }
 
   @media (max-width: 767px) {
@@ -242,9 +81,9 @@ const CreatePostButton = styled.button`
 `;
 
 const PostListWrapper = styled.div`
-  background-color: #000000;
   padding: 25px;
   border-radius: 8px;
+  background-color: #eee;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
   margin-bottom: 16px;
 
@@ -260,7 +99,7 @@ const ListContainer = styled.div`
 `;
 
 const EmptyState = styled.div`
-  color: #aaa;
+  /* color: #aaa; */
   text-align: center;
   padding: 30px 0;
   font-size: 1.1em;
@@ -274,52 +113,11 @@ const EmptyState = styled.div`
 const InfoText = styled.div`
   margin-bottom: 15px;
   font-size: 0.9em;
-  color: #bbb;
   text-align: right;
 
   span {
     color: #ff69b4;
     font-weight: bold;
-  }
-`;
-
-const PaginationContainer = styled.div`
-  margin-top: 25px;
-  display: flex;
-  justify-content: center;
-  gap: 5px;
-`;
-
-const PageButton = styled.button<{ isActive?: boolean }>`
-  padding: 8px 12px;
-  border: 1px solid #222222;
-  border-radius: 4px;
-  color: #f0f0f0;
-  background-color: transparent;
-  cursor: pointer;
-  transition: all 0.2s ease;
-
-  ${props => props.isActive && `
-    background-color: #fe5890;
-    color: black;
-    border-color: #fe5890;
-  `}
-
-  &:hover {
-    background-color: #333333;
-    border-color: #f0f0f0;
-  }
-
-  ${props => props.isActive && `
-    &:hover {
-      background-color: #fe5890D0;
-      border-color: #fe5890;
-    }
-  `}
-
-  &:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
   }
 `;
 
@@ -364,101 +162,98 @@ const PageButton = styled.button<{ isActive?: boolean }>`
 //   }
 // `;
 
-
 const CommunityListPage: React.FC = () => {
+  const isMobile = useMediaQuery({ query: "(max-width: 768px)" });
   const navigate = useNavigate();
   const location = useLocation();
+  const { getReviews } = useReviewsApi();
 
-  const [posts, setPosts] = useState<PostType[]>([]);
-  const [totalPages, setTotalPages] = useState(1);
+  const [posts, setPosts] = useState<DetailReview[]>([]);
+  const [page, setPage] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
   const [totalCount, setTotalCount] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
+  const observerRef = useRef<HTMLDivElement | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   // const [currentSearchInput, setCurrentSearchInput] = useState('');
-
   const pageSize = 10;
 
-  const currentPage = useMemo(() => {
-    const params = new URLSearchParams(location.search);
-    const pageParam = parseInt(params.get('page') || '1', 10);
-    return isNaN(pageParam) || pageParam < 1 ? 1 : pageParam;
-  }, [location.search]);
+  // const currentPage = useMemo(() => {
+  //   const params = new URLSearchParams(location.search);
+  //   const pageParam = parseInt(params.get("page") || "1", 10);
+  //   return isNaN(pageParam) || pageParam < 1 ? 1 : pageParam;
+  // }, [location.search]);
 
-  useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const initialQuery = params.get('search') || '';
-    setSearchQuery(initialQuery);
-    // setCurrentSearchInput(initialQuery);
-  }, [location.search]);
+  // useEffect(() => {
+  //   const params = new URLSearchParams(location.search);
+  //   const initialQuery = params.get("search") || "";
+  //   setSearchQuery(initialQuery);
+  //   // setCurrentSearchInput(initialQuery);
+  // }, [location.search]);
 
-  const getCommunityList = useCallback(async () => {
+  const loadMoreReviews = async () => {
+    if (isLoading || !hasMore) return;
     setIsLoading(true);
-    setError(null);
+
     try {
-      const filteredPosts = DUMMY_POSTS.filter(post =>
-        post.title.includes(searchQuery) ||
-        post.content.includes(searchQuery) ||
-        post.username.includes(searchQuery) ||
-        post.tags.some(tag => tag.includes(searchQuery))
-      );
+      const res = await getReviews(page, pageSize);
+      const content = res.data.data.content;
 
-      const startIndex = (currentPage - 1) * pageSize;
-      const endIndex = startIndex + pageSize;
-      const paginatedPosts = filteredPosts.slice(startIndex, endIndex);
+      console.log("불러온 리뷰 데이터:", content);
+      setPosts((prev) => [...prev, ...content]);
+      setPage((prev) => prev + 1);
+      setTotalCount(res.data.data.totalElements);
+      setError(null);
 
-      setPosts(paginatedPosts);
-      setTotalCount(filteredPosts.length);
-      setTotalPages(Math.ceil(filteredPosts.length / pageSize));
-
+      if (res.data.data.last) {
+        setHasMore(false);
+      }
     } catch (e) {
-      console.error("Failed to fetch community list (dummy data simulation):", e);
-      setError("게시글 목록을 불러오는데 실패했습니다. (더미 데이터 처리 오류)");
-      setPosts([]);
-      setTotalCount(0);
-      setTotalPages(1);
+      console.error("리뷰 데이터를 불러오지 못했습니다", e);
     } finally {
-      await new Promise(resolve => setTimeout(resolve, 500));
       setIsLoading(false);
     }
-  }, [currentPage, pageSize, searchQuery]);
+  };
 
   useEffect(() => {
-    getCommunityList();
-  }, [getCommunityList]);
+    loadMoreReviews();
+  }, []);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !isLoading) {
+          loadMoreReviews();
+        }
+      },
+      {
+        threshold: 0.5,
+      }
+    );
+
+    if (observerRef.current) {
+      observer.observe(observerRef.current);
+    }
+
+    return () => {
+      if (observerRef.current) {
+        observer.unobserve(observerRef.current);
+      }
+    };
+  }, [hasMore, isLoading]);
 
   // const handleSearch = () => {
   //   navigate(`/community?page=1&search=${currentSearchInput}`);
   // };
-
-  const handlePageChange = (page: number) => {
-    navigate(`/community?page=${page}${searchQuery ? `&search=${searchQuery}` : ''}`);
-  };
 
   const handleCreatePost = () => {
     navigate("/community/new");
   };
 
   const handlePostClick = (postId: string) => {
-    navigate(`/community/posts/${postId}`);
+    navigate(`/community/${postId}`);
   };
-
-  const currentGroupStart = useMemo(() => {
-    const groupSize = 5;
-    return Math.floor((currentPage - 1) / groupSize) * groupSize + 1;
-  }, [currentPage]);
-
-  const pageGroup = useMemo(() => {
-    const groupSize = 5;
-    const pages = [];
-    for (let i = 0; i < groupSize; i++) {
-      const page = currentGroupStart + i;
-      if (page <= totalPages) {
-        pages.push(page);
-      }
-    }
-    return pages;
-  }, [currentGroupStart, totalPages]);
 
   return (
     <PageContainer>
@@ -491,45 +286,28 @@ const CommunityListPage: React.FC = () => {
         {isLoading ? (
           <EmptyState>게시글을 불러오는 중입니다...</EmptyState>
         ) : error ? (
-          <EmptyState style={{ color: 'red' }}>{error}</EmptyState>
+          <EmptyState style={{ color: "red" }}>{error}</EmptyState>
         ) : posts.length > 0 ? (
           <ListContainer>
-            {posts.map(post => (
-              <PostCard key={post.id} post={post} onClick={handlePostClick} />
+            {posts.map((post) => (
+              <DetailReviewCard
+                key={post.reviewId}
+                review={post}
+                isMine={post.isMine}
+                isMobile={isMobile}
+                showProfile={true}
+                onClick={() => handlePostClick(post.reviewId)}
+              />
             ))}
+            <div ref={observerRef} style={{ height: 1 }} />{" "}
+            {/* 감지용 sentinel */}
+            {isLoading && <EmptyState>불러오는 중...</EmptyState>}
+            {!hasMore && <EmptyState>더 이상 게시글이 없습니다.</EmptyState>}
           </ListContainer>
         ) : (
-          <EmptyState>아직 게시글이 없습니다.</EmptyState>
+          <EmptyState>첫 게시글을 작성해 주세요. ^^</EmptyState>
         )}
       </PostListWrapper>
-
-      {totalPages > 1 && (
-        <PaginationContainer>
-          <PageButton
-            onClick={() => handlePageChange(currentGroupStart - 1)}
-            disabled={currentGroupStart === 1}
-          >
-            이전
-          </PageButton>
-
-          {pageGroup.map((page) => (
-            <PageButton
-              key={page}
-              onClick={() => handlePageChange(page)}
-              isActive={page === currentPage}
-            >
-              {page}
-            </PageButton>
-          ))}
-
-          <PageButton
-            onClick={() => handlePageChange(currentGroupStart + pageGroup.length)}
-            disabled={currentGroupStart + pageGroup.length > totalPages}
-          >
-            다음
-          </PageButton>
-        </PaginationContainer>
-      )}
     </PageContainer>
   );
 };

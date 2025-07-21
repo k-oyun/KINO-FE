@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>404 - 페이지를 찾을 수 없습니다</title>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@700;400&display=swap");
+
+      html,
+      body {
+        height: 100%;
+      }
+      body {
+        min-height: 100vh;
+        margin: 0;
+        background: #19181c;
+        color: #fff;
+        font-family: "Montserrat", "Pretendard", "Noto Sans KR", sans-serif;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        animation: fadein 1.2s cubic-bezier(0.61, 0.01, 0.38, 1);
+      }
+      @keyframes fadein {
+        from {
+          opacity: 0;
+          transform: translateY(24px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .card {
+        background: rgba(25, 22, 28, 0.94);
+        border-radius: 22px;
+        padding: 48px;
+        box-shadow: 0 8px 38px 10px #f0629280;
+        min-width: 330px;
+        max-width: 96vw;
+        margin: 0 auto;
+      }
+      .logo-img {
+        width: 60px;
+        margin-bottom: 13px;
+        display: inline-block;
+        border-radius: 12px;
+        background: transparent;
+      }
+      h1 {
+        margin: 0 0 16px 0;
+        font-size: 20px;
+        font-weight: 700;
+        color: #fff;
+        letter-spacing: 1px;
+      }
+      p {
+        color: #d1c9cd;
+        font-size: 14px;
+        margin-bottom: 28px;
+        font-weight: 400;
+      }
+
+      .desc {
+        font-size: 14px;
+        color: #e7b5c9;
+        letter-spacing: 0.03em;
+      }
+      @media (max-width: 540px) {
+        .card {
+          min-width: 0;
+          width: 300px;
+          padding: 32px 12px 20px 12px;
+        }
+        h1 {
+          font-size: 16px;
+        }
+        p {
+          font-size: 10px;
+        }
+        .desc {
+          font-size: 12px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <!-- 여기 이미지 경로를 프로젝트 상황에 맞게 변경! -->
+      <img src="/src/assets/img/Logo.png" class="logo-img" alt="KINO 로고" />
+      <h1>404 - 페이지를 찾을 수 없습니다</h1>
+      <p>
+        존재하지 않는 경로이거나, 잘못된 접근입니다.
+        <br />
+        입력하신 주소를 다시 확인해주세요.
+      </p>
+
+      <div class="desc">KINO MOVIE SERVICE</div>
+    </div>
+  </body>
+</html>
