@@ -29,8 +29,8 @@ const GenreList = styled.ul<styleType>`
 
 const GenreTag = styled.button<{ selected: boolean } & styleType>`
   margin: ${(props) => (props.$ismobile ? "0px 4px" : "5px")};
-  padding: ${(props) => (props.$ismobile ? "4px 10px" : "10px 20px")};
-  width: ${(props) => (props.$ismobile ? "auto" : "150px")};
+  padding: ${(props) => (props.$ismobile ? "4px 10px" : "4px 12px")};
+  width: auto;
   font-size: ${(props) => (props.$ismobile ? "16px" : "20px")};
   flex-shrink: 0;
   color: #333;

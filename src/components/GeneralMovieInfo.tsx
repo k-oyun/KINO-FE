@@ -9,7 +9,7 @@ interface GeneralMovieProps {
     backdropUrl: string;
     releaseDate: string;
     runningTime: number;
-    ageRating: boolean;
+    ageRating: string;
     avgRating: number;
     genres: string[];
     director: string;
@@ -33,7 +33,7 @@ const GeneralMovieInfoContainer = styled.div<{ $imgurl: string } & styleType>`
   align-items: start;
   justify-content: center;
   color: white;
-  padding: ${(props) => (props.$ismobile ? "20px" : "40px")};
+  padding: ${(props) => (props.$ismobile ? "20px" : "100px")};
 `;
 
 const Title = styled.h1<styleType>`

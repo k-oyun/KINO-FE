@@ -1,4 +1,5 @@
 import axios from "axios";
+import i18n from "i18next";
 
 const AxiosInstance = axios.create({
   baseURL: "http://43.203.218.183:8080/api",
@@ -10,6 +11,7 @@ AxiosInstance.interceptors.request.use((config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+  config.headers["Accept-Language"] = i18n.language || "ko";
   return config;
 });
 

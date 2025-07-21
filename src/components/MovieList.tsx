@@ -37,7 +37,7 @@ const MovieItem = styled.div<styleType>`
 `;
 
 const MoviePosters = styled.img<styleType>`
-  width: ${(props) => (props.$ismobile ? "80px" : "220px")};
+  width: ${(props) => (props.$ismobile ? "80px" : "180px")};
   height: ${(props) => (props.$ismobile ? "120px" : "260px")};
   border-radius: 8px;
   object-fit: cover;

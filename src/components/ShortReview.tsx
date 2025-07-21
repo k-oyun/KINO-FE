@@ -6,6 +6,7 @@ import useMovieDetailApi from "../api/details";
 import { formatDistanceToNow, set } from "date-fns";
 import { ko } from "date-fns/locale";
 import { formatDate, utcToKstString } from "../utils/date";
+import { useTranslation } from "react-i18next";
 
 interface ShortReviewProps {
   isMobile: boolean;
@@ -196,6 +197,7 @@ const Btn = styled.button<styleType>`
 `;
 
 const ShortReview = ({ isMobile, movieId }: ShortReviewProps) => {
+  const { t } = useTranslation();
   const [rating, setRating] = useState<number>(0);
   const [review, setReview] = useState<string>("");
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -361,14 +363,14 @@ const ShortReview = ({ isMobile, movieId }: ShortReviewProps) => {
                 $ismobile={isMobile}
                 value={review}
                 onChange={(e) => setReview(e.target.value)}
-                placeholder="한줄평을 남겨주세요!"
+                placeholder={t("shortReviewPlaceholder")}
               ></ShortText>
               <ShortButton
                 $ismobile={isMobile}
                 $isEdit={false}
                 onClick={() => handleReviewWrite()}
               >
-                리뷰 작성
+                {t("submit")}
               </ShortButton>
             </ShortWrite>
           )}
@@ -429,14 +431,14 @@ const ShortReview = ({ isMobile, movieId }: ShortReviewProps) => {
                         $isEdit={true}
                         onClick={() => handleReviewUpdate()}
                       >
-                        수정
+                        {t("edit")}
                       </ShortButton>
                       <ShortButton
                         $ismobile={isMobile}
                         $isEdit={true}
                         onClick={() => handleEditCancel()}
                       >
-                        취소
+                        {t("cancel")}
                       </ShortButton>
                     </EditBtns>
                   </EditBox>
@@ -464,13 +466,8 @@ const ShortReview = ({ isMobile, movieId }: ShortReviewProps) => {
                       <UserCreatedAt $ismobile={isMobile}>
                         {utcToKstString(review.createdAt)}
                       </UserCreatedAt>
-                      <Btn
-                        $ismobile={isMobile}
-                        onClick={() => handleReportClick()}
-                      >
-                        신고
-                      </Btn>
-                      {review.mine && (
+
+                      {review.mine ? (
                         <>
                           <Btn
                             $ismobile={isMobile}
@@ -483,7 +480,7 @@ const ShortReview = ({ isMobile, movieId }: ShortReviewProps) => {
                             }
                           >
                             {" "}
-                            | 수정
+                            {t("edit")}
                           </Btn>
                           <Btn
                             $ismobile={isMobile}
@@ -491,9 +488,16 @@ const ShortReview = ({ isMobile, movieId }: ShortReviewProps) => {
                               handleReviewDelete(review.shortReviewId)
                             }
                           >
-                            | 삭제
+                            | {t("delete")}
                           </Btn>
                         </>
+                      ) : (
+                        <Btn
+                          $ismobile={isMobile}
+                          onClick={() => handleReportClick()}
+                        >
+                          {t("report")}
+                        </Btn>
                       )}
                     </UnderBar>
                   </>

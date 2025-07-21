@@ -1,12 +1,15 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { styled } from "styled-components";
 import { formatDistanceToNow } from "date-fns";
-import { ko } from "date-fns/locale";
+import { ko, se } from "date-fns/locale";
 import ReportModal from "../ReportModal";
 import parse from "html-react-parser";
+import useReviewsApi from "../../api/reviews";
+import { useTranslation } from "react-i18next";
 
 interface DetailReview {
-  reviewId: string;
+  reviewId: number;
   image: string;
   userProfile: string;
   userNickname: string;
@@ -57,7 +60,7 @@ const ReviewText = styled.div<styleType>`
   text-overflow: ellipsis;
   padding: 0 10px;
   display: -webkit-box;
-  -webkit-line-clamp: 3;
+  -webkit-line-clamp: 1;
   -webkit-box-orient: vertical;
   overflow: hidden;
   word-break: break-word;
@@ -255,6 +258,10 @@ const DetailReviewCard: React.FC<DetailReviewCardProps> = ({
   isMobile,
   onClick,
 }) => {
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+  const popMenuRef = useRef<HTMLUListElement | null>(null);
+  const { deleteReview } = useReviewsApi();
   const [menuOpen, setMenuOpen] = useState(false);
   const handleMenuClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -268,10 +275,32 @@ const DetailReviewCard: React.FC<DetailReviewCardProps> = ({
   };
 
   useEffect(() => {
-    const handleClickOutside = () => setMenuOpen(false);
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        popMenuRef.current &&
+        !popMenuRef.current.contains(event.target as Node)
+      ) {
+        setMenuOpen(false);
+      }
+    };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [menuOpen]);
+
+  const deletePost = async () => {
+    if (!window.confirm("정말로 이 게시글을 삭제하시겠습니까?")) return;
+    try {
+      const res = deleteReview(review.reviewId);
+      res.then((data) => {
+        console.log("게시글 삭제 성공:", data.data);
+        alert("게시글이 삭제되었습니다.");
+        navigate("/community"); // 목록 페이지로 이동
+      });
+    } catch (e) {
+      console.error("게시글 삭제 실패:", e);
+      alert("게시글 삭제에 실패했습니다. 다시 시도해주세요.");
+    }
+  };
 
   return (
     <>
@@ -332,33 +361,38 @@ const DetailReviewCard: React.FC<DetailReviewCardProps> = ({
         >
           ⋮
           {menuOpen && (
-            <PopMenu $ismobile={isMobile} onClick={(e) => e.stopPropagation()}>
+            <PopMenu
+              ref={popMenuRef}
+              $ismobile={isMobile}
+              onClick={(e) => e.stopPropagation()}
+            >
               {isMine ? (
                 <>
                   <MenuItem
                     $ismobile={isMobile}
-                    onClick={() => {
-                      setMenuOpen(false); /* 수정 함수 */
+                    onClick={(e) => {
+                      if (!e) {
+                        alert("undefined 이벤트!");
+                        return;
+                      }
+                      e.stopPropagation();
+                      console.log("수정 클릭");
+                      navigate(`/community/edit/${review.reviewId}`);
+                      console.log("수정 페이지로 이동");
                     }}
                   >
-                    수정
+                    {t("edit")}
                   </MenuItem>
                   <MenuItem
                     $ismobile={isMobile}
-                    onClick={() => {
-                      setMenuOpen(false); /* 삭제 함수 */
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      deletePost();
+                      setMenuOpen(false);
                     }}
                   >
-                    삭제
+                    {t("delete")}
                   </MenuItem>
-                  <MenuItemReport
-                    $ismobile={isMobile}
-                    onClick={() => {
-                      handleReportClick(); /* 신고 함수 */
-                    }}
-                  >
-                    신고
-                  </MenuItemReport>
                 </>
               ) : (
                 <MenuItemReport
@@ -367,7 +401,7 @@ const DetailReviewCard: React.FC<DetailReviewCardProps> = ({
                     handleReportClick(); /* 신고 함수 */
                   }}
                 >
-                  신고
+                  {t("report")}
                 </MenuItemReport>
               )}
             </PopMenu>

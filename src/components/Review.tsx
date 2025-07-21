@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import DetailReviewCard from "./mypage/DetailReviewCard";
 import { useNavigate } from "react-router-dom";
 import useMovieDetailApi from "../api/details";
+import { useTranslation } from "react-i18next";
 
 interface ReviewProps {
   isMobile: boolean;
@@ -14,7 +15,7 @@ interface StyleType {
 }
 
 interface Review {
-  reviewId: string;
+  reviewId: number;
   image: string;
   userProfile: string;
   userNickname: string;
@@ -61,6 +62,7 @@ const WriteBtn = styled.button<StyleType>`
 `;
 
 const Review = ({ isMobile, movieId }: ReviewProps) => {
+  const { t } = useTranslation();
   const [reviews, setReviews] = useState<Review[]>([]);
   const navigate = useNavigate();
   const { getReviews } = useMovieDetailApi();
@@ -88,12 +90,12 @@ const Review = ({ isMobile, movieId }: ReviewProps) => {
   return (
     <ReviewContainer $ismobile={isMobile}>
       <Head $ismobile={isMobile}>
-        <div>리뷰가 총 {reviews ? reviews.length : 0} 개 등록되어 있어요!</div>
+        <div>{t("reviewCount", { count: reviews ? reviews.length : 0 })}</div>
         <WriteBtn
           $ismobile={isMobile}
           onClick={() => navigate(`/movie/${movieId}/new`)}
         >
-          작성하기
+          {t("write")}
         </WriteBtn>
       </Head>
       {reviews &&

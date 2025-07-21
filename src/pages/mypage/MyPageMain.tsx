@@ -192,7 +192,7 @@ interface ShortReviewType {
 // }
 
 interface DetailReviewType {
-  reviewId: string;
+  reviewId: number;
   image: string;
   userProfile: string;
   userNickname: string;
