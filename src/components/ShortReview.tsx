@@ -11,6 +11,7 @@ import { useTranslation } from "react-i18next";
 interface ShortReviewProps {
   isMobile: boolean;
   movieId: number;
+  isUserActive: boolean;
 }
 
 interface styleType {
@@ -28,6 +29,7 @@ interface Review {
   mine: boolean;
   likeCount: number;
   liked: boolean;
+  isReviewActive: boolean;
 }
 
 const ReviewContainer = styled.div<{ $ismobile: boolean }>`
@@ -70,6 +72,12 @@ const ShortButton = styled.button<{ $isEdit: boolean } & styleType>`
 
   &:hover {
     background-color: #f73c63;
+  }
+
+  &:disabled {
+    background-color: #ccc;
+    color: #666;
+    cursor: not-allowed;
   }
 `;
 
@@ -196,12 +204,28 @@ const Btn = styled.button<styleType>`
   }
 `;
 
-const ShortReview = ({ isMobile, movieId }: ShortReviewProps) => {
+const WarningBoxWrapper = styled.div<styleType>`
+  display: flex;
+  justify-content: center;
+  padding: ${(props) => (props.$ismobile ? "10px" : "20px")};
+`;
+
+const WarningBox = styled.div<styleType>`
+  background-color: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+  padding: 24px;
+  border-radius: 8px;
+  text-align: center;
+  font-size: ${(props) => (props.$ismobile ? "10px" : "16px")};
+  width: ${(props) => (props.$ismobile ? "" : "80%")};
+`;
+
+const ShortReview = ({ isMobile, movieId, isUserActive }: ShortReviewProps) => {
   const { t } = useTranslation();
   const [rating, setRating] = useState<number>(0);
   const [review, setReview] = useState<string>("");
   const [reviews, setReviews] = useState<Review[]>([]);
-
   const [isReportOpen, setIsReportOpen] = useState<boolean>(false);
   const [editReviewId, setEditReviewId] = useState<number>(0);
   const [editText, setEditText] = useState<string>("");
@@ -363,12 +387,18 @@ const ShortReview = ({ isMobile, movieId }: ShortReviewProps) => {
                 $ismobile={isMobile}
                 value={review}
                 onChange={(e) => setReview(e.target.value)}
-                placeholder={t("shortReviewPlaceholder")}
+                placeholder={
+                  isUserActive
+                    ? t("shortReviewPlaceholder")
+                    : t("shortReviewBlockedPlaceholder")
+                }
+                disabled={!isUserActive}
               ></ShortText>
               <ShortButton
                 $ismobile={isMobile}
                 $isEdit={false}
                 onClick={() => handleReviewWrite()}
+                disabled={!isUserActive}
               >
                 {t("submit")}
               </ShortButton>
@@ -442,6 +472,13 @@ const ShortReview = ({ isMobile, movieId }: ShortReviewProps) => {
                       </ShortButton>
                     </EditBtns>
                   </EditBox>
+                ) : review.isReviewActive ? (
+                  <WarningBoxWrapper $ismobile={isMobile}>
+                    {" "}
+                    <WarningBox $ismobile={isMobile}>
+                      🚫 {t("thisPostWasBlockedByAdmin")}
+                    </WarningBox>
+                  </WarningBoxWrapper>
                 ) : (
                   <>
                     <ReviewText $ismobile={isMobile}>

@@ -9,8 +9,8 @@ import Review from "../components/Review";
 import { useParams } from "react-router-dom";
 import useMovieDetailApi from "../api/details";
 import { useTranslation } from "react-i18next";
+import { useMypageApi } from "../api/mypage";
 
-// const movieDetail = {
 //   id: 603692,
 //   title: "Inside Out 2",
 //   original_title: "Inside Out 2",
@@ -52,9 +52,7 @@ import { useTranslation } from "react-i18next";
 //     },
 //   ],
 //   homepage: "https://movies.disney.com/inside-out-2",
-//   imdb_id: "tt1234567",
-// };
-
+//   imdb_id: "tt1234567"
 interface MovieDetail {
   movieId: number;
   title: string;
@@ -103,9 +101,26 @@ const MovieDetail = () => {
   const { id: movieId } = useParams<{ id: string }>();
   const [movieDetail, setMovieDetail] = useState<MovieDetail | null>(null);
   const { getMovieDetail } = useMovieDetailApi();
+  const [isUserActive, setIsUserActive] = useState<boolean>(true);
+  const { userInfoGet } = useMypageApi();
+
+  const loadMyInfo = async () => {
+    try {
+      const res = userInfoGet();
+      res.then((data) => {
+        console.log("내 정보 불러오기 성공:", data.data.data);
+        if (!data.data.data.isUserActive) {
+          setIsUserActive(false);
+        }
+      });
+    } catch (e) {
+      console.error("내 정보를 불러오지 못했습니다", e);
+    }
+  };
 
   useEffect(() => {
     // 초기 정보 불러오기
+    loadMyInfo();
     try {
       const res = getMovieDetail(Number(movieId));
       res.then((data) => {
@@ -135,10 +150,18 @@ const MovieDetail = () => {
               <MovieInfo isMobile={isMobile} movieDetail={movieDetail} />
             )}
             {selectedTab === "shortReview" && (
-              <ShortReview isMobile={isMobile} movieId={movieDetail.movieId} />
+              <ShortReview
+                isMobile={isMobile}
+                movieId={movieDetail.movieId}
+                isUserActive={isUserActive}
+              />
             )}
             {selectedTab === "review" && (
-              <Review isMobile={isMobile} movieId={movieDetail.movieId} />
+              <Review
+                isMobile={isMobile}
+                movieId={movieDetail.movieId}
+                isUserActive={isUserActive}
+              />
             )}
           </Categories>
         </Wrapper>

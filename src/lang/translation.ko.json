@@ -24,6 +24,7 @@
   "settings": "설정",
   "shortReview": "한줄평",
   "shortReviewPlaceholder": "한줄평을 남겨주세요!",
+  "shortReviewBlockedPlaceholder": "정지되어 한줄평을 작성하실 수 없습니다.",
   "detailedReview": "상세 리뷰",
   "reviewCount": "리뷰가 총 {{count}} 개 등록되어 있어요!.",
   "noReview": "첫 리뷰를 작성해 주세요@!",
@@ -99,10 +100,12 @@
   "toList": "목록으로",
   "comments": "댓글",
   "commentPlaceholder": "댓글을 입력하세요...",
+  "commentBlocked": "정지되어 댓글을 작성하실 수 없습니다.",
   "loadingComments": "댓글을 불러오는 중입니다...",
   "noMoreComments": "더 이상 댓글이 없습니다.",
   "noComment": "첫 댓글을 작성해주세요!",
   "loadMoreComments": "댓글 더 보기",
   "loadingPost": "게시글을 불러오는 중입니다...",
-  "postNotFound": "게시글이 존재하지 않습니다."
+  "postNotFound": "게시글이 존재하지 않습니다.",
+  "thisPostWasBlockedByAdmin": "이 게시글은 관리자에 의해 숨겨졌습니다."
 }

@@ -24,6 +24,7 @@
   "settings": "Settings",
   "shortReview": "Short Review",
   "shortReviewPlaceholder": "Please Write a short review",
+  "shortReviewBlockedPlaceholder": "You are restricted from writing a short review.",
   "detailedReview": "Detailed Review",
   "reviewCount": "A total of {{count}} reviews have been registered!",
   "noReview": "Please write the first review!",
@@ -99,10 +100,12 @@
   "toList": "To List",
   "comments": "Comments",
   "commentPlaceholder": "Please enter your comment.",
+  "commentBlocked": "You are restricted from posting comments.",
   "loadingComments": "Loading comments...",
   "noMoreComments": "No more comments available.",
   "noComment": "Please write the first comment!",
   "loadMoreComments": "Load More Comments",
   "loadingPost": "Loading post...",
-  "postNotFound": "Post not found."
+  "postNotFound": "Post not found.",
+  "thisPostWasBlockedByAdmin": "This post has been blocked by an administrator."
 }

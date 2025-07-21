@@ -163,10 +163,12 @@ interface CommentProps {
   postId: number;
   onCommentAdded?: (comment: CommentType) => void;
   onCommentDeleted?: (commentId: number) => void;
+  isUserActive?: boolean;
 }
 
 const Comment: React.FC<CommentProps> = ({
   postId,
+  isUserActive,
   onCommentAdded,
   onCommentDeleted,
 }) => {
@@ -306,13 +308,18 @@ const Comment: React.FC<CommentProps> = ({
       {/* 댓글 입력 섹션 */}
       <InputWrapper>
         <StyledTextArea
-          placeholder={t("commentPlaceholder")}
+          placeholder={
+            isUserActive ? t("commentPlaceholder") : t("commentBlocked")
+          }
+          disabled={!isUserActive}
           value={commentContent}
           onChange={(e) => setCommentContent(e.target.value)}
           maxLength={200}
         />
         <MaxLengthText>{commentContent.length} / 200</MaxLengthText>
-        <SubmitButton onClick={handleCommentSubmit}>{t("submit")}</SubmitButton>
+        <SubmitButton onClick={handleCommentSubmit} disabled={!isUserActive}>
+          {t("submit")}
+        </SubmitButton>
       </InputWrapper>
 
       {error && <EmptyComments style={{ color: "red" }}>{error}</EmptyComments>}

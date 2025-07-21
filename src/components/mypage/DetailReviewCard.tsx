@@ -64,7 +64,7 @@ const ReviewText = styled.div<styleType>`
   -webkit-box-orient: vertical;
   overflow: hidden;
   word-break: break-word;
-  min-height: ${(props) => (props.$ismobile ? "5vh" : "8vh")};
+  /* min-height: ${(props) => (props.$ismobile ? "5vh" : "2vh")}; */
   color: #333;
 
   img {
