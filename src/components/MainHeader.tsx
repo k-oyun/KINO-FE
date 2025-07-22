@@ -34,7 +34,7 @@ interface HeaderProps {
   setIsNewUser: (value: boolean) => void;
 }
 
-const HeaderContainer = styled.header<headerType>`
+const HeaderContainer = styled(motion.header)<headerType>`
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -300,6 +300,10 @@ const MainHeader = ({ keyword, setKeyword, setIsNewUser }: HeaderProps) => {
         $ismobile={isMobile}
         $ispopupopen={isPopupOpen}
         $ismenupopupopen={isMenuPopupOpen}
+        initial={{ y: -40, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        exit={{ y: -40, opacity: 0 }}
+        transition={{ duration: 0.5, type: "spring", bounce: 0.2 }}
       >
         <Logo
           $ismobile={isMobile}

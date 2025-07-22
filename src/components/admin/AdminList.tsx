@@ -12,6 +12,7 @@ import "react-swipeable-list/dist/styles.css";
 import axios from "axios";
 import { useFormatDate } from "../../hooks/useFormatDate";
 import AdminConfirmDialog from "../../components/admin/AdminConfirmDialog";
+import useAdminApi from "../../api/admin";
 
 interface User {
   id: number;
@@ -57,6 +58,7 @@ const TableContainer = styled.div`
 
 const Table = styled.table`
   width: 100%;
+  height: 100%;
   border-collapse: collapse;
 `;
 
@@ -67,7 +69,8 @@ const Th = styled.th`
 
 const Td = styled.td`
   border-bottom: 1px solid #eee;
-  height: 48.4px;
+  /* height: 48.4px; */
+  height: 6.1vh;
   text-align: center;
   /* background-color: blue; */
 `;
@@ -83,6 +86,7 @@ const ManageBtn = styled.button<StyleProps>`
   background-color: ${(props) => (props.$ismobile ? "red" : "#f06292")};
   color: white;
   font-weight: 600;
+  padding-bottom: 3px;
   border: none;
   border-radius: 4px;
   width: ${(props) => (props.$ismobile ? "70px" : "100px")};
@@ -163,6 +167,13 @@ const AdminList = ({
     createdAt: "",
   });
 
+  const {
+    userGet,
+    reviewReportGet,
+    shortReviewReportGet,
+    commentReportGet,
+    userActivePost,
+  } = useAdminApi();
   const [selectedOnly, setSelectedOnly] = useState(0);
 
   // const selectAllUser = () => {
@@ -208,11 +219,12 @@ const AdminList = ({
   const hiddenDeleteSection = (userId: number, userRole: string) => (
     <TrailingActions>
       <SwipeAction
-        onClick={() => {
+        onClick={async () => {
           handleRevoke(userId);
-          selectUser(userId, userRole);
-          console.log(selectedUser);
-          usersActive();
+          // selectUser(userId, userRole);
+          // console.log("안녕하세유", selectedUser);
+          // usersActive();
+          const res = await userActivePost([userId]);
         }}
         destructive={true}
       >
@@ -221,42 +233,15 @@ const AdminList = ({
     </TrailingActions>
   );
 
-  const userGet = async () => {
-    const res = await axios.get(
-      `http://43.203.218.183:8080/api/admin/user?page=${pageInfo.currentPage}&size=${pageInfo.size}`
-    );
-
-    return res.data;
-  };
-
-  const reviewReportGet = async () => {
-    const res = await axios.get(
-      `http://43.203.218.183:8080/api/admin/review?page=${pageInfo.currentPage}&size=${pageInfo.size}`
-    );
-    return res.data;
-  };
-  const shortReviewReportGet = async () => {
-    const res = await axios.get(
-      `http://43.203.218.183:8080/api/admin/shortreview?page=${pageInfo.currentPage}&size=${pageInfo.size}`
-    );
-    return res.data;
-  };
-  const commentReportGet = async () => {
-    const res = await axios.get(
-      `http://43.203.218.183:8080/api/admin/comment?page=${pageInfo.currentPage}&size=${pageInfo.size}`
-    );
-    return res.data;
-  };
-
   const listGet = () => {
     if (selectedOption === "회원관리") {
       const fetchData = async () => {
         try {
-          const res = await userGet();
-          setUsers(res.data.content);
+          const res = await userGet(pageInfo.currentPage, pageInfo.size);
+          setUsers(res.data.data.content);
           setPageInfo((prev) => ({
             ...prev,
-            pageContentAmount: res.data.totalPages,
+            pageContentAmount: res.data.data.totalPages,
           }));
         } catch (error) {
           console.error("사용자 조회 실패:", error);
@@ -267,13 +252,16 @@ const AdminList = ({
     if (selectedOption === "게시글") {
       const fetchData = async () => {
         try {
-          const res = await reviewReportGet();
-          console.log("게시글 신고 내역", res.data);
-          setReportDatas(res.data.content);
-          console.log("토탈 페이지 ", res.data.totalPages);
+          const res = await reviewReportGet(
+            pageInfo.currentPage,
+            pageInfo.size
+          );
+          console.log("게시글 신고 내역", res.data.data);
+          setReportDatas(res.data.data.content);
+          console.log("토탈 페이지 ", res.data.data.totalPages);
           setPageInfo((prev) => ({
             ...prev,
-            pageContentAmount: res.data.totalPages,
+            pageContentAmount: res.data.data.totalPages,
           }));
         } catch (error) {
           console.log("게시글 신고 실패:", error);
@@ -284,12 +272,15 @@ const AdminList = ({
     if (selectedOption === "한줄평") {
       const fetchData = async () => {
         try {
-          const res = await shortReviewReportGet();
-          console.log("한줄평 신고 내역", res.data);
-          setReportDatas(res.data.content);
+          const res = await shortReviewReportGet(
+            pageInfo.currentPage,
+            pageInfo.size
+          );
+          console.log("한줄평 신고 내역", res.data.data);
+          setReportDatas(res.data.data.content);
           setPageInfo((prev) => ({
             ...prev,
-            pageContentAmount: res.data.totalPages,
+            pageContentAmount: res.data.data.totalPages,
           }));
         } catch (error) {
           console.log("한줄평 신고 실패:", error);
@@ -300,12 +291,15 @@ const AdminList = ({
     if (selectedOption === "댓글") {
       const fetchData = async () => {
         try {
-          const res = await commentReportGet();
-          console.log("댓글 신고 내역", res.data);
-          setReportDatas(res.data.content);
+          const res = await commentReportGet(
+            pageInfo.currentPage,
+            pageInfo.size
+          );
+          console.log("댓글 신고 내역", res.data.data);
+          setReportDatas(res.data.data.content);
           setPageInfo((prev) => ({
             ...prev,
-            pageContentAmount: res.data.totalPages,
+            pageContentAmount: res.data.data.totalPages,
           }));
         } catch (error) {
           console.log("댓글 신고 실패:", error);
@@ -316,26 +310,20 @@ const AdminList = ({
   };
 
   const usersActive = async () => {
-    const res = await axios.post(
-      "http://43.203.218.183:8080/api/admin/active",
-      selectedUser
-    );
+    const res = await userActivePost(selectedUser);
     setSelectedUser([]);
     listGet();
   };
 
   const userActive = async () => {
-    const res = await axios.post(
-      "http://43.203.218.183:8080/api/admin/active",
-      [selectedOnly]
-    );
+    const res = await userActivePost([selectedOnly]);
     setSelectedUser([]);
     listGet();
   };
 
-  useEffect(() => {
-    listGet();
-  }, [isConfirmBtnPrs]);
+  // useEffect(() => {
+  //   listGet();
+  // }, [isConfirmBtnPrs]);
 
   useEffect(() => {
     listGet();
@@ -345,6 +333,12 @@ const AdminList = ({
     listGet();
   }, [pageInfo.currentPage]);
 
+  useEffect(() => {
+    if (isConfirmBtnPrs) {
+      listGet();
+      setIsConfirmBtnprs(false);
+    }
+  }, [isConfirmBtnPrs]);
   const observerRef = useRef<IntersectionObserver | null>(null);
   const [mobilePage, setMobilePage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
@@ -352,9 +346,7 @@ const AdminList = ({
   const mobileListGet = useCallback(async () => {
     try {
       if (selectedOption === "회원관리") {
-        const res = await axios.get(
-          `http://43.203.218.183:8080/api/admin/user?page=${mobilePage}&size=12`
-        );
+        const res = await userGet(mobilePage, 12);
         setUsers((prev) => {
           const ids = new Set(prev.map((u) => u.id));
           const newItems = res.data.data.content.filter(
@@ -366,9 +358,7 @@ const AdminList = ({
         setHasMore(mobilePage + 1 < totalPages);
       }
       if (selectedOption === "게시글") {
-        const res = await axios.get(
-          `http://43.203.218.183:8080/api/admin/review?page=${mobilePage}&size=12`
-        );
+        const res = await reviewReportGet(mobilePage, 12);
         setReportDatas((prev) => {
           const ids = new Set(prev.map((d) => d.reportId));
           const newItems = res.data.data.content.filter(
@@ -380,9 +370,7 @@ const AdminList = ({
         setHasMore(mobilePage + 1 < totalPages);
       }
       if (selectedOption === "한줄평") {
-        const res = await axios.get(
-          `http://43.203.218.183:8080/api/admin/shortreview?page=${mobilePage}&size=12`
-        );
+        const res = await shortReviewReportGet(mobilePage, 12);
         setReportDatas((prev) => {
           const ids = new Set(prev.map((d) => d.reportId));
           const newItems = res.data.data.content.filter(
@@ -394,9 +382,7 @@ const AdminList = ({
         setHasMore(mobilePage + 1 < totalPages);
       }
       if (selectedOption === "댓글") {
-        const res = await axios.get(
-          `http://43.203.218.183:8080/api/admin/comment?page=${mobilePage}&size=12`
-        );
+        const res = await commentReportGet(mobilePage, 12);
         setReportDatas((prev) => {
           const ids = new Set(prev.map((d) => d.reportId));
           const newItems = res.data.data.content.filter(
