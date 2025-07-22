@@ -19,6 +19,7 @@ interface StyleType {
 interface Review {
   reviewId: number;
   image: string;
+  userId: number;
   userProfile: string;
   userNickname: string;
   title: string;

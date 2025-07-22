@@ -19,11 +19,12 @@ interface UserProfileType {
 interface DetailReviewType {
   reviewId: number;
   image: string; // 이 필드는 사용되지 않는 것으로 보여 주석 처리 또는 제거 고려
+  userId: number; // 리뷰 작성자의 ID
   userProfile: string; // 이 필드는 사용되지 않는 것으로 보여 주석 처리 또는 제거 고려
   userNickname: string; // 이 필드는 사용되지 않는 것으로 보여 주석 처리 또는 제거 고려
   title: string;
   content: string;
-  mine: boolean; // 로그인한 사용자 본인의 리뷰인지 여부
+  isMine: boolean; // 로그인한 사용자 본인의 리뷰인지 여부
   liked: boolean;
   likeCount: number;
   totalViews: number;
@@ -42,7 +43,13 @@ const ITEMS_PER_PAGE = 5;
 
 const parseDateString = (dateStr: string): Date => {
   const parts = dateStr.split(/[. :]/).map(Number);
-  return new Date(parts[0], parts[1] - 1, parts[2], parts[3] ?? 0, parts[4] ?? 0);
+  return new Date(
+    parts[0],
+    parts[1] - 1,
+    parts[2],
+    parts[3] ?? 0,
+    parts[4] ?? 0
+  );
 };
 
 // --- styled-components (변경 없음) ---
@@ -188,14 +195,21 @@ const MyReviewsDetailPage: React.FC = () => {
 
   // 안전 파싱: 숫자가 아니면 undefined 처리
   const parsed = rawTargetId !== undefined ? Number(rawTargetId) : undefined;
-  const targetUserId = rawTargetId && !Number.isNaN(parsed) ? parsed : undefined;
+  const targetUserId =
+    rawTargetId && !Number.isNaN(parsed) ? parsed : undefined;
 
   const { mypageReview, userInfoGet, mypageMain } = useMypageApi(); // mypageMain 추가
 
-  const [loggedInUser, setLoggedInUser] = useState<UserProfileType | null>(null);
-  const [targetUserNickname, setTargetUserNickname] = useState<string | null>(null);
+  const [loggedInUser, setLoggedInUser] = useState<UserProfileType | null>(
+    null
+  );
+  const [targetUserNickname, setTargetUserNickname] = useState<string | null>(
+    null
+  );
 
-  const [sortOrder, setSortOrder] = useState<"latest" | "views" | "likes">("latest");
+  const [sortOrder, setSortOrder] = useState<"latest" | "views" | "likes">(
+    "latest"
+  );
   const [detailReviews, setDetailReviews] = useState<DetailReviewType[]>([]);
 
   const [pageInfo, setPageInfo] = useState<PageInfo>({
@@ -266,12 +280,10 @@ const MyReviewsDetailPage: React.FC = () => {
     loadDetailReviews();
   }, [rawTargetId, loggedInUser, loadDetailReviews]);
 
-
   // ---------------- Owner 판단 ----------------
   const isOwner =
     targetUserId == null || // 파라미터가 없으면 내 페이지
     (loggedInUser?.userId != null && targetUserId === loggedInUser.userId);
-
 
   const sortedReviews = useMemo(() => {
     const arr = [...detailReviews];
@@ -341,11 +353,7 @@ const MyReviewsDetailPage: React.FC = () => {
         <PageHeader>
           <BackButton
             onClick={() =>
-              navigate(
-                isOwner
-                  ? "/mypage"
-                  : `/mypage/${targetUserId}`
-              )
+              navigate(isOwner ? "/mypage" : `/mypage/${targetUserId}`)
             }
           >
             <svg
