@@ -10,6 +10,11 @@ import MainConfirmDialog from "./MainConfirmDialog";
 import profileIconWhite from "../assets/img/profileIconWhite.png";
 import logoutIcon from "../assets/img/LogoutIcon.png";
 import { useTranslation } from "react-i18next";
+declare global {
+  interface Window {
+    isLoggingOut?: boolean;
+  }
+}
 
 interface styleType {
   $ismobile: boolean;
@@ -250,6 +255,7 @@ const MainHeader = ({ keyword, setKeyword, setIsNewUser }: HeaderProps) => {
 
   const onClickLogout = async () => {
     try {
+      window.isLoggingOut = true;
       await logout();
     } finally {
       setIsModalOpen(true);
