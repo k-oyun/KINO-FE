@@ -29,7 +29,9 @@ const GeneralMovieInfoContainer = styled.div<{ $imgurl: string } & styleType>`
   height: 50vh;
   background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)),
     url(${(props) => props.$imgurl});
-  background-size: cover;
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
   display: flex;
   flex-direction: column;
   align-items: start;

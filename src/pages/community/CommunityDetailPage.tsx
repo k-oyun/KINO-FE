@@ -71,6 +71,7 @@ const ContentWrapper = styled.div``;
 const HeadWrapper = styled.div<styleType>`
   display: flex;
   border-bottom: 1px solid;
+  justify-content: flex-start;
   padding-bottom: ${(props) => (props.$ismobile ? "10px" : "10px")};
 `;
 
@@ -84,19 +85,16 @@ const MoviePoster = styled.img<styleType>`
 `;
 
 const PostHeader = styled.div<styleType>`
-  padding-bottom: 10px;
-  margin-right: ${(props) => (props.$ismobile ? "auto" : "auto")};
-  margin-bottom: ${(props) => (props.$ismobile ? "0px" : "10px")};
   display: flex;
   flex-direction: column;
-  align-items: center;
+  margin-left: ${(props) => (props.$ismobile ? "10px" : "20px")};
 `;
 
 const PostTitle = styled.h1<styleType>`
   font-size: ${(props) => (props.$ismobile ? "1em" : "2em")};
   font-weight: bold;
   color: #fe5890;
-  margin-bottom: auto;
+  flex-direction: flex-start;
 `;
 
 const MovieInfo = styled.div<styleType>`
@@ -105,7 +103,7 @@ const MovieInfo = styled.div<styleType>`
   align-items: center;
   cursor: pointer;
   margin-left: ${(props) => (props.$ismobile ? "10px" : "30px")};
-  margin-right: auto;
+  margin-right: ${(props) => (props.$ismobile ? "10px" : "30px")};
 `;
 
 const MovieTitle = styled.span<styleType>`
@@ -119,27 +117,22 @@ const MovieTitle = styled.span<styleType>`
 `;
 
 const PostMeta = styled.div<styleType>`
-  font-size: ${(props) => (props.$ismobile ? "0.8em" : "1em")};
+  font-size: ${(props) => (props.$ismobile ? "0.7em" : "0.9em")};
   display: flex;
-  flex-direction: ${(props) => (props.$ismobile ? "column" : "row")};
-  justify-content: space-between;
-  align-items: center;
-  gap: ${(props) => (props.$ismobile ? "5px" : "50px")};
+  flex-direction: ${(props) => (props.$ismobile ? "column" : "column")};
 `;
 
 const Writer = styled.div<styleType>`
   display: flex;
-  flex-direction: column;
   align-items: center;
-  color: #eee;
-  font-size: ${(props) => (props.$ismobile ? "0.8em" : "1em")};
+  font-size: ${(props) => (props.$ismobile ? "0.8em" : "1.1em")};
+  margin-top: ${(props) => (props.$ismobile ? "40px" : "60px")};
 `;
 
 const WriterImage = styled.img<styleType>`
-  width: ${(props) => (props.$ismobile ? "25px" : "40px")};
-  height: ${(props) => (props.$ismobile ? "25px" : "40px")};
-  margin-top: ${(props) => (props.$ismobile ? "5px" : "20px")};
-  margin-bottom: ${(props) => (props.$ismobile ? "5px" : "10px")};
+  width: ${(props) => (props.$ismobile ? "25px" : "33px")};
+  height: ${(props) => (props.$ismobile ? "25px" : "33x")};
+  margin-right: ${(props) => (props.$ismobile ? "5px" : "10px")};
   border-radius: 50%;
   object-fit: cover;
   cursor: pointer;
@@ -147,7 +140,7 @@ const WriterImage = styled.img<styleType>`
 
 const DateBox = styled.span<styleType>`
   font-size: ${(props) => (props.$ismobile ? "0.6em" : "1em")};
-  margin-top: ${(props) => (props.$ismobile ? "5px" : "auto")};
+  margin-top: ${(props) => (props.$ismobile ? "5px" : "10px")};
   color: #777;
 `;
 
@@ -283,14 +276,15 @@ const CommunityDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
-  const [post, setPost] = useState<DetailReview | null>(null);
+  const [post, setPost] = useState<DetailReview>({} as DetailReview);
   const [error, setError] = useState<string | null>(null);
   const [isReportOpen, setIsReportOpen] = useState<boolean>(false);
   const isMobile = useMediaQuery({ query: "(max-width: 768px)" });
   const theme = useTheme();
   console.log("Current theme:", theme);
 
-  const { getReviewById, likeReview, deleteReview } = useReviewsApi();
+  const { getReviewById, likeReview, deleteReview, postReviewReport } =
+    useReviewsApi();
 
   const getPost = async () => {
     setIsLoading(true);
@@ -314,6 +308,27 @@ const CommunityDetailPage: React.FC = () => {
     }
   };
 
+  const submitReport = async (type: number, content: string) => {
+    try {
+      const res = postReviewReport(
+        type,
+        content,
+        post.reviewId,
+        post?.writerId
+      );
+      res.then((data) => {
+        console.log("신고 제출 성공:", data.data);
+        // 신고 제출 성공 후 모달
+        alert("신고가 접수되었습니다. 감사합니다.");
+        setIsReportOpen(false);
+      });
+    } catch (e) {
+      console.error("신고 제출 실패:", e);
+      // 에러 처리 모달
+      alert("신고 제출에 실패했습니다. 다시 시도해주세요.");
+    }
+  };
+
   useEffect(() => {
     getPost();
   }, []); // id가 변경될 때마다 게시글 다시 로드
@@ -322,7 +337,6 @@ const CommunityDetailPage: React.FC = () => {
     likeReview(reviewId).then((data) => {
       console.log("좋아요 상태 변경:", data.data);
       setPost((prevPost) => {
-        if (!prevPost) return null;
         return {
           ...prevPost,
           isHeart: data.data.data,
@@ -356,7 +370,6 @@ const CommunityDetailPage: React.FC = () => {
 
   const increaseCommentCount = () => {
     setPost((prev) => {
-      if (!prev) return null;
       return {
         ...prev,
         reviewCommentCount: prev.reviewCommentCount + 1,
@@ -365,7 +378,6 @@ const CommunityDetailPage: React.FC = () => {
   };
   const decreaseCommentCount = () => {
     setPost((prev) => {
-      if (!prev) return null;
       return {
         ...prev,
         reviewCommentCount: prev.reviewCommentCount - 1,
@@ -414,12 +426,10 @@ const CommunityDetailPage: React.FC = () => {
                         $ismobile={isMobile}
                         src={post.writerUserImage}
                       ></WriterImage>
-                      <span>
-                        {t("writer")}: {post.writerUserNickname}
-                      </span>
+                      <span>{post.writerUserNickname}</span>
                     </Writer>
                     <DateBox $ismobile={isMobile}>
-                      {t("date")}: {utcToKstString(post.reviewCreatedAt)}
+                      {utcToKstString(post.reviewCreatedAt)}
                     </DateBox>
                   </PostMeta>
                 </PostHeader>
@@ -503,7 +513,14 @@ const CommunityDetailPage: React.FC = () => {
           </WarningBox>
         )}
       </PostDetailContainer>
-      {isReportOpen && <ReportModal setIsModalOpen={setIsReportOpen} />}
+      {isReportOpen && (
+        <ReportModal
+          setIsModalOpen={setIsReportOpen}
+          onSubmit={({ type, content }) => {
+            submitReport(type, content);
+          }}
+        />
+      )}
     </OutContainer>
   );
 };

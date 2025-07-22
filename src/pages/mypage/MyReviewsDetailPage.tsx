@@ -18,12 +18,13 @@ interface UserProfileType {
 
 interface DetailReviewType {
   reviewId: number;
-  image: string;
-  userProfile: string;
-  userNickname: string;
+  image: string; // 이 필드는 사용되지 않는 것으로 보여 주석 처리 또는 제거 고려
+  userId: number; // 리뷰 작성자의 ID
+  userProfile: string; // 이 필드는 사용되지 않는 것으로 보여 주석 처리 또는 제거 고려
+  userNickname: string; // 이 필드는 사용되지 않는 것으로 보여 주석 처리 또는 제거 고려
   title: string;
   content: string;
-  mine: boolean;
+  isMine: boolean; // 로그인한 사용자 본인의 리뷰인지 여부
   liked: boolean;
   likeCount: number;
   totalViews: number;
@@ -42,7 +43,13 @@ const ITEMS_PER_PAGE = 5;
 
 const parseDateString = (dateStr: string): Date => {
   const parts = dateStr.split(/[. :]/).map(Number);
-  return new Date(parts[0], parts[1] - 1, parts[2], parts[3] ?? 0, parts[4] ?? 0);
+  return new Date(
+    parts[0],
+    parts[1] - 1,
+    parts[2],
+    parts[3] ?? 0,
+    parts[4] ?? 0
+  );
 };
 
 // --- styled-components ---
@@ -192,7 +199,6 @@ const MyReviewsDetailPage: React.FC = () => {
   const [targetUserNickname, setTargetUserNickname] = useState<string | null>(null);
   const [sortOrder, setSortOrder] = useState<"latest" | "views" | "likes">("latest");
   const [detailReviews, setDetailReviews] = useState<DetailReviewType[]>([]);
-
   const [pageInfo, setPageInfo] = useState<PageInfo>({
     currentPage: 0,
     size: ITEMS_PER_PAGE,
@@ -258,12 +264,10 @@ const MyReviewsDetailPage: React.FC = () => {
     loadDetailReviews();
   }, [rawTargetId, loggedInUser, loadDetailReviews]);
 
-
   // ---------------- Owner 판단 ----------------
   const isOwner =
     targetUserId == null ||
     (loggedInUser?.userId != null && targetUserId === loggedInUser.userId);
-
 
   const sortedReviews = useMemo(() => {
     const arr = [...detailReviews];
@@ -331,11 +335,7 @@ const MyReviewsDetailPage: React.FC = () => {
         <PageHeader>
           <BackButton
             onClick={() =>
-              navigate(
-                isOwner
-                  ? "/mypage"
-                  : `/mypage/${targetUserId}`
-              )
+              navigate(isOwner ? "/mypage" : `/mypage/${targetUserId}`)
             }
           >
             <svg
