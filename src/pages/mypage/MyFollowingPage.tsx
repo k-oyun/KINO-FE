@@ -150,30 +150,30 @@ const PinkText = styled.span`
 const fadeIn = keyframes`
   from {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translate(-50%, 0px) scale(0.9); /* 중앙에서 나타나도록 시작 위치 조정 */
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translate(-50%, -50%) scale(1); /* 최종 중앙 위치 */
   }
 `;
 
 const fadeOut = keyframes`
   from {
     opacity: 1;
-    transform: translateY(0);
+    transform: translate(-50%, -50%) scale(1);
   }
   to {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translate(-50%, -100px) scale(0.9); /* 위로 사라지도록 종료 위치 조정 */
   }
 `;
 
 const PopupContainer = styled.div<{ $isVisible: boolean }>`
   position: fixed;
-  bottom: 50px; /* 화면 하단에서 띄우기 */
-  left: 50%;
-  transform: translateX(-50%);
+  top: 50%; /* 변경: 중앙 정렬 */
+  left: 50%; /* 변경: 중앙 정렬 */
+  transform: translate(-50%, -50%); /* 변경: 자신의 크기만큼 역방향으로 이동하여 정확히 중앙 정렬 */
   background-color: rgba(0, 0, 0, 0.85);
   color: #fff;
   padding: 15px 25px;
@@ -190,19 +190,18 @@ const PopupContainer = styled.div<{ $isVisible: boolean }>`
   animation: ${({ $isVisible }) => ($isVisible ? fadeIn : fadeOut)} 0.5s forwards;
   visibility: ${({ $isVisible }) => ($isVisible ? 'visible' : 'hidden')};
   opacity: ${({ $isVisible }) => ($isVisible ? 1 : 0)};
-  transition: visibility 0.5s, opacity 0.5s; /* visibility와 opacity에 transition 적용 */
+  transition: visibility 0.5s, opacity 0.5s;
 
   @media (max-width: 767px) {
-    bottom: 20px;
+    top: 50%; /* 변경 */
+    left: 50%; /* 변경 */
+    transform: translate(-50%, -50%); /* 변경 */
     padding: 12px 20px;
     font-size: 1em;
     min-width: unset;
     width: 90%; /* 모바일에서 너비 조정 */
-    left: 5%;
-    transform: translateX(0);
   }
 `;
-
 
 const MyFollowingPage: React.FC = () => {
   const navigate = useNavigate();
