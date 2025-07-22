@@ -71,6 +71,7 @@ const ContentWrapper = styled.div``;
 const HeadWrapper = styled.div<styleType>`
   display: flex;
   border-bottom: 1px solid;
+  justify-content: flex-start;
   padding-bottom: ${(props) => (props.$ismobile ? "10px" : "10px")};
 `;
 
@@ -84,19 +85,16 @@ const MoviePoster = styled.img<styleType>`
 `;
 
 const PostHeader = styled.div<styleType>`
-  padding-bottom: 10px;
-  margin-right: ${(props) => (props.$ismobile ? "auto" : "auto")};
-  margin-bottom: ${(props) => (props.$ismobile ? "0px" : "10px")};
   display: flex;
   flex-direction: column;
-  align-items: center;
+  margin-left: ${(props) => (props.$ismobile ? "10px" : "20px")};
 `;
 
 const PostTitle = styled.h1<styleType>`
   font-size: ${(props) => (props.$ismobile ? "1em" : "2em")};
   font-weight: bold;
   color: #fe5890;
-  margin-bottom: auto;
+  flex-direction: flex-start;
 `;
 
 const MovieInfo = styled.div<styleType>`
@@ -105,7 +103,7 @@ const MovieInfo = styled.div<styleType>`
   align-items: center;
   cursor: pointer;
   margin-left: ${(props) => (props.$ismobile ? "10px" : "30px")};
-  margin-right: auto;
+  margin-right: ${(props) => (props.$ismobile ? "10px" : "30px")};
 `;
 
 const MovieTitle = styled.span<styleType>`
@@ -119,27 +117,22 @@ const MovieTitle = styled.span<styleType>`
 `;
 
 const PostMeta = styled.div<styleType>`
-  font-size: ${(props) => (props.$ismobile ? "0.8em" : "1em")};
+  font-size: ${(props) => (props.$ismobile ? "0.7em" : "0.9em")};
   display: flex;
-  flex-direction: ${(props) => (props.$ismobile ? "column" : "row")};
-  justify-content: space-between;
-  align-items: center;
-  gap: ${(props) => (props.$ismobile ? "5px" : "50px")};
+  flex-direction: ${(props) => (props.$ismobile ? "column" : "column")};
 `;
 
 const Writer = styled.div<styleType>`
   display: flex;
-  flex-direction: column;
   align-items: center;
-  color: #eee;
-  font-size: ${(props) => (props.$ismobile ? "0.8em" : "1em")};
+  font-size: ${(props) => (props.$ismobile ? "0.8em" : "1.1em")};
+  margin-top: ${(props) => (props.$ismobile ? "40px" : "60px")};
 `;
 
 const WriterImage = styled.img<styleType>`
-  width: ${(props) => (props.$ismobile ? "25px" : "40px")};
-  height: ${(props) => (props.$ismobile ? "25px" : "40px")};
-  margin-top: ${(props) => (props.$ismobile ? "5px" : "20px")};
-  margin-bottom: ${(props) => (props.$ismobile ? "5px" : "10px")};
+  width: ${(props) => (props.$ismobile ? "25px" : "33px")};
+  height: ${(props) => (props.$ismobile ? "25px" : "33x")};
+  margin-right: ${(props) => (props.$ismobile ? "5px" : "10px")};
   border-radius: 50%;
   object-fit: cover;
   cursor: pointer;
@@ -147,7 +140,7 @@ const WriterImage = styled.img<styleType>`
 
 const DateBox = styled.span<styleType>`
   font-size: ${(props) => (props.$ismobile ? "0.6em" : "1em")};
-  margin-top: ${(props) => (props.$ismobile ? "5px" : "auto")};
+  margin-top: ${(props) => (props.$ismobile ? "5px" : "10px")};
   color: #777;
 `;
 
@@ -414,12 +407,10 @@ const CommunityDetailPage: React.FC = () => {
                         $ismobile={isMobile}
                         src={post.writerUserImage}
                       ></WriterImage>
-                      <span>
-                        {t("writer")}: {post.writerUserNickname}
-                      </span>
+                      <span>{post.writerUserNickname}</span>
                     </Writer>
                     <DateBox $ismobile={isMobile}>
-                      {t("date")}: {utcToKstString(post.reviewCreatedAt)}
+                      {utcToKstString(post.reviewCreatedAt)}
                     </DateBox>
                   </PostMeta>
                 </PostHeader>

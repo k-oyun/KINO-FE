@@ -7,6 +7,7 @@ import { useTranslation } from "react-i18next";
 
 interface ReviewProps {
   isMobile: boolean;
+  movieTitle: string;
   movieId: number;
   isUserActive: boolean;
 }
@@ -66,7 +67,12 @@ const WriteBtn = styled.button<StyleType>`
   }
 `;
 
-const Review = ({ isMobile, movieId, isUserActive }: ReviewProps) => {
+const Review = ({
+  isMobile,
+  movieId,
+  movieTitle,
+  isUserActive,
+}: ReviewProps) => {
   const { t } = useTranslation();
   const [reviews, setReviews] = useState<Review[]>([]);
   const navigate = useNavigate();
@@ -98,7 +104,7 @@ const Review = ({ isMobile, movieId, isUserActive }: ReviewProps) => {
         <div>{t("reviewCount", { count: reviews ? reviews.length : 0 })}</div>
         <WriteBtn
           $ismobile={isMobile}
-          onClick={() => navigate(`/movie/${movieId}/new`)}
+          onClick={() => navigate(`/movie/${movieTitle}/new`)}
           disabled={!isUserActive}
         >
           {t("write")}

@@ -160,6 +160,7 @@ const MovieDetail = () => {
               <Review
                 isMobile={isMobile}
                 movieId={movieDetail.movieId}
+                movieTitle={movieDetail.title}
                 isUserActive={isUserActive}
               />
             )}
