@@ -34,7 +34,7 @@ const BarContainer = styled.div`
   display: flex;
   width: 100%;
   height: 100%;
-  background-color: red;
+  margin-bottom: 20px;
 `;
 
 const AdminChart = ({
@@ -77,30 +77,30 @@ const AdminChart = ({
       legend: { position: "top" as const },
       title: { display: true, text: chartTitle },
     },
-    scales: {
-      x: {
-        grid: {
-          display: true,
-        },
-        ticks: {
-          font: {
-            size: 14,
-          },
-        },
-      },
-      y: {
-        grid: {
-          color: "rgba(224, 74, 120, 0.1)",
-        },
-        beginAtZero: true,
-        ticks: {
-          stepSize: 1,
-          font: {
-            size: 14,
-          },
-        },
-      },
-    },
+    // scales: {
+    //   x: {
+    //     grid: {
+    //       display: true,
+    //     },
+    //     ticks: {
+    //       font: {
+    //         size: 14,
+    //       },
+    //     },
+    //   },
+    //   y: {
+    //     grid: {
+    //       color: "rgba(224, 74, 120, 0.1)",
+    //     },
+    //     beginAtZero: true,
+    //     ticks: {
+    //       stepSize: 1,
+    //       font: {
+    //         size: 14,
+    //       },
+    //     },
+    //   },
+    // },
   };
 
   return (

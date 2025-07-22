@@ -81,16 +81,17 @@ const ManagementInfoContainer = styled.div<styleProp>`
   border-radius: 1px;
 `;
 
-const ChartGrid = styled.div`
+const ChartContainer = styled.div`
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  grid-template-rows: repeat(2, 1fr);
-  /* gap: 30px; */
+  grid-template-columns: repeat(1, 1fr);
+  grid-template-rows: repeat(1, 1fr);
+  gap: 30px;
   width: 80%;
   height: 500px;
   margin: 0 auto;
   padding: 50px;
   border: 1px solid #d9d9d9;
+  overflow: scroll;
 `;
 
 interface shortReviewType {
@@ -215,7 +216,7 @@ const Admin = () => {
               )}
             </>
           ) : (
-            <ChartGrid>
+            <ChartContainer>
               <AdminChart
                 dataValues={ShortReviewStats}
                 chartTitle="장르별 리뷰"
@@ -240,7 +241,7 @@ const Admin = () => {
                 chartTitle={"좋아요 수"}
                 chartLabel={"라벨"}
               /> */}
-            </ChartGrid>
+            </ChartContainer>
           )}
         </ManagementContainer>
       </AmdinContainer>
