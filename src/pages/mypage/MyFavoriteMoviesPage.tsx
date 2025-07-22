@@ -1,16 +1,12 @@
 import React, { useEffect, useMemo, useState, useCallback } from "react";
 import styled from "styled-components";
-import { useNavigate, useParams } from "react-router-dom"; // useParams 임포트 추가
-
-// 컴포넌트 임포트 (경로 확인 필요)
+import { useNavigate, useParams } from "react-router-dom";
 import MovieCard from "../../components/mypage/MovieCard";
 import VideoBackground from '../../components/VideoBackground';
 import Pagination from "../../components/Pagenation";
-
-// API 훅 임포트
 import useMypageApi from "../../api/mypage";
+import { useTranslation } from "react-i18next";
 
-// --- 인터페이스 정의 ---
 interface FavoriteMovieType {
     myPickId: string;
     movieTitle: string;
@@ -37,7 +33,6 @@ interface PageInfo {
     pageContentAmount: number;
 }
 
-// --- 스타일드 컴포넌트 (변경 없음) ---
 const PageContainer = styled.div`
     max-width: 1200px;
     margin: 0 auto;
@@ -196,25 +191,21 @@ const PinkText = styled.span`
     margin-left: 0.25em;
 `;
 
-// --- 컴포넌트 로직 ---
-const ITEMS_PER_PAGE = 12; // 페이지당 영화 수
+const ITEMS_PER_PAGE = 12;
 
 const MyFavoriteMoviesPage: React.FC = () => {
+    const { t } = useTranslation();
     const navigate = useNavigate();
-    // URL 파라미터에서 targetId를 가져옵니다. (다른 사용자의 userId)
     const { targetId: rawTargetId } = useParams<{ targetId?: string }>();
 
-    // 안전하게 targetId를 숫자로 파싱합니다.
     const parsed = rawTargetId !== undefined ? Number(rawTargetId) : undefined;
     const targetUserId = rawTargetId && !Number.isNaN(parsed) ? parsed : undefined;
+    const { mypageMyPickMovie, userInfoGet, mypageMain } = useMypageApi();
 
-    const { mypageMyPickMovie, userInfoGet, mypageMain } = useMypageApi(); // mypageMain API 훅 추가
-    
-    // 상태 정의
     const [sortOrder, setSortOrder] = useState<"latest" | "title">("latest");
     const [favoriteMovies, setFavoriteMovies] = useState<FavoriteMovieType[] | null>(null);
-    const [loggedInUser, setLoggedInUser] = useState<UserProfileType | null>(null); // 로그인한 사용자 정보
-    const [targetUserNickname, setTargetUserNickname] = useState<string | null>(null); // 보고 있는 페이지 주인의 닉네임
+    const [loggedInUser, setLoggedInUser] = useState<UserProfileType | null>(null);
+    const [targetUserNickname, setTargetUserNickname] = useState<string | null>(null);
 
     const [pageInfo, setPageInfo] = useState<PageInfo>({
         currentPage: 0,
@@ -222,7 +213,6 @@ const MyFavoriteMoviesPage: React.FC = () => {
         pageContentAmount: 0,
     });
 
-    // 1. 로그인한 사용자 프로필을 비동기로 가져오는 함수
     const fetchLoggedInUserProfile = useCallback(async () => {
         try {
             const res = await userInfoGet();
@@ -233,18 +223,16 @@ const MyFavoriteMoviesPage: React.FC = () => {
         }
     }, [userInfoGet]);
 
-    // 2. 보고 있는 페이지 주인의 닉네임을 가져오는 함수 (useCallback으로 메모이제이션)
     const fetchTargetUserNickname = useCallback(async (uid: number) => {
         try {
             const res = await mypageMain(uid);
             const profile: UserProfileType | undefined = res.data?.data;
-            setTargetUserNickname(profile?.nickname ?? `사용자 ${uid}`);
+            setTargetUserNickname(profile?.nickname ?? t('mypage.userFallbackNickname', { userId: uid }));
         } catch {
-            setTargetUserNickname(`사용자 ${uid}`); // 로드 실패 시 대체 닉네임
+            setTargetUserNickname(t('mypage.userFallbackNickname', { userId: uid }));
         }
-    }, [mypageMain]);
+    }, [mypageMain, t]);
 
-    // 3. 찜한 영화 목록을 비동기로 가져오는 함수 (useCallback으로 메모이제이션)
     const loadFavoriteMovies = useCallback(async (userIdToLoad: number) => {
         try {
             const res = await mypageMyPickMovie(userIdToLoad);
@@ -254,45 +242,35 @@ const MyFavoriteMoviesPage: React.FC = () => {
             setFavoriteMovies(pick);
         } catch (err) {
             console.error("[MyFavoriteMoviesPage] 찜한 영화 로드 실패:", err);
-            setFavoriteMovies([]); // 에러 발생 시 빈 배열로 설정
+            setFavoriteMovies([]);
         }
     }, [mypageMyPickMovie]);
 
-    // 4. 컴포넌트 마운트 시 로그인 사용자 프로필 로드 시작
     useEffect(() => {
         fetchLoggedInUserProfile();
     }, [fetchLoggedInUserProfile]);
 
-    // 5. 로그인 사용자 정보 및 targetId에 따라 데이터 로드
     useEffect(() => {
-        // 로드할 사용자 ID를 결정합니다.
-        // URL에 targetId가 있으면 그것을 사용하고, 없으면 로그인한 사용자 ID를 사용합니다.
         const userIdToLoad = targetUserId ?? loggedInUser?.userId;
 
         if (userIdToLoad == null || Number.isNaN(userIdToLoad)) {
-            // 로드할 userId가 아직 결정되지 않았거나 유효하지 않은 경우
             if (loggedInUser === null && targetUserId === undefined) {
-                // 로그인 사용자 정보도 없고 targetId도 없는 초기 로딩 상태
-                // 아무것도 하지 않아 Spinner나 로딩 메시지를 계속 표시할 수 있습니다.
+                // empty
             } else {
-                // 로그인 사용자 정보 로드 실패 또는 잘못된 targetId로 인해 데이터를 불러올 수 없는 경우
-                setFavoriteMovies([]); // 빈 배열로 설정하여 "찜한 영화 없음"을 표시
+                setFavoriteMovies([]);
             }
             return;
         }
 
-        // 찜한 영화 로드
         loadFavoriteMovies(userIdToLoad);
 
-        // 타인 페이지일 경우 닉네임 로드
         if (targetUserId != null && targetUserId !== loggedInUser?.userId) {
             fetchTargetUserNickname(targetUserId);
         } else {
-            setTargetUserNickname(loggedInUser?.nickname ?? null); // 내 페이지면 내 닉네임 사용
+            setTargetUserNickname(loggedInUser?.nickname ?? null);
         }
     }, [loggedInUser, targetUserId, loadFavoriteMovies, fetchTargetUserNickname]);
 
-    // 찜한 영화 정렬 로직 (useMemo로 성능 최적화)
     const sortedMovies = useMemo(() => {
         const arr = favoriteMovies ? [...favoriteMovies] : [];
         if (sortOrder === "latest") {
@@ -307,7 +285,6 @@ const MyFavoriteMoviesPage: React.FC = () => {
         return arr;
     }, [favoriteMovies, sortOrder]);
 
-    // 페이지네이션 정보 업데이트 (sortedMovies 변경 시마다)
     useEffect(() => {
         const totalPages = Math.ceil(sortedMovies.length / ITEMS_PER_PAGE);
         setPageInfo(prev => ({
@@ -317,51 +294,43 @@ const MyFavoriteMoviesPage: React.FC = () => {
         }));
     }, [sortedMovies]);
 
-    // 현재 페이지에 해당하는 영화 목록 계산
     const startIdx = pageInfo.currentPage * ITEMS_PER_PAGE;
     const endIdx = startIdx + ITEMS_PER_PAGE;
     const currentMovies = sortedMovies.slice(startIdx, endIdx);
 
-    // 내가 보고 있는 페이지가 본인의 마이페이지인지 여부 판단
     const isOwner = useMemo(() => {
-        if (!loggedInUser) return false; // 로그인 정보 없으면 판단 불가
-        if (targetUserId == null) return true; // targetId 없으면 본인 페이지
-        return targetUserId === loggedInUser.userId; // targetId가 내 userId와 같으면 본인 페이지
+        if (!loggedInUser) return false;
+        if (targetUserId == null) return true;
+        return targetUserId === loggedInUser.userId;
     }, [loggedInUser, targetUserId]);
 
-
-    // ✨ 로딩 상태 처리
-    // loggedInUser와 favoriteMovies가 모두 로드될 때까지 기다립니다.
-    // targetId가 있을 경우 targetUserNickname도 로드되어야 합니다.
-    const isLoading = 
-        loggedInUser === null || 
+    const isLoading =
+        loggedInUser === null ||
         favoriteMovies === null ||
-        (targetUserId != null && targetUserId !== loggedInUser.userId && targetUserNickname === null); // 타인 페이지면 닉네임 로드도 기다림
+        (targetUserId != null && targetUserId !== loggedInUser.userId && targetUserNickname === null);
 
     if (isLoading) {
         return (
             <PageContainer>
                 <VideoBackground />
-                <EmptyState>데이터를 로드 중입니다...</EmptyState>
+                <EmptyState>{t('mypage.favoriteMovies.loadingData')}</EmptyState>
             </PageContainer>
         );
     }
-    
-    // 페이지 제목 접두사 설정
-    const pageTitlePrefix = isOwner 
-        ? "내가" 
-        : targetUserNickname 
-            ? `${targetUserNickname} 님이` 
-            : "사용자가"; // 닉네임 로드 실패 시 대체
+
+    const pageTitlePrefix = isOwner
+        ? t('mypage.favoriteMovies.titlePrefix.my')
+        : targetUserNickname
+            ? t('mypage.favoriteMovies.titlePrefix.other', { nickname: targetUserNickname })
+            : t('mypage.favoriteMovies.titlePrefix.user');
 
     return (
         <PageContainer>
             <VideoBackground />
             <SectionWrapper>
                 <PageHeader>
-                    {/* 뒤로 가기 버튼: isOwner 여부에 따라 경로 조정 */}
-                    <BackButton 
-                        onClick={() => 
+                    <BackButton
+                        onClick={() =>
                             navigate(isOwner ? "/mypage" : `/mypage/${targetUserId}`)
                         }
                     >
@@ -375,24 +344,16 @@ const MyFavoriteMoviesPage: React.FC = () => {
                             />
                         </svg>
                     </BackButton>
-                    <PageTitle>{pageTitlePrefix} <PinkText>찜한 영화</PinkText></PageTitle>
+                    <PageTitle>{pageTitlePrefix} <PinkText>{t('myPickMovies')}</PinkText></PageTitle>
                 </PageHeader>
-                {/* 정렬 옵션 */}
                 <SortOptions>
                     <SortButton
                         $isActive={sortOrder === "latest"}
                         onClick={() => setSortOrder("latest")}
                     >
-                        최신순
-                    </SortButton>
-                    <SortButton
-                        $isActive={sortOrder === "title"}
-                        onClick={() => setSortOrder("title")}
-                    >
-                        제목순
+                        {t('Bylatest')}
                     </SortButton>
                 </SortOptions>
-                {/* 영화 목록 또는 빈 상태 메시지 */}
                 {currentMovies && currentMovies.length > 0 ? (
                     <>
                         <MovieCardGrid isEmpty={currentMovies.length === 0}>
@@ -400,7 +361,6 @@ const MyFavoriteMoviesPage: React.FC = () => {
                                 <MovieCard key={movie.myPickId} movie={movie} />
                             ))}
                         </MovieCardGrid>
-                        {/* 페이지네이션 컴포넌트 (총 페이지가 1보다 클 때만 표시) */}
                         {pageInfo.pageContentAmount > 1 && (
                             <Pagination
                                 size={pageInfo.size}
@@ -414,7 +374,7 @@ const MyFavoriteMoviesPage: React.FC = () => {
                         )}
                     </>
                 ) : (
-                    <EmptyState>찜한 영화가 없습니다.</EmptyState>
+                    <EmptyState>{t('mypage.favoriteMovies.emptyState')}</EmptyState>
                 )}
             </SectionWrapper>
         </PageContainer>

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 import { useMediaQuery } from "react-responsive";
 import useMypageApi from "../../api/mypage";
+import { useTranslation } from "react-i18next";
 
 const TagFormContent = styled.div`
     display: flex;
@@ -84,51 +85,56 @@ interface TagSelectionFormProps {
     username: string;
 }
 
-// const TagSelectionForm: React.FC<TagSelectionFormProps> = ({ username }) => {
 const TagSelectionForm: React.FC<TagSelectionFormProps> = () => {
+    const { t } = useTranslation();
     const [selectedGenre, setSelectedGenre] = useState<string[]>([]);
     const isMobile = useMediaQuery({ query: "(max-width: 767px)" });
     const { getGenre, updateGenre } = useMypageApi();
 
     useEffect(() => {
         const fetchGenre = async () => {
-            const res = await getGenre();
-            const genres = res.data.data.userGenres || [];
-            const genreNames = genres.map(
-                (item: { genreName: string }) => item.genreName
-            );
-            setSelectedGenre(genreNames);
+            try {
+                const res = await getGenre();
+                const genres = res.data.data.userGenres || [];
+                const genreNames = genres.map(
+                    (item: { genreName: string }) => item.genreName
+                );
+                setSelectedGenre(genreNames);
+            } catch (error) {
+                console.error("Failed to fetch user genres:", error);
+            }
         };
         fetchGenre();
-    }, []);
+    }, [getGenre]);
 
     const genreGroups = [
-        ["코미디", "로맨스", "스릴러"],
-        ["공포", "재난", "범죄", "서부", "역사"],
-        ["애니", "다큐", "액션", "판타지", "드라마"],
-        ["SF", "모험", "음악", "가족", "전쟁"],
+        [t('Comedy'), t('Romance'), t('Thriller')],
+        [t('Horror'), t('Disaster'), t('Crime'), t('Western'), t('History')],
+        [t('Animation'), t('Documentary'), t('Action'), t('Fantasy'), t('Drama')],
+        [t('Science Fiction'), t('Adventure'), t('Music'), t('Family'), t('War')],
     ];
 
     const genreNameToIdMap: { [key: string]: number } = {
-        코미디: 35,
-        로맨스: 10749, // 10,749 → 콤마 제거 후 숫자로
-        스릴러: 53,
-        공포: 27,
-        재난: 28,
-        범죄: 80,
-        서부: 37,
-        역사: 36,
-        애니: 16,
-        다큐: 99,
-        액션: 28,
-        판타지: 14,
-        드라마: 18,
-        SF: 878,
-        모험: 12,
-        음악: 10402, // 이미지에 없어서 임의 0 처리 (확인 필요)
-        가족: 10751,
-        전쟁: 10752,
+        [t('Comedy')]: 35,
+        [t('Romance')]: 10749,
+        [t('Thriller')]: 53,
+        [t('Horror')]: 27,
+        [t('Disaster')]: 28, // 재난
+        [t('Crime')]: 80,
+        [t('Western')]: 37, // 서부
+        [t('History')]: 36, // 역사
+        [t('Animation')]: 16,
+        [t('Documentary')]: 99,
+        [t('Action')]: 28,
+        [t('Fantasy')]: 14,
+        [t('Drama')]: 18,
+        [t('Science Fiction')]: 878,
+        [t('Adventure')]: 12,
+        [t('Music')]: 10402, // 음악
+        [t('Family')]: 10751,
+        [t('War')]: 10752,
     };
+
 
     const handleGenreClick = (genre: string) => {
         setSelectedGenre((prev) =>
@@ -141,37 +147,31 @@ const TagSelectionForm: React.FC<TagSelectionFormProps> = () => {
     const isButtonActivated = selectedGenre.length >= 1;
 
     const handleSubmit = async () => {
-        // console.log("선택된 태그:", selectedGenre);
-        // // 여기에 선택된 태그 저장 로직 추가 (API 호출 등)
-        // console.log(`${username}님의 선택된 태그:`, selectedGenre); // username 활용 예시
-
-        // selectedGenre (이름 배열) → genreIds (숫자 배열) 변환
         const genreIds = selectedGenre
             .map((name) => genreNameToIdMap[name])
             .filter((id) => id !== undefined);
 
         if (genreIds.length === 0) {
-            alert("하나 이상의 장르를 선택해주세요.");
+            alert(t('tagSelectionForm.validation.selectOneGenre'));
             return;
         }
 
         try {
             const res = await updateGenre(genreIds);
             console.log("장르 업데이트 성공:", res.data);
-            alert("장르가 성공적으로 업데이트 되었습니다.");
+            alert(t('tagSelectionForm.update.success'));
         } catch (error) {
             console.error("장르 업데이트 실패:", error);
-            alert("장르 업데이트에 실패했습니다. 다시 시도해주세요.");
+            alert(t('tagSelectionForm.update.failure'));
         }
     };
 
     return (
         <TagFormContent>
             <InfoText>
-                고객님의 취향에 맞는 영화를 <PinkText>다시</PinkText> 추천해드릴
-                수 있도록
+                {t('tagSelectionForm.infoText.part1')} <PinkText>{t('tagSelectionForm.infoText.againWord')}</PinkText> {t('tagSelectionForm.infoText.part2')}
                 <br />
-                선호하는 태그를 선택해주세요.
+                {t('tagSelectionForm.infoText.part3')}
             </InfoText>
 
             {genreGroups.map((group, idx) => (
@@ -183,7 +183,7 @@ const TagSelectionForm: React.FC<TagSelectionFormProps> = () => {
                             $selected={selectedGenre.includes(genre)}
                             onClick={() => handleGenreClick(genre)}
                         >
-                            # {genre}
+                            {t('tagSelectionForm.genrePrefix')} {genre}
                         </GenreBtn>
                     ))}
                 </GenreContainer>
@@ -195,7 +195,7 @@ const TagSelectionForm: React.FC<TagSelectionFormProps> = () => {
                 disabled={!isButtonActivated}
                 onClick={handleSubmit}
             >
-                확인
+                {t('confirm')}
             </ConfirmBtn>
         </TagFormContent>
     );

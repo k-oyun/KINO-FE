@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from "react";
-import styled, { keyframes } from "styled-components"; // keyframes 임포트 추가
+import styled, { keyframes } from "styled-components";
 import useMypageApi from "../../api/mypage";
+import { useTranslation } from "react-i18next";
 
-// --- 스켈레톤 스타일 정의 시작 (SettingForm.tsx 내부에 직접 정의) ---
 const loadingAnimation = keyframes`
   0% { background-position: -200px 0; }
   100% { background-position: 200px 0; }
 `;
 
 const SkeletonBase = styled.div`
-  background-color: #333; /* 어두운 배경에 어울리는 회색 */
-  background-image: linear-gradient(90deg, #333 0px, #444 40px, #333 80px); /* 애니메이션을 위한 그라데이션 */
+  background-color: #333;
+  background-image: linear-gradient(90deg, #333 0px, #444 40px, #333 80px);
   background-size: 200px 100%;
   background-repeat: no-repeat;
   border-radius: 4px;
@@ -35,8 +35,6 @@ const SkeletonRect = styled(SkeletonBase)<{ width?: string; height?: string }>`
   width: ${props => props.width || '100%'};
   height: ${props => props.height || '40px'};
 `;
-// --- 스켈레톤 스타일 정의 끝 ---
-
 
 interface UserProfileType {
     userId: number;
@@ -52,12 +50,11 @@ interface Follow {
 }
 
 interface SettingFormProps {
-    initialUserProfile?: UserProfileType; // initialUserProfile을 선택적으로 변경
-    follow?: Follow; // follow도 선택적으로 변경
+    initialUserProfile?: UserProfileType;
+    follow?: Follow;
     onProfileUpdated?: (updated: UserProfileType) => void;
 }
 
-// --- 폼 레이아웃 관련 스타일 ---
 const FormContainer = styled.form`
     display: flex;
     flex-direction: column;
@@ -85,14 +82,13 @@ const SectionTitle = styled.h4`
     font-size: 1.2em;
     font-weight: bold;
     color: #e0e0e0;
-    margin: 0; /* SectionHeader에서 간격 조절 */
+    margin: 0;
 
     @media (max-width: 767px) {
         font-size: 1.1em;
     }
 `;
 
-// --- 입력 필드 관련 스타일 ---
 const InputGroup = styled.div`
     display: flex;
     flex-direction: column;
@@ -126,7 +122,6 @@ const CurrentNicknameDisplay = styled.span`
     color: #888;
 `;
 
-// --- 버튼 관련 스타일 ---
 const UploadButton = styled.button`
     background-color: #444;
     color: #f0f0f0;
@@ -202,30 +197,28 @@ const SettingForm: React.FC<SettingFormProps> = ({
     initialUserProfile,
     onProfileUpdated,
 }) => {
+    const { t } = useTranslation();
     const { updateProfile, userInfoGet } = useMypageApi();
-    
-    // initialUserProfile이 undefined일 수 있으므로 초기값 설정에 주의
+
     const [profileImage, setProfileImage] = useState<string>(
         initialUserProfile?.image || ''
     );
     const [nickname, setNickname] = useState<string>(
         initialUserProfile?.nickname || ''
     );
-    const [file, setFile] = useState<File | null>(null); // 실제 전송할 이미지 파일
+    const [file, setFile] = useState<File | null>(null);
 
     const MAX_NICKNAME_LENGTH = 20;
     const isNicknameValid =
         nickname.length > 0 && nickname.length <= MAX_NICKNAME_LENGTH;
-    
-    // initialUserProfile이 존재할 때만 변경 사항을 체크
+
     const hasChanges = initialUserProfile ? (
         profileImage !== initialUserProfile.image ||
         nickname !== initialUserProfile.nickname
-    ) : false; // initialUserProfile이 없으면 변경 사항 없음으로 간주
+    ) : false; 
 
     const canSave = hasChanges && isNicknameValid;
 
-    // initialUserProfile이 변경될 때마다 상태 업데이트
     useEffect(() => {
         if (initialUserProfile) {
             setProfileImage(initialUserProfile.image);
@@ -252,12 +245,12 @@ const SettingForm: React.FC<SettingFormProps> = ({
         event.preventDefault();
 
         if (!canSave) {
-            alert("변경 사항이 없습니다.");
+            alert(t('settingForm.noChangesAlert'));
             return;
         }
 
         if (!isNicknameValid) {
-            alert("닉네임은 1자 이상 20자 이하로 입력해주세요.");
+            alert(t('settingForm.nicknameValidationAlert'));
             return;
         }
 
@@ -271,28 +264,26 @@ const SettingForm: React.FC<SettingFormProps> = ({
             const response = await updateProfile(formData);
 
             console.log("프로필 업데이트 성공:", response.data);
-            alert("프로필이 성공적으로 업데이트되었습니다!");
+            alert(t('settingForm.updateSuccessAlert'));
             const res = await userInfoGet();
             const updatedProfile = res.data.data;
 
             setNickname(updatedProfile.nickname);
             setProfileImage(updatedProfile.image);
-            setFile(null); // 파일 상태 초기화
+            setFile(null);
 
-            // 부모에게 알림
             if (onProfileUpdated) {
                 onProfileUpdated(updatedProfile);
             }
         } catch (error) {
             console.error("업데이트 오류:", error);
-            alert("프로필 업데이트 중 오류가 발생했습니다.");
+            alert(t('settingForm.updateErrorAlert'));
         }
     };
 
-    // initialUserProfile이 없을 때 스켈레톤 UI 렌더링
     if (!initialUserProfile) {
         return (
-            <FormContainer onSubmit={(e) => e.preventDefault()}> {/* 스켈레톤일 때는 제출 방지 */}
+            <FormContainer onSubmit={(e) => e.preventDefault()}>
                 <FormSection>
                     <SectionHeader>
                         <SectionTitle><SkeletonText width="120px" height="1.2em" /></SectionTitle>
@@ -300,7 +291,6 @@ const SettingForm: React.FC<SettingFormProps> = ({
                             <SkeletonText width="80px" height="0.9em" />
                         </UploadButton>
                     </SectionHeader>
-                    {/* 이미지 미리보기 스켈레톤 */}
                     <CurrentImageWrapper>
                         <SkeletonCircle width="80px" height="80px" />
                     </CurrentImageWrapper>
@@ -312,7 +302,7 @@ const SettingForm: React.FC<SettingFormProps> = ({
                         <CurrentNicknameDisplay>
                             <SkeletonText width="150px" height="0.9em" />
                         </CurrentNicknameDisplay>
-                        <SkeletonRect width="100%" height="40px" /> {/* 닉네임 입력 필드 스켈레톤 */}
+                        <SkeletonRect width="100%" height="40px" />
                         <NicknameCharCount>
                             <SkeletonText width="50px" height="0.8em" style={{ float: 'right' }} />
                         </NicknameCharCount>
@@ -320,22 +310,21 @@ const SettingForm: React.FC<SettingFormProps> = ({
                 </FormSection>
 
                 <SaveButton
-                    type="button" // 스켈레톤일 때는 버튼 타입 변경
+                    type="button" 
                     $isActivated={false}
                     disabled={true}
                 >
-                    <SkeletonText width="60px" height="1.1em" /> {/* 변경 버튼 스켈레톤 */}
+                    <SkeletonText width="60px" height="1.1em" />
                 </SaveButton>
             </FormContainer>
         );
     }
 
-    // initialUserProfile 데이터가 로드되면 실제 UI 렌더링
     return (
         <FormContainer onSubmit={handleSubmit}>
             <FormSection>
                 <SectionHeader>
-                    <SectionTitle>프로필 변경</SectionTitle>
+                    <SectionTitle>{t('settingForm.profileChangeTitle')}</SectionTitle>
                     <input
                         type="file"
                         accept="image/*"
@@ -344,17 +333,16 @@ const SettingForm: React.FC<SettingFormProps> = ({
                         onChange={handleProfileImageUpload}
                     />
                     <UploadButton as="label" htmlFor="profileImageUpload">
-                        파일 올리기
+                        {t('settingForm.uploadFileButton')}
                     </UploadButton>
                 </SectionHeader>
-                {/* 현재 프로필 이미지 미리보기 */}
                 <CurrentImageWrapper>
-                    <CurrentImage src={profileImage} alt="현재 프로필 이미지" />
+                    <CurrentImage src={profileImage} alt={t('settingForm.currentProfileImageAlt')} />
                 </CurrentImageWrapper>
             </FormSection>
 
             <FormSection>
-                <SectionTitle>닉네임 변경</SectionTitle>
+                <SectionTitle>{t('settingForm.nicknameChangeTitle')}</SectionTitle>
                 <InputGroup>
                     <CurrentNicknameDisplay>
                         {initialUserProfile.nickname}
@@ -364,7 +352,7 @@ const SettingForm: React.FC<SettingFormProps> = ({
                         id="nickname"
                         value={nickname}
                         onChange={(e) => setNickname(e.target.value)}
-                        placeholder="새 닉네임을 입력하세요"
+                        placeholder={t('settingForm.newNicknamePlaceholder')}
                         maxLength={MAX_NICKNAME_LENGTH}
                     />
                     <NicknameCharCount>
@@ -378,7 +366,7 @@ const SettingForm: React.FC<SettingFormProps> = ({
                 $isActivated={canSave}
                 disabled={!canSave}
             >
-                변경
+                {t('settingForm.changeButton')}
             </SaveButton>
         </FormContainer>
     );

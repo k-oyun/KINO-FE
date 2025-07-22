@@ -5,8 +5,9 @@ import ShortReviewCard from "../../components/mypage/ShortReviewCard";
 import useMypageApi from "../../api/mypage";
 import VideoBackground from "../../components/VideoBackground";
 import Pagination from "../../components/Pagenation";
+import { useTranslation } from "react-i18next";
 
-// ---------------- Types ----------------
+// ---------------- Types ----------------w
 interface ShortReviewType {
   movieId: number;
   shortReviewId: string;
@@ -182,10 +183,10 @@ const ITEMS_PER_PAGE = 10;
 
 // ---------------- Component ----------------
 const MyReviewsShortPage: React.FC = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { targetId: rawTargetId } = useParams<{ targetId?: string }>();
 
-  // 안전 파싱: 숫자가 아니면 undefined 처리
   const parsed = rawTargetId !== undefined ? Number(rawTargetId) : undefined;
   const targetUserId = rawTargetId && !Number.isNaN(parsed) ? parsed : undefined;
 
@@ -194,16 +195,11 @@ const MyReviewsShortPage: React.FC = () => {
     updateShortReview,
     deleteShortReview,
     userInfoGet,
-    mypageMain, // nickname 표시용 (타인 페이지 제목)
+    mypageMain,
   } = useMypageApi();
 
-  // 로그인 사용자
   const [loggedInUser, setLoggedInUser] = useState<UserProfileType | null>(null);
-
-  // (타인 조회용) 대상 유저 닉네임 표시
   const [targetUserNickname, setTargetUserNickname] = useState<string | null>(null);
-
-  // 데이터
   const [shortReviews, setShortReviews] = useState<ShortReviewType[]>([]);
   const [sortOrder, setSortOrder] = useState<"latest" | "likes" | "rating">("latest");
 
@@ -236,19 +232,18 @@ const MyReviewsShortPage: React.FC = () => {
       try {
         const res = await mypageMain(targetUserId);
         const profile: UserProfileType | undefined = res.data?.data;
-        setTargetUserNickname(profile?.nickname ?? `사용자 ${targetUserId}`);
+        setTargetUserNickname(profile?.nickname ?? t('mypage.shortReviews.userFallbackNickname', { userId: targetUserId }));
       } catch {
-        setTargetUserNickname(`사용자 ${targetUserId}`);
+        setTargetUserNickname(t('mypage.shortReviews.userFallbackNickname', { userId: targetUserId }));
       }
     })();
-  }, [targetUserId, mypageMain]);
+  }, [targetUserId, mypageMain, t]);
 
   // ---------------- Load Short Reviews ----------------
   const loadShortReviews = useCallback(async () => {
-    // 어떤 유저의 리뷰를 볼지 결정
     const idToLoad =
-      targetUserId ?? // URL에 명시된 타겟
-      loggedInUser?.userId; // 없으면 내 것
+      targetUserId ??
+      loggedInUser?.userId;
 
     if (idToLoad == null || Number.isNaN(idToLoad)) {
       console.warn("[MyReviewsShortPage] 로드할 사용자 ID가 없습니다.");
@@ -269,14 +264,13 @@ const MyReviewsShortPage: React.FC = () => {
   }, [mypageShortReview, targetUserId, loggedInUser]);
 
   useEffect(() => {
-    // 로그인 사용자 정보가 준비된 후에 데이터 로드 (내 페이지일 때 필요)
-    if (!rawTargetId && !loggedInUser) return; // 내 ID도 아직 모름
+    if (!rawTargetId && !loggedInUser) return; 
     loadShortReviews();
   }, [rawTargetId, loggedInUser, loadShortReviews]);
 
   // ---------------- Owner 판단 ----------------
   const isOwner =
-    targetUserId == null || // 파라미터가 없으면 내 페이지
+    targetUserId == null ||
     (loggedInUser?.userId != null && targetUserId === loggedInUser.userId);
 
   // ---------------- Sorting ----------------
@@ -320,6 +314,7 @@ const MyReviewsShortPage: React.FC = () => {
   const currentPageReviews = sortedReviews.slice(startIdx, startIdx + ITEMS_PER_PAGE);
 
   // ---------------- Handlers ----------------
+  // TODO: window.confirm 대신 커스텀 모달 UI 사용
   const handleReviewClick = (reviewId: string) => {
     // TODO: 실제 한줄평 상세 페이지 경로로 바꾸세요.
     // 현재는 임시로 영화 상세나 그냥 마이페이지 뒤로 이동 등 처리 가능
@@ -327,14 +322,14 @@ const MyReviewsShortPage: React.FC = () => {
   };
 
   const handleEditReview = async (updatedReview: ShortReviewType) => {
-    if (!isOwner) return; // 권한 체크
+    if (!isOwner) return;
 
     if (updatedReview.movieId == null) {
-      alert("영화 ID가 없어 수정할 수 없습니다.");
+      alert(t('mypage.shortReviews.edit.noMovieIdError'));
       return;
     }
     if (!updatedReview.shortReviewId) {
-      alert("한줄평 ID가 없어 수정할 수 없습니다.");
+      alert(t('mypage.shortReviews.edit.noReviewIdError'));
       return;
     }
 
@@ -344,50 +339,49 @@ const MyReviewsShortPage: React.FC = () => {
         rating: updatedReview.rating,
       });
       await loadShortReviews();
-      alert("한줄평이 성공적으로 수정되었습니다.");
+      alert(t('mypage.shortReviews.edit.success'));
     } catch (err) {
       console.error("[MyReviewsShortPage] 수정 실패:", err);
-      alert("수정에 실패했습니다.");
+      alert(t('mypage.shortReviews.edit.failure'));
     }
   };
 
   const handleDeleteReview = async (movieId: number, reviewId: string) => {
-    if (!isOwner) return; // 권한 체크
+    if (!isOwner) return;
 
     if (movieId == null) {
-      alert("영화 ID가 없어 삭제할 수 없습니다.");
+      alert(t('mypage.shortReviews.delete.noMovieIdError'));
       return;
     }
     if (!reviewId) {
-      alert("한줄평 ID가 없어 삭제할 수 없습니다.");
+      alert(t('mypage.shortReviews.delete.noReviewIdError'));
       return;
     }
 
-    if (!window.confirm("이 한줄평을 정말 삭제할까요?")) return;
+    if (!window.confirm(t('mypage.shortReviews.delete.confirm'))) return;
 
     try {
       await deleteShortReview(movieId, reviewId);
       await loadShortReviews();
-      alert("한줄평이 삭제되었습니다.");
+      alert(t('mypage.shortReviews.delete.success'));
     } catch (err) {
       console.error("[MyReviewsShortPage] 삭제 실패:", err);
-      alert("삭제에 실패했습니다.");
+      alert(t('mypage.shortReviews.delete.failure'));
     }
   };
 
   // ---------------- Render ----------------
   const titlePrefix = isOwner
-    ? "내가 작성한"
+    ? t('mypage.shortReviews.titlePrefix.my')
     : targetUserNickname
-    ? `${targetUserNickname} 님이 작성한`
-    : "사용자가 작성한";
+    ? t('mypage.shortReviews.titlePrefix.other', { nickname: targetUserNickname })
+    : t('mypage.shortReviews.titlePrefix.user');
 
-  // 로그인 사용자 정보가 아직 없고 내 페이지인지 판별 안 된 경우 로딩
   if (!loggedInUser && targetUserId == null) {
     return (
       <PageContainer>
         <VideoBackground />
-        <EmptyState>프로필 정보를 로드 중입니다...</EmptyState>
+        <EmptyState>{t('mypage.shortReviews.loadingProfile')}</EmptyState>
       </PageContainer>
     );
   }
@@ -423,7 +417,7 @@ const MyReviewsShortPage: React.FC = () => {
             </svg>
           </BackButton>
           <PageTitle>
-            {titlePrefix} <PinkText>한줄평</PinkText>
+            {titlePrefix} <PinkText>{t('shortReview')}</PinkText>
           </PageTitle>
         </PageHeader>
 
@@ -432,19 +426,19 @@ const MyReviewsShortPage: React.FC = () => {
             isActive={sortOrder === "latest"}
             onClick={() => handleSortChange("latest")}
           >
-            최신순
+            {t('Bylatest')}
           </SortButton>
           <SortButton
             isActive={sortOrder === "rating"}
             onClick={() => handleSortChange("rating")}
           >
-            별점순
+            {t('Byrating')}
           </SortButton>
           <SortButton
             isActive={sortOrder === "likes"}
             onClick={() => handleSortChange("likes")}
           >
-            좋아요순
+            {t('Bylikdes')}
           </SortButton>
         </SortOptions>
 
@@ -456,7 +450,6 @@ const MyReviewsShortPage: React.FC = () => {
                   key={review.shortReviewId}
                   review={review}
                   onClick={() => handleReviewClick(review.shortReviewId)}
-                  // 소유자일 때만 수정/삭제 가능
                   onEdit={isOwner ? handleEditReview : undefined}
                   onDelete={isOwner ? handleDeleteReview : undefined}
                 />
@@ -477,9 +470,7 @@ const MyReviewsShortPage: React.FC = () => {
           </>
         ) : (
           <EmptyState>
-            {isOwner
-              ? "작성한 한줄평이 없습니다."
-              : "작성한 한줄평이 없습니다." /* 타인도 동일 문구 사용 */}
+            {t('mypage.shortReviews.emptyState')}
           </EmptyState>
         )}
       </SectionWrapper>

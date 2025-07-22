@@ -4,6 +4,7 @@ import TagSelectionForm from "../../components/mypage/TagSelectionForm";
 import UserProfileSection from "../../components/mypage/UserProfileSection";
 import useMypageApi from "../../api/mypage";
 import VideoBackground from '../../components/VideoBackground';
+import { useTranslation } from "react-i18next";
 
 interface UserProfileType {
     userId: number;
@@ -52,6 +53,7 @@ const SectionWrapper = styled.section`
 `;
 
 const MyTagsPage: React.FC = () => {
+    const { t } = useTranslation();
     const { userInfoGet, getFollower, getFollowing } = useMypageApi();
 
     const [userProfile, setUserProfile] = useState<UserProfileType>();
@@ -59,30 +61,34 @@ const MyTagsPage: React.FC = () => {
 
     useEffect(() => {
         const userDataGet = async () => {
-            const res = await userInfoGet();
-            setUserProfile(res.data.data);
+            try {
+                const res = await userInfoGet();
+                setUserProfile(res.data.data);
 
-            const userId = res.data.data.userId;
-            if (userId) {
-                console.log("userid : " + userId);
-                const [followerRes, followingRes] = await Promise.all([
-                    getFollower(userId),
-                    getFollowing(userId),
-                ]);
+                const userId = res.data.data.userId;
+                if (userId) {
+                    console.log("userid : " + userId);
+                    const [followerRes, followingRes] = await Promise.all([
+                        getFollower(userId),
+                        getFollowing(userId),
+                    ]);
 
-                const followData: Follow = {
-                    follower: followerRes.data.data.length,
-                    following: followingRes.data.data.length,
-                };
+                    const followData: Follow = {
+                        follower: followerRes.data.data.length,
+                        following: followingRes.data.data.length,
+                    };
 
-                console.log(followerRes.data.data);
-                console.log(followingRes.data.data);
+                    console.log(followerRes.data.data);
+                    console.log(followingRes.data.data);
 
-                setUserFollow(followData);
+                    setUserFollow(followData);
+                }
+            } catch (error) {
+                console.error("Failed to fetch user data:", error);
             }
         };
         userDataGet();
-    },);
+    }, []);
 
     return (
         <PageContainer>
@@ -98,9 +104,8 @@ const MyTagsPage: React.FC = () => {
                     </SectionWrapper>
                 </>
             ) : (
-                <div>Loading...</div>
+                <div>{t('loading')}</div>
             )}
-            ;
         </PageContainer>
     );
 };
