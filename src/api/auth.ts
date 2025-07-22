@@ -1,4 +1,4 @@
-import axios from "./AxiosInstance";
+import axios from "./axiosInstance";
 
 export const useAuthApi = () => {
   const login = async (provider: string) => {
