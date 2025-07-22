@@ -71,6 +71,7 @@ const AppContents = () => {
   const isMobile = useMediaQuery({ query: "(max-width: 767px)" });
   useEffect(() => {
     const handler = (e: Event) => {
+      if (window.isLoggingOut) return;
       const code = (e as CustomEvent).detail?.status || 401;
       if (code === 500) {
         if (errorTimeoutRef.current) clearTimeout(errorTimeoutRef.current);

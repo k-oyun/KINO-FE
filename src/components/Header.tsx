@@ -9,6 +9,12 @@ import profileIcon from "../assets/img/profileIcon.png";
 import profileIconBlack from "../assets/img/profileIconBlack.png";
 import logoutIcon from "../assets/img/LogoutIcon.png";
 import { useTranslation } from "react-i18next";
+import ConfirmDialog from "./ConfirmDialog";
+declare global {
+  interface Window {
+    isLoggingOut?: boolean;
+  }
+}
 interface styleType {
   $ismobile: boolean;
 }
@@ -186,6 +192,7 @@ const Header = () => {
   const popupRef = useRef<HTMLDivElement>(null);
   const menuPopupRef = useRef<HTMLDivElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const isMobile = useMediaQuery({ query: "(max-width: 767px)" });
   const { t } = useTranslation();
   const { userInfoGet, logout } = useAuthApi();
@@ -235,11 +242,12 @@ const Header = () => {
 
   const onClickLogout = async () => {
     try {
+      window.isLoggingOut = true;
       await logout();
     } finally {
+      setIsModalOpen(true);
       localStorage.removeItem("accessToken");
       localStorage.removeItem("refreshToken");
-      navigate("/");
     }
   };
   const [mounted, setMounted] = useState(false);
@@ -353,6 +361,16 @@ const Header = () => {
           </PopupBtn>
         </Popup>
       )}
+      <ConfirmDialog
+        isOpen={isModalOpen}
+        title={t("notification")}
+        message={t("logoutMessage")}
+        onConfirm={() => {
+          navigate("/");
+        }}
+        showCancel={false}
+        isRedButton={true}
+      />
     </>
   );
 };
