@@ -354,10 +354,13 @@ const MyPageMain: React.FC = () => {
   useEffect(() => {
     if (!loggedInUser) return;
     const uid = targetId ? Number(targetId) : loggedInUser.userId;
-    loadViewedUserAndFollow(uid);
-    loadShortReviews(uid);
-    loadDetailReviews(uid);
-    loadFavoriteMovies(uid);
+    // targetId가 유효하지 않은 숫자일 경우 loggedInUser.userId를 사용
+    const finalUid = isNaN(uid) ? loggedInUser.userId : uid;
+
+    loadViewedUserAndFollow(finalUid);
+    loadShortReviews(finalUid);
+    loadDetailReviews(finalUid);
+    loadFavoriteMovies(finalUid);
   }, [
     loggedInUser,
     targetId,
@@ -369,11 +372,11 @@ const MyPageMain: React.FC = () => {
 
   // ------------------ 메모 / 정렬 ------------------
 const isOwner = useMemo(() => {
-  if (!loggedInUser) return false;           // 로그인 정보 없으면 판단 불가 => false
-  if (!targetId) return true;                 // /mypage (id 없음) => 내 페이지
+  if (!loggedInUser) return false;
+  if (!targetId) return true;
   const tid = Number(targetId);
-  if (Number.isNaN(tid)) return false;        // 잘못된 URL
-  return tid === loggedInUser.userId;         // 내가면 true
+  if (Number.isNaN(tid)) return false;
+  return tid === loggedInUser.userId;
 }, [loggedInUser, targetId]);
 
   const sortedShortReviews = useMemo(() => {
@@ -409,27 +412,11 @@ const isOwner = useMemo(() => {
   }, [detailReviews, detailReviewSort]);
 
   // ------------------ 핸들러 ------------------
-// This function is no longer needed since ShortReviewCard will navigate to the list page.
-// const handleShortReviewClick = (reviewId?: string) => {
-//   if (reviewId) {
-//     navigate(`/reviews/short/${reviewId}`);
-//   } else if (isOwner) {
-//     navigate("/mypage/reviews/short");
-//   } else if (viewedUser?.userId) {
-//     navigate(`/mypage/reviews/short/${viewedUser.userId}`);
-//   } else {
-//     console.warn("리뷰 ID 또는 사용자 ID가 없어 이동 불가");
-//   }
-// };
-
-  // Re-added handleDetailReviewClick function
-  const handleDetailReviewClick = (reviewId: number) => {
-    navigate(
-      isOwner
-        ? `/mypage/reviews/detail/${reviewId}`
-        : `/mypage/reviews/detail/${viewedUser?.userId}`
-    );
-  };
+// 이 함수는 DetailReviewCard 클릭 시 특정 상세 리뷰의 고유 페이지로 이동합니다.
+// 즉, '/reviews/detail/:reviewId' 형태의 라우팅이 필요합니다.
+const handleDetailReviewCardClick = (reviewId: number) => {
+  navigate(`/reviews/detail/${reviewId}`);
+};
 
 
   const handleEditShortReview = async (updated: ShortReviewType) => {
@@ -455,11 +442,11 @@ const isOwner = useMemo(() => {
     }
   };
 
-  // --- util nav helpers ---
+  // --- 페이지 이동 헬퍼 함수 ---
 const goShortReviewsPage = useCallback(() => {
   if (isOwner) {
     navigate("/mypage/reviews/short");
-  } else if (viewedUser) {
+  } else if (viewedUser?.userId) {
     navigate(`/mypage/reviews/short/${viewedUser.userId}`);
   } else {
     console.warn("viewedUser 없음: 한줄평 페이지로 이동 못함.");
@@ -468,22 +455,29 @@ const goShortReviewsPage = useCallback(() => {
 
 const goDetailReviewsPage = useCallback(() => {
   if (isOwner) {
+    // 내 상세 리뷰 목록 페이지로 이동 (파라미터 없음)
     navigate("/mypage/reviews/detail");
-  } else if (viewedUser) {
+  } else if (viewedUser?.userId) {
+    // 타인 상세 리뷰 목록 페이지로 이동 (userId 파라미터 포함)
     navigate(`/mypage/reviews/detail/${viewedUser.userId}`);
+  } else {
+    console.warn("viewedUser 없음: 상세 리뷰 페이지로 이동 못함.");
   }
 }, [isOwner, viewedUser, navigate]);
 
 const goFavoritesPage = useCallback(() => {
   if (isOwner) {
     navigate("/mypage/movies/favorite");
-  } else if (viewedUser) {
+  } else if (viewedUser?.userId) {
     navigate(`/mypage/movies/favorite/${viewedUser.userId}`);
+  } else {
+    console.warn("viewedUser 없음: 찜한 영화 페이지로 이동 못함.");
   }
 }, [isOwner, viewedUser, navigate]);
 
 
   // ------------------ 렌더 ------------------
+  // `viewedUser`와 `viewedFollow`가 모두 로드될 때까지 로딩 상태를 보여줍니다.
   if (!viewedUser || !viewedFollow) {
     return (
       <MyPageContainer>
@@ -505,7 +499,7 @@ const goFavoritesPage = useCallback(() => {
       {/* 한줄평 */}
       <SectionWrapper>
         <SectionHeader>
-          {/* Modified: Use goShortReviewsPage for SectionTitle onClick */}
+          {/* SectionTitle 클릭 시 한줄평 목록 페이지로 이동 */}
           <SectionTitle onClick={goShortReviewsPage}>
             {isOwner ? "내가 작성한" : `${viewedUser.nickname} 님이 작성한`}
             <PinkText>한줄평</PinkText>
@@ -548,7 +542,6 @@ const goFavoritesPage = useCallback(() => {
         </SectionHeader>
         <PreviewContent>
           {sortedShortReviews.length > 0 ? (
-            // Modified: Use goShortReviewsPage for ShortReviewCard onClick
             sortedShortReviews.slice(0, 3).map((review) => (
               <ShortReviewCard
                 key={review.shortReviewId}
@@ -568,7 +561,7 @@ const goFavoritesPage = useCallback(() => {
       {/* 상세 리뷰 */}
       <SectionWrapper>
         <SectionHeader>
-          {/* Modified: Use goDetailReviewsPage for SectionTitle onClick */}
+          {/* SectionTitle 클릭 시 상세 리뷰 목록 페이지로 이동 */}
           <SectionTitle onClick={goDetailReviewsPage}>
             {isOwner ? "내가 작성한" : `${viewedUser.nickname} 님이 작성한`}
             <PinkText>상세 리뷰</PinkText>
@@ -617,7 +610,8 @@ const goFavoritesPage = useCallback(() => {
                 review={review}
                 isMine={isOwner}
                 showProfile={true}
-                onClick={() => handleDetailReviewClick(review.reviewId)}
+                // DetailReviewCard 클릭 시 특정 리뷰 ID의 상세 페이지로 이동
+                onClick={() => handleDetailReviewCardClick(review.reviewId)}
               />
             ))
           ) : (
@@ -629,7 +623,7 @@ const goFavoritesPage = useCallback(() => {
       {/* 찜한 영화 */}
       <SectionWrapper>
         <SectionHeader>
-          {/* Modified: Use goFavoritesPage for SectionTitle onClick */}
+          {/* SectionTitle 클릭 시 찜한 영화 목록 페이지로 이동 */}
           <SectionTitle onClick={goFavoritesPage}>
             {isOwner ? "내가" : `${viewedUser.nickname} 님이`}
             <PinkText>찜한 영화</PinkText>

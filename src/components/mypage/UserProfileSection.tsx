@@ -19,7 +19,7 @@ interface Follow {
 interface UserProfileSectionProps {
   userProfile: UserProfileType;
   follow: Follow;
-  isOwner: boolean; // 본인 여부
+  isOwner?: boolean; // 본인 여부
 }
 
 const UserProfileSectionWrapper = styled.section`
