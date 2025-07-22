@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useMemo, useCallback } from "react";
-import styled, { keyframes } from "styled-components";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect, useMemo, useCallback } from "react"; // useCallback 추가
+import styled, { keyframes } from "styled-components"; // keyframes 추가
+import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 
 import UserListItem from "../../components/mypage/UserListItem";
@@ -20,11 +20,19 @@ export interface FollowingApiResponse {
   }>;
 }
 
+interface UserProfileType {
+  userId: number;
+  nickname: string;
+  image: string;
+  email: string;
+  isFirstLogin: boolean;
+}
+
 interface FollowingType {
-  id: string;
+  userId: string;
   nickname: string;
   profileImageUrl: string;
-  isFollowing: boolean;
+  follow: boolean;
 }
 
 interface PageInfo {
@@ -144,14 +152,15 @@ const PinkText = styled.span`
   margin-left: 0.25em;
 `;
 
+// --- 팝업 애니메이션 정의 ---
 const fadeIn = keyframes`
   from {
     opacity: 0;
-    transform: translate(-50%, 0px) scale(0.9);
+    transform: translate(-50%, 0px) scale(0.9); /* 중앙에서 나타나도록 시작 위치 조정 */
   }
   to {
     opacity: 1;
-    transform: translate(-50%, -50%) scale(1);
+    transform: translate(-50%, -50%) scale(1); /* 최종 중앙 위치 */
   }
 `;
 
@@ -162,15 +171,18 @@ const fadeOut = keyframes`
   }
   to {
     opacity: 0;
-    transform: translate(-50%, -100px) scale(0.9);
+    transform: translate(-50%, -100px) scale(0.9); /* 위로 사라지도록 종료 위치 조정 */
   }
 `;
 
 const PopupContainer = styled.div<{ $isVisible: boolean }>`
   position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  top: 50%; /* 변경: 중앙 정렬 */
+  left: 50%; /* 변경: 중앙 정렬 */
+  transform: translate(
+    -50%,
+    -50%
+  ); /* 변경: 자신의 크기만큼 역방향으로 이동하여 정확히 중앙 정렬 */
   background-color: rgba(0, 0, 0, 0.85);
   color: #fff;
   padding: 15px 25px;
@@ -191,28 +203,32 @@ const PopupContainer = styled.div<{ $isVisible: boolean }>`
   transition: visibility 0.5s, opacity 0.5s;
 
   @media (max-width: 767px) {
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+    top: 50%; /* 변경 */
+    left: 50%; /* 변경 */
+    transform: translate(-50%, -50%); /* 변경 */
     padding: 12px 20px;
     font-size: 1em;
     min-width: unset;
-    width: 90%;
+    width: 90%; /* 모바일에서 너비 조정 */
   }
 `;
 
 const MyFollowingPage: React.FC = () => {
   const navigate = useNavigate();
-  const { getFollowing, followUser, unfollowUser } = useMyPageApi();
+  const { getFollowing, followUser, unfollowUser, userInfoGet } =
+    useMyPageApi();
+  const { targetId } = useParams<{ targetId: string }>();
 
   const [following, setFollowing] = useState<FollowingType[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [loggedInUser, setLoggedInUser] = useState<UserProfileType | null>(
+    null
+  );
 
+  // 팝업 상태 관리 추가
   const [showPopup, setShowPopup] = useState(false);
   const [popupMessage, setPopupMessage] = useState("");
-
-  const myUserId = "1";
 
   const [pageInfo, setPageInfo] = useState<PageInfo>({
     currentPage: 0,
@@ -220,26 +236,43 @@ const MyFollowingPage: React.FC = () => {
     pageContentAmount: 0,
   });
 
+  // 팝업을 띄우는 함수 (재사용을 위해 useCallback 사용)
   const triggerPopup = useCallback((message: string) => {
     setPopupMessage(message);
     setShowPopup(true);
     const timer = setTimeout(() => {
       setShowPopup(false);
-      setPopupMessage("");
-    }, 2000);
-    return () => clearTimeout(timer);
+      setPopupMessage(""); // 메시지 초기화
+    }, 2000); // 2초 후에 팝업 숨김
+    return () => clearTimeout(timer); // 클린업 함수
   }, []);
+
+  // 로그인한 사용자 정보 로드
+  useEffect(() => {
+    const loadLoggedInUser = async () => {
+      try {
+        const res = await userInfoGet();
+        setLoggedInUser(res.data?.data ?? null);
+      } catch (err) {
+        console.error("로그인 사용자 정보 로드 실패:", err);
+        setLoggedInUser(null);
+      }
+    };
+    loadLoggedInUser();
+  }, [userInfoGet]);
 
   useEffect(() => {
     const loadFollowing = async () => {
       setLoading(true);
       setError(null);
       try {
-        const res = await getFollowing(Number(myUserId));
+        console.log("targetId:", targetId);
+        const res = await getFollowing(Number(targetId));
         const data: FollowingApiResponse["data"] | null = res.data.data;
+        console.log("팔로잉 데이터:", data);
         if (data) {
           const mappedFollowing: FollowingType[] = data.map((followedUser) => ({
-            id: String(followedUser.userId),
+            userId: String(followedUser.userId),
             nickname: followedUser.nickname,
             profileImageUrl:
               followedUser.profileImageUrl ||
@@ -247,7 +280,7 @@ const MyFollowingPage: React.FC = () => {
                 0,
                 1
               )}`,
-            isFollowing: followedUser.follow,
+            follow: followedUser.follow,
           }));
           setFollowing(mappedFollowing);
         } else {
@@ -271,7 +304,7 @@ const MyFollowingPage: React.FC = () => {
     };
 
     loadFollowing();
-  }, [getFollowing, myUserId, navigate]);
+  }, [getFollowing, navigate]);
 
   useEffect(() => {
     const totalPages = Math.ceil(following.length / ITEMS_PER_PAGE) || 0;
@@ -292,25 +325,25 @@ const MyFollowingPage: React.FC = () => {
   const handleFollowToggle = async (
     targetUserId: string,
     isCurrentlyFollowing: boolean,
-    targetUserNickname: string
+    targetUserNickname: string // 팝업 메시지에 사용할 닉네임 추가
   ) => {
     try {
       if (isCurrentlyFollowing) {
         await unfollowUser(Number(targetUserId));
         console.log(`User ${targetUserId} 언팔로우 성공`);
         setFollowing((prevFollowing) =>
-          prevFollowing.filter((user) => user.id !== targetUserId)
+          prevFollowing.filter((user) => user.userId !== targetUserId)
         );
-        triggerPopup(`${targetUserNickname}님을 언팔로우했습니다.`);
+        triggerPopup(`${targetUserNickname}님을 언팔로우했습니다.`); // 팝업 메시지
       } else {
         await followUser(Number(targetUserId));
         console.log(`User ${targetUserId} 팔로우 성공`);
         setFollowing((prevFollowing) =>
           prevFollowing.map((u) =>
-            u.id === targetUserId ? { ...u, isFollowing: true } : u
+            u.userId === targetUserId ? { ...u, isFollowing: true } : u
           )
         );
-        triggerPopup(`${targetUserNickname}님을 팔로우했습니다.`);
+        triggerPopup(`${targetUserNickname}님을 팔로우했습니다.`); // 팝업 메시지
       }
     } catch (err) {
       console.error(`팔로우/언팔로우 실패 for user ${targetUserId}:`, err);
@@ -361,7 +394,7 @@ const MyFollowingPage: React.FC = () => {
             <UserList>
               {currentFollowing.map((followedUser) => (
                 <UserListItem
-                  key={followedUser.id}
+                  key={followedUser.userId}
                   user={followedUser}
                   onFollowToggle={handleFollowToggle}
                   isMyAccount={
@@ -385,11 +418,11 @@ const MyFollowingPage: React.FC = () => {
             )}
           </>
         ) : (
-          <EmptyState>아직 팔로잉이 없습니다.</EmptyState>
+          <EmptyState>아직 팔로잉하는 사용자가 없습니다.</EmptyState>
         )}
       </SectionWrapper>
 
-      {/* 팝업 */}
+      {/* 팝업 컴포넌트 렌더링 */}
       <PopupContainer $isVisible={showPopup}>{popupMessage}</PopupContainer>
     </PageContainer>
   );

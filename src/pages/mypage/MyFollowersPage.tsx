@@ -28,10 +28,10 @@ interface UserProfileType {
 }
 
 interface FollowerType {
-  id: string;
+  userId: string;
   nickname: string;
   profileImageUrl: string;
-  isFollowing: boolean;
+  follow: boolean;
 }
 
 interface PageInfo {
@@ -271,7 +271,7 @@ const MyFollowersPage: React.FC = () => {
         setFollowers(
           followerData
             ? followerData.map((follower) => ({
-                id: String(follower.userId),
+                userId: String(follower.userId),
                 nickname: follower.nickname,
                 profileImageUrl:
                   follower.profileImageUrl ||
@@ -279,7 +279,7 @@ const MyFollowersPage: React.FC = () => {
                     0,
                     1
                   )}`,
-                isFollowing: follower.follow,
+                follow: follower.follow,
               }))
             : []
         );
@@ -337,11 +337,11 @@ const MyFollowersPage: React.FC = () => {
       if (isCurrentlyFollowing) {
         await unfollowUser(Number(targetUserId));
         if (isOwner) {
-          setFollowers((prev) => prev.filter((f) => f.id !== targetUserId));
+          setFollowers((prev) => prev.filter((f) => f.userId !== targetUserId));
         } else {
           setFollowers((prev) =>
             prev.map((f) =>
-              f.id === targetUserId ? { ...f, isFollowing: false } : f
+              f.userId === targetUserId ? { ...f, isFollowing: false } : f
             )
           );
         }
@@ -350,7 +350,7 @@ const MyFollowersPage: React.FC = () => {
         await followUser(Number(targetUserId));
         setFollowers((prev) =>
           prev.map((f) =>
-            f.id === targetUserId ? { ...f, isFollowing: true } : f
+            f.userId === targetUserId ? { ...f, isFollowing: true } : f
           )
         );
         triggerPopup(`${targetUserNickname}님을 팔로우했습니다.`);
@@ -421,7 +421,7 @@ const MyFollowersPage: React.FC = () => {
             <UserList>
               {currentFollowers.map((follower) => (
                 <UserListItem
-                  key={follower.id}
+                  key={follower.userId}
                   user={follower}
                   onFollowToggle={handleFollowToggle}
                   showFollowButton={

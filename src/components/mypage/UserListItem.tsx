@@ -4,10 +4,10 @@ import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
 export interface UserListItemUser {
-  id: string;
+  userId: string;
   nickname: string;
   profileImageUrl: string;
-  isFollowing?: boolean;
+  follow?: boolean;
 }
 
 export interface UserListItemProps {
@@ -107,14 +107,14 @@ const UserListItem: React.FC<UserListItemProps> = ({
     React.useState(user.follow ? user.follow : false);
 
   const handleUserClick = () => {
-    navigate(`/mypage/${user.id}`);
+    navigate(`/mypage/${user.userId}`);
   };
 
   const handleFollowButtonClick = (e: React.MouseEvent) => {
     e.stopPropagation(); // row 클릭 이동 막기
     setCurrentIsFollowingStatus(!currentIsFollowingStatus);
     if (onFollowToggle) {
-      onFollowToggle(user.id, currentIsFollowingStatus, user.nickname);
+      onFollowToggle(user.userId, currentIsFollowingStatus, user.nickname);
     }
   };
 
