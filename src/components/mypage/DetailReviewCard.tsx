@@ -7,6 +7,7 @@ import ReportModal from "../ReportModal";
 import { useTranslation } from "react-i18next";
 import { useReviewsApi } from "../../api/reviews";
 import DefaultProfileImg from "../../assets/img/profileIcon.png";
+import { useDialog } from "../../context/DialogContext";
 
 export interface DetailReview {
   reviewId: number;
@@ -56,16 +57,6 @@ const DetailReviewCardContainer = styled(CardBase)<StyleType>`
   flex-direction: row;
   align-items: flex-start;
   gap: ${(p) => (p.$ismobile ? "0px" : "20px")};
-`;
-
-const DetailMoviePoster = styled.img<StyleType>`
-  width: 20vw;
-  max-width: 160px;
-  height: ${(p) => (p.$ismobile ? "15vh" : "27vh")};
-  object-fit: cover;
-  border-radius: 4px;
-  flex-shrink: 0;
-  margin-right: 15px;
 `;
 
 const ProfileNReview = styled.div<StyleType>`
@@ -243,11 +234,12 @@ const DetailReviewCard: React.FC<DetailReviewCardProps> = ({
   movieTitle,
   isMobile,
   onClick,
+  onDelete,
 }) => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const { deleteReview, postReviewReport } = useReviewsApi();
-
+  const { openDialog, closeDialog } = useDialog();
   const [menuOpen, setMenuOpen] = useState(false);
   const [isReportOpen, setIsReportOpen] = useState(false);
   const popMenuRef = useRef<HTMLUListElement | null>(null);
@@ -272,13 +264,29 @@ const DetailReviewCard: React.FC<DetailReviewCardProps> = ({
       );
       res.then((data) => {
         console.log("Report submitted successfully:", data);
-        //완료 모달
-        alert(t("report.success"));
+        openDialog({
+          title: t("report"),
+          message: t("reportSuccess"),
+          showCancel: false,
+          isRedButton: true,
+          onConfirm: () => {
+            closeDialog();
+            setIsReportOpen(false);
+          },
+        });
       });
     } catch (error) {
       console.error("Failed to submit report:", error);
-      // 에러 모달
-      alert(t("report.failure"));
+      openDialog({
+        title: t("report"),
+        message: t("reportFailure"),
+        showCancel: false,
+        isRedButton: true,
+        onConfirm: () => {
+          closeDialog();
+          setIsReportOpen(false);
+        },
+      });
     }
   };
 
@@ -297,16 +305,29 @@ const DetailReviewCard: React.FC<DetailReviewCardProps> = ({
   }, [menuOpen]);
 
   const deletePost = async () => {
-    // TODO: window.confirm 대신 커스텀 모달 UI 사용
-    if (!window.confirm(t("detailReviewCard.deleteConfirm"))) return;
     try {
       const res = await deleteReview(review.reviewId);
       console.log("게시글 삭제 성공:", res.data);
-      alert(t("detailReviewCard.deleteSuccess"));
-      navigate("/community");
+      openDialog({
+        title: t("deletePost"),
+        message: t("postDeletedSuccessfully"),
+        showCancel: false,
+        isRedButton: true,
+        onConfirm: () => {
+          navigate("/community");
+          closeDialog();
+        },
+      });
+      onDelete?.(review.reviewId); // Call the onDelete callback if provided
     } catch (e) {
       console.error("게시글 삭제 실패:", e);
-      alert(t("detailReviewCard.deleteFailure"));
+      openDialog({
+        title: t("deletePost"),
+        message: t("deletePostFailure"),
+        showCancel: false,
+        isRedButton: true,
+        onConfirm: () => closeDialog(),
+      });
     }
   };
 
@@ -317,11 +338,6 @@ const DetailReviewCard: React.FC<DetailReviewCardProps> = ({
     return formatDistanceToNow(dt, { addSuffix: true, locale: dateFnsLocale });
   })();
 
-  const posterSrc =
-    review.image ||
-    `https://placehold.co/160x270/CCCCCC/FFFFFF?text=${t(
-      "detailReviewCard.noImageText"
-    )}`;
   const profileSrc = review.userImage || DefaultProfileImg;
 
   return (

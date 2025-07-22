@@ -20,6 +20,7 @@
   "reportReason": "Report Reason",
   "reportReasonPlaceholder": "Please enter the detailed reason for reporting.",
   "reportSuccess": "Rdeport",
+  "reportFailure": "Failed to process the report. Please try again.",
   "reportUser": "Report User",
   "information": "Information",
   "settings": "Settings",
@@ -118,6 +119,10 @@
   "loadingPost": "Loading post...",
   "postNotFound": "Post not found.",
   "thisPostWasBlockedByAdmin": "This post has been blocked by an administrator.",
+  "deletePost": "Delete post",
+  "postDeletedSuccessfully": "Post deleted successfully.",
+  "deletePostFailure": "Failed to delete post.",
+  "deletePostConfirm": "Are you sure you want to delete this post?",
 
   "serverWarningMessage": "A problem has occurred with the server.",
   "tryAgainLater": "Please try again later.",
@@ -175,7 +180,6 @@
   "Bytitle": "By Title",
   "Bylikdes": "By Likes",
 
-
   "userProfileSection.profileImageAlt": "{{nickname}} profile image",
   "userProfileSection.tagButton": "Tags",
   "userProfileSection.followerCount": "Followers {{count}}",
@@ -198,12 +202,10 @@
   "History": "History",
   "Music": "Music",
 
-
   "shortReviewCard.menuTriggerAriaLabel": "More options menu",
   "shortReviewCard.editModalTitle": "Edit Short Review",
   "shortReviewCard.ratingLabel": "Rating:",
   "shortReviewCard.saveButton": "Save",
-
 
   "settingForm.loadingData": "Loading data...",
   "settingForm.profileChangeTitle": "Change Profile",

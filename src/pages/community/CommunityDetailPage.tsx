@@ -7,6 +7,7 @@ import useReviewsApi from "../../api/reviews";
 import { utcToKstString } from "../../utils/date";
 import { useTranslation } from "react-i18next";
 import ReportModal from "../../components/ReportModal";
+import { useDialog } from "../../context/DialogContext";
 
 // 필요한 타입은 이 파일 내에서 직접 정의합니다.
 interface DetailReview {
@@ -127,6 +128,7 @@ const Writer = styled.div<styleType>`
   align-items: center;
   font-size: ${(props) => (props.$ismobile ? "0.8em" : "1.1em")};
   margin-top: ${(props) => (props.$ismobile ? "40px" : "60px")};
+  cursor: pointer;
 `;
 
 const WriterImage = styled.img<styleType>`
@@ -272,6 +274,7 @@ const LoadingState = styled.div`
 const ErrorState = styled(LoadingState)``;
 
 const CommunityDetailPage: React.FC = () => {
+  const { openDialog, closeDialog } = useDialog();
   const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -350,17 +353,31 @@ const CommunityDetailPage: React.FC = () => {
 
   const deletePost = async () => {
     if (!post) return;
-    if (!window.confirm("정말로 이 게시글을 삭제하시겠습니까?")) return;
+    // if (!window.confirm("정말로 이 게시글을 삭제하시겠습니까?")) return;
     try {
       const res = deleteReview(post.reviewId);
       res.then((data) => {
         console.log("게시글 삭제 성공:", data.data);
-        alert("게시글이 삭제되었습니다.");
-        navigate("/community"); // 목록 페이지로 이동
+        openDialog({
+          title: t("deletePost"),
+          message: t("postDeletedSuccessfully"),
+          showCancel: false,
+          isRedButton: true,
+          onConfirm: () => {
+            navigate("/community");
+            closeDialog();
+          },
+        });
       });
     } catch (e) {
       console.error("게시글 삭제 실패:", e);
-      alert("게시글 삭제에 실패했습니다. 다시 시도해주세요.");
+      openDialog({
+        title: t("deletePost"),
+        message: t("deletePostFailure"),
+        showCancel: false,
+        isRedButton: true,
+        onConfirm: () => closeDialog(),
+      });
     }
   };
 
@@ -421,7 +438,10 @@ const CommunityDetailPage: React.FC = () => {
                 <PostHeader $ismobile={isMobile}>
                   <PostTitle $ismobile={isMobile}>{post.reviewTitle}</PostTitle>
                   <PostMeta $ismobile={isMobile}>
-                    <Writer $ismobile={isMobile}>
+                    <Writer
+                      $ismobile={isMobile}
+                      onClick={() => navigate(`/mypage/${post.writerId}`)}
+                    >
                       <WriterImage
                         $ismobile={isMobile}
                         src={post.writerUserImage}
