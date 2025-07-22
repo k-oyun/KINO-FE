@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { Dispatch, SetStateAction } from "react";
 import { useMediaQuery } from "react-responsive";
 import styled from "styled-components";
@@ -9,7 +9,6 @@ import {
   SwipeAction,
 } from "react-swipeable-list";
 import "react-swipeable-list/dist/styles.css";
-import axios from "axios";
 import { useFormatDate } from "../../hooks/useFormatDate";
 import AdminConfirmDialog from "../../components/admin/AdminConfirmDialog";
 import useAdminApi from "../../api/admin";

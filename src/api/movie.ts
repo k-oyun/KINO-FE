@@ -1,4 +1,4 @@
-import axios from "./AxiosInstance";
+import axios from "./axiosInstance";
 
 export const useMovieApi = () => {
   const getMovies = async (page: number, size: number, genres: number[]) => {
