@@ -5,14 +5,16 @@ import useAuthApi from "../api/auth";
 function GoogleCallback() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { loginWithGoogle } = useAuthApi();
+  const { loginWithGoogle, reissue } = useAuthApi();
   const handleLogin = async (code: string) => {
     try {
       const res = await loginWithGoogle(code);
       console.log("로그인", res);
-
       localStorage.setItem("accessToken", res.data.data.accessToken);
       localStorage.setItem("refreshToken", res.data.data.refreshToken);
+      const tokenRes = await reissue();
+      localStorage.removeItem("accessToken");
+      localStorage.setItem("accessToken", tokenRes.data.data);
     } catch (error: any) {
       console.log(error);
     }

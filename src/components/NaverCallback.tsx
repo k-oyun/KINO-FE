@@ -5,13 +5,16 @@ import useAuthApi from "../api/auth";
 function NaverCallback() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { loginWithNaver } = useAuthApi();
+  const { loginWithNaver, reissue } = useAuthApi();
   const handleLogin = async (code: string) => {
     try {
       const res = await loginWithNaver(code);
       console.log("로그인", res);
       localStorage.setItem("accessToken", res.data.data.accessToken);
       localStorage.setItem("refreshToken", res.data.data.refreshToken);
+      const tokenRes = await reissue();
+      localStorage.removeItem("accessToken");
+      localStorage.setItem("accessToken", tokenRes.data.data);
     } catch (error: any) {
       console.log(error);
     }
