@@ -1,15 +1,13 @@
 import React, { useEffect, useMemo, useState, useCallback } from "react";
 import styled from "styled-components";
-import { useNavigate, useParams } from "react-router-dom"; // useParams 다시 추가
-
+import { useNavigate } from "react-router-dom"; // useParams는 사용하지 않으므로 제거
 import DetailReviewCard from "../../components/mypage/DetailReviewCard";
 import useMypageApi from "../../api/mypage";
 import VideoBackground from "../../components/VideoBackground";
 import Pagination from "../../components/Pagenation";
 
-// ---------------- Types ----------------
 interface UserProfileType {
-  userId: number;
+  userId: number; // API에서 이 필드를 받아올 예정이라고 하셨으므로 유지
   nickname: string;
   image: string;
   email: string;
@@ -38,14 +36,16 @@ interface PageInfo {
   pageContentAmount: number;
 }
 
-const ITEMS_PER_PAGE = 5;
+/** 한 페이지에 보여줄 상세 리뷰 수. 상세카드는 길이가 길 수 있으니 필요 시 조정하세요. */
+const ITEMS_PER_PAGE = 5; // ← 카드 길이를 감안해 5 추천; 짧게 보이려면 10 등으로 변경
 
 const parseDateString = (dateStr: string): Date => {
   const parts = dateStr.split(/[. :]/).map(Number);
+  // Date 생성자에 월은 0부터 시작하므로 -1 해줍니다. 시/분은 선택적으로 처리
   return new Date(parts[0], parts[1] - 1, parts[2], parts[3] ?? 0, parts[4] ?? 0);
 };
 
-// --- styled-components (변경 없음) ---
+// --- styled-components (이 부분은 변경 없음) ---
 const PageContainer = styled.div`
   max-width: 1200px;
   margin: 0 auto;
@@ -161,6 +161,7 @@ const SortButton = styled.button<{ isActive: boolean }>`
 const ReviewList = styled.div`
   display: flex;
   flex-direction: column;
+  /* gap: 15px; -> DetailReviewCard의 margin-bottom으로 간격 조절 */
 `;
 
 const EmptyState = styled.div`
@@ -183,17 +184,10 @@ const PinkText = styled.span`
 
 const MyReviewsDetailPage: React.FC = () => {
   const navigate = useNavigate();
-  // useParams를 사용하여 targetId를 다시 받습니다.
-  const { targetId: rawTargetId } = useParams<{ targetId?: string }>();
+  const { mypageReview, userInfoGet } = useMypageApi();
 
-  // 안전 파싱: 숫자가 아니면 undefined 처리
-  const parsed = rawTargetId !== undefined ? Number(rawTargetId) : undefined;
-  const targetUserId = rawTargetId && !Number.isNaN(parsed) ? parsed : undefined;
-
-  const { mypageReview, userInfoGet, mypageMain } = useMypageApi(); // mypageMain 추가
-
+  // 로그인 사용자 정보를 위한 상태 추가
   const [loggedInUser, setLoggedInUser] = useState<UserProfileType | null>(null);
-  const [targetUserNickname, setTargetUserNickname] = useState<string | null>(null);
 
   const [sortOrder, setSortOrder] = useState<"latest" | "views" | "likes">("latest");
   const [detailReviews, setDetailReviews] = useState<DetailReviewType[]>([]);
@@ -204,74 +198,51 @@ const MyReviewsDetailPage: React.FC = () => {
     pageContentAmount: 0,
   });
 
-  // ---------------- Load Logged-in User ----------------
+  // ---------------- Load Logged-in User (userInfoGet) ----------------
   useEffect(() => {
-    (async () => {
+    const fetchLoggedInUser = async () => {
       try {
         const res = await userInfoGet();
+        // userId를 포함한 전체 사용자 프로필을 저장합니다.
         setLoggedInUser(res.data?.data || null);
       } catch (err) {
-        console.error("[MyReviewsDetailPage] 로그인 사용자 로드 실패:", err);
+        console.error("[MyReviewsDetailPage] 로그인 사용자 프로필 로드 실패:", err);
         setLoggedInUser(null);
       }
-    })();
+    };
+    fetchLoggedInUser();
   }, [userInfoGet]);
 
-  // ---------------- Load Target Nickname (if viewing someone else) ----------------
-  useEffect(() => {
-    if (targetUserId == null) {
-      setTargetUserNickname(null); // 내 페이지일 경우 닉네임 설정 안 함
-      return;
-    }
-    (async () => {
-      try {
-        const res = await mypageMain(targetUserId);
-        const profile: UserProfileType | undefined = res.data?.data;
-        setTargetUserNickname(profile?.nickname ?? `사용자 ${targetUserId}`);
-      } catch {
-        setTargetUserNickname(`사용자 ${targetUserId}`); // 로드 실패 시 대체 닉네임
-      }
-    })();
-  }, [targetUserId, mypageMain]);
-
   // ---------------- Load Detail Reviews ----------------
+  // loadDetailReviews 함수를 useCallback으로 메모이제이션합니다.
   const loadDetailReviews = useCallback(async () => {
-    // 어떤 유저의 리뷰를 볼지 결정
-    const idToLoad =
-      targetUserId ?? // URL에 명시된 타겟 (타인의 페이지)
-      loggedInUser?.userId; // 없으면 내 것
-
-    if (idToLoad == null || Number.isNaN(idToLoad)) {
-      console.warn("[MyReviewsDetailPage] 로드할 사용자 ID가 없습니다.");
+    // loggedInUser가 존재하고 userId가 유효할 때만 API 호출
+    if (loggedInUser?.userId != null) {
+      try {
+        const res = await mypageReview(loggedInUser.userId); // loggedInUser.userId 사용
+        const arr = Array.isArray(res?.data?.data?.reviews)
+          ? res.data.data.reviews
+          : [];
+        setDetailReviews(arr);
+      } catch (err) {
+        console.error("[MyReviewsDetailPage] 상세 리뷰 로드 실패:", err);
+        setDetailReviews([]);
+      }
+    } else if (loggedInUser === null) {
+      // loggedInUser가 아직 로드되지 않았거나 로드 중일 때
+      console.log("[MyReviewsDetailPage] 사용자 프로필 로드 대기 중...");
+      // 이 경우, 아직 ID를 알 수 없으므로 데이터를 로드하지 않고 대기합니다.
+    } else {
+      // loggedInUser는 로드되었지만 userId가 null인 경우 (예: 로그인 안됨)
+      console.warn("[MyReviewsDetailPage] 사용자 ID를 찾을 수 없어 상세 리뷰를 로드할 수 없습니다.");
       setDetailReviews([]);
-      return;
     }
+  }, [mypageReview, loggedInUser]); // loggedInUser가 변경될 때마다 함수 재생성
 
-    try {
-      const res = await mypageReview(idToLoad); // 결정된 ID로 API 호출
-      const arr = Array.isArray(res?.data?.data?.reviews)
-        ? res.data.data.reviews
-        : [];
-      setDetailReviews(arr);
-    } catch (err) {
-      console.error("[MyReviewsDetailPage] 상세 리뷰 로드 실패:", err);
-      setDetailReviews([]);
-    }
-  }, [mypageReview, targetUserId, loggedInUser]); // loggedInUser와 targetUserId를 의존성에 추가
-
+  // loggedInUser가 로드되거나 변경될 때마다 리뷰 로드 함수 호출
   useEffect(() => {
-    // 로그인 사용자 정보가 준비된 후에 데이터 로드 (내 페이지일 때 필요)
-    // rawTargetId가 있으면 (타인 페이지) 바로 로드 시도, 없으면 loggedInUser 대기
-    if (!rawTargetId && !loggedInUser) return;
     loadDetailReviews();
-  }, [rawTargetId, loggedInUser, loadDetailReviews]);
-
-
-  // ---------------- Owner 판단 ----------------
-  const isOwner =
-    targetUserId == null || // 파라미터가 없으면 내 페이지
-    (loggedInUser?.userId != null && targetUserId === loggedInUser.userId);
-
+  }, [loadDetailReviews]); // loadDetailReviews 함수가 변경될 때마다 실행
 
   const sortedReviews = useMemo(() => {
     const arr = [...detailReviews];
@@ -313,19 +284,12 @@ const MyReviewsDetailPage: React.FC = () => {
   const currentPageReviews = sortedReviews.slice(startIdx, endIdx);
 
   const handleReviewClick = (reviewId: number) => {
-    // 여기서는 특정 리뷰 ID를 클릭했을 때 해당 상세 리뷰 페이지로 이동합니다.
     navigate(`/reviews/detail/${reviewId}`);
   };
 
-  // ---------------- Render ----------------
-  const titlePrefix = isOwner
-    ? "내가 작성한"
-    : targetUserNickname
-    ? `${targetUserNickname} 님이 작성한`
-    : "사용자가 작성한"; // 닉네임 로드 전/실패 시 대체 문구
-
-  // 로그인 사용자 정보가 아직 없고 내 페이지인지 판별 안 된 경우 로딩
-  if (!loggedInUser && targetUserId == null) {
+  // 프로필 정보 로딩 중일 때 로딩 스피너 등을 보여줍니다.
+  // MyReviewsShortPage와 동일하게 loggedInUser가 null일 때 로딩 메시지 표시
+  if (loggedInUser === null) {
     return (
       <PageContainer>
         <VideoBackground />
@@ -339,15 +303,7 @@ const MyReviewsDetailPage: React.FC = () => {
       <VideoBackground />
       <SectionWrapper>
         <PageHeader>
-          <BackButton
-            onClick={() =>
-              navigate(
-                isOwner
-                  ? "/mypage"
-                  : `/mypage/${targetUserId}`
-              )
-            }
-          >
+          <BackButton onClick={() => navigate("/mypage")}>
             <svg
               width="24"
               height="24"
@@ -365,7 +321,7 @@ const MyReviewsDetailPage: React.FC = () => {
             </svg>
           </BackButton>
           <PageTitle>
-            {titlePrefix} <PinkText>상세 리뷰</PinkText>
+            내가 작성한 <PinkText>상세 리뷰</PinkText>
           </PageTitle>
         </PageHeader>
 
@@ -397,8 +353,7 @@ const MyReviewsDetailPage: React.FC = () => {
                 <DetailReviewCard
                   key={review.reviewId}
                   review={review}
-                  // isMine은 현재 보고 있는 유저의 ID와 로그인한 유저의 ID가 같은지 여부로 판단
-                  isMine={isOwner}
+                  isMine={true} // 이 페이지는 본인 리뷰만 다루므로 항상 true
                   showProfile={true}
                   onClick={() => handleReviewClick(review.reviewId)}
                 />
