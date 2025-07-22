@@ -6,12 +6,13 @@ import { ko, enUS } from "date-fns/locale";
 import ReportModal from "../ReportModal";
 import { useTranslation } from "react-i18next";
 import { useReviewsApi } from "../../api/reviews";
+import DefaultProfileImg from "../../assets/img/profileIcon.png";
 
 export interface DetailReview {
   reviewId: number;
   image?: string;
   userId: number;
-  userProfile: string;
+  userImage: string;
   userNickname: string;
   title: string;
   content: string;
@@ -311,7 +312,7 @@ const DetailReviewCard: React.FC<DetailReviewCardProps> = ({
     `https://placehold.co/160x270/CCCCCC/FFFFFF?text=${t(
       "detailReviewCard.noImageText"
     )}`;
-  const profileSrc = review.userProfile;
+  const profileSrc = review.userImage || DefaultProfileImg;
 
   return (
     <>

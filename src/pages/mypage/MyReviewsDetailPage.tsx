@@ -193,11 +193,18 @@ const MyReviewsDetailPage: React.FC = () => {
   const navigate = useNavigate();
   const { targetId: rawTargetId } = useParams<{ targetId?: string }>();
   const parsed = rawTargetId !== undefined ? Number(rawTargetId) : undefined;
-  const targetUserId = rawTargetId && !Number.isNaN(parsed) ? parsed : undefined;
+  const targetUserId =
+    rawTargetId && !Number.isNaN(parsed) ? parsed : undefined;
   const { mypageReview, userInfoGet, mypageMain } = useMypageApi(); // mypageMain 추가
-  const [loggedInUser, setLoggedInUser] = useState<UserProfileType | null>(null);
-  const [targetUserNickname, setTargetUserNickname] = useState<string | null>(null);
-  const [sortOrder, setSortOrder] = useState<"latest" | "views" | "likes">("latest");
+  const [loggedInUser, setLoggedInUser] = useState<UserProfileType | null>(
+    null
+  );
+  const [targetUserNickname, setTargetUserNickname] = useState<string | null>(
+    null
+  );
+  const [sortOrder, setSortOrder] = useState<"latest" | "views" | "likes">(
+    "latest"
+  );
   const [detailReviews, setDetailReviews] = useState<DetailReviewType[]>([]);
   const [pageInfo, setPageInfo] = useState<PageInfo>({
     currentPage: 0,
@@ -228,18 +235,21 @@ const MyReviewsDetailPage: React.FC = () => {
       try {
         const res = await mypageMain(targetUserId);
         const profile: UserProfileType | undefined = res.data?.data;
-        setTargetUserNickname(profile?.nickname ?? t('mypage.userFallbackNickname', { userId: targetUserId }));
+        setTargetUserNickname(
+          profile?.nickname ??
+            t("mypage.userFallbackNickname", { userId: targetUserId })
+        );
       } catch {
-        setTargetUserNickname(t('mypage.userFallbackNickname', { userId: targetUserId }));
+        setTargetUserNickname(
+          t("mypage.userFallbackNickname", { userId: targetUserId })
+        );
       }
     })();
   }, [targetUserId, mypageMain, t]);
 
   // ---------------- Load Detail Reviews ----------------
   const loadDetailReviews = useCallback(async () => {
-    const idToLoad =
-      targetUserId ??
-      loggedInUser?.userId;
+    const idToLoad = targetUserId ?? loggedInUser?.userId;
 
     if (idToLoad == null || Number.isNaN(idToLoad)) {
       console.warn("[MyReviewsDetailPage] 로드할 사용자 ID가 없습니다.");
@@ -314,16 +324,18 @@ const MyReviewsDetailPage: React.FC = () => {
 
   // ---------------- Render ----------------
   const titlePrefix = isOwner
-    ? t('mypage.detailedReviews.titlePrefix.my')
+    ? t("mypage.detailedReviews.titlePrefix.my")
     : targetUserNickname
-    ? t('mypage.detailedReviews.titlePrefix.other', { nickname: targetUserNickname })
-    : t('mypage.detailedReviews.titlePrefix.user');
+    ? t("mypage.detailedReviews.titlePrefix.other", {
+        nickname: targetUserNickname,
+      })
+    : t("mypage.detailedReviews.titlePrefix.user");
 
   if (!loggedInUser && targetUserId == null) {
     return (
       <PageContainer>
         <VideoBackground />
-        <EmptyState>{t('mypage.detailedReviews.loadingProfile')}</EmptyState>
+        <EmptyState>{t("mypage.detailedReviews.loadingProfile")}</EmptyState>
       </PageContainer>
     );
   }
@@ -355,7 +367,7 @@ const MyReviewsDetailPage: React.FC = () => {
             </svg>
           </BackButton>
           <PageTitle>
-            {titlePrefix} <PinkText>{t('detailedReview')}</PinkText>
+            {titlePrefix} <PinkText>{t("detailedReview")}</PinkText>
           </PageTitle>
         </PageHeader>
 
@@ -364,19 +376,19 @@ const MyReviewsDetailPage: React.FC = () => {
             isActive={sortOrder === "latest"}
             onClick={() => handleSortChange("latest")}
           >
-            {t('Bylatest')}
+            {t("Bylatest")}
           </SortButton>
           <SortButton
             isActive={sortOrder === "views"}
             onClick={() => handleSortChange("views")}
           >
-            {t('Byviews')}
+            {t("Byviews")}
           </SortButton>
           <SortButton
             isActive={sortOrder === "likes"}
             onClick={() => handleSortChange("likes")}
           >
-            {t('Bylikdes')}
+            {t("Bylikdes")}
           </SortButton>
         </SortOptions>
 
@@ -386,7 +398,7 @@ const MyReviewsDetailPage: React.FC = () => {
               {currentPageReviews.map((review) => (
                 <DetailReviewCard
                   key={review.reviewId}
-                  review={review}
+                  review={{ ...review, userImage: review.userProfile }}
                   isMine={isOwner}
                   showProfile={true}
                   onClick={() => handleReviewClick(review.reviewId)}
@@ -407,7 +419,7 @@ const MyReviewsDetailPage: React.FC = () => {
             )}
           </>
         ) : (
-          <EmptyState>{t('mypage.detailedReviews.emptyState')}</EmptyState>
+          <EmptyState>{t("mypage.detailedReviews.emptyState")}</EmptyState>
         )}
       </SectionWrapper>
     </PageContainer>
