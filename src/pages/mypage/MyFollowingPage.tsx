@@ -397,7 +397,9 @@ const MyFollowingPage: React.FC = () => {
                   key={followedUser.userId}
                   user={followedUser}
                   onFollowToggle={handleFollowToggle}
-                  showFollowButton={loggedInUser?.userId !== Number(targetId)}
+                  isMyAccount={
+                    loggedInUser?.userId === Number(followedUser.userId)
+                  }
                   type="following"
                 />
               ))}

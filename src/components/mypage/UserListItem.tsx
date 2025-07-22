@@ -97,7 +97,7 @@ const Nickname = styled.span`
 `;
 
 const FollowButton = styled.button<{ $isFollowing: boolean }>`
-  background-color: ${(props) => (props.$isFollowing ? "#555" : "#ff69b4")};
+  background-color: ${(props) => (props.$isFollowing ? "#fd6782" : "#aaa")};
   color: #fff;
   border: none;
   border-radius: 20px;
@@ -107,7 +107,7 @@ const FollowButton = styled.button<{ $isFollowing: boolean }>`
   transition: background-color 0.2s ease-in-out;
 
   &:hover {
-    background-color: ${(props) => (props.$isFollowing ? "#777" : "#e0509a")};
+    background-color: ${(props) => (props.$isFollowing ? "#aaa" : "#f73c63")};
   }
 
   @media (max-width: 767px) {
@@ -129,10 +129,8 @@ const UserListItem: React.FC<UserListItemProps> = ({
   const navigate = useNavigate();
   console.log("isMyAccount: ", isMyAccount);
   console.log("showFollowButton", showFollowButton);
-
-  // 실제 팔로잉 상태: 서버 값 우선, 없으면 type 추론
-  const currentIsFollowingStatus =
-    user.follow !== undefined ? user.follow : type === "following";
+  const [currentIsFollowingStatus, setCurrentIsFollowingStatus] =
+    React.useState(user.follow ? user.follow : false);
 
   const handleUserClick = () => {
     navigate(`/mypage/${user.userId}`);
@@ -140,6 +138,7 @@ const UserListItem: React.FC<UserListItemProps> = ({
 
   const handleFollowButtonClick = (e: React.MouseEvent) => {
     e.stopPropagation(); // row 클릭 이동 막기
+    setCurrentIsFollowingStatus(!currentIsFollowingStatus);
     if (onFollowToggle) {
       onFollowToggle(user.userId, currentIsFollowingStatus, user.nickname);
     }

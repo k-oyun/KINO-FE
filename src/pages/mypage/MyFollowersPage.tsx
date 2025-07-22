@@ -431,7 +431,7 @@ const MyFollowersPage: React.FC = () => {
                 <UserListItem
                   key={follower.userId}
                   user={follower}
-                  onFollowToggle={isOwner ? handleFollowToggle : undefined}
+                  onFollowToggle={handleFollowToggle}
                   showFollowButton={
                     !isOwner && loggedInUser?.userId !== Number(follower.userId)
                   }
