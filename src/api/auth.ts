@@ -6,13 +6,13 @@ export const useAuthApi = () => {
   };
 
   const loginWithKakao = async (code: string) => {
-    return await axios.get(`auth/oauth/kakao?code=${code}`);
+    return await axios.get(`/auth/oauth/kakao?code=${code}`);
   };
   const loginWithGoogle = async (code: string) => {
-    return await axios.get(`auth/oauth/google?code=${code}`);
+    return await axios.get(`/auth/oauth/google?code=${code}`);
   };
   const loginWithNaver = async (code: string) => {
-    return await axios.get(`auth/oauth/naver?code=${code}`);
+    return await axios.get(`/auth/oauth/naver?code=${code}`);
   };
 
   const userInfoGet = async () => {
@@ -23,6 +23,10 @@ export const useAuthApi = () => {
     return await axios.get("/logout");
   };
 
+  const reissue = async () => {
+    return await axios.get("/refresh");
+  };
+
   return {
     login,
     loginWithKakao,
@@ -30,6 +34,7 @@ export const useAuthApi = () => {
     loginWithNaver,
     userInfoGet,
     logout,
+    reissue,
   };
 };
 export default useAuthApi;

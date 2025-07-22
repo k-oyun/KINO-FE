@@ -1,8 +1,8 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import styled from "styled-components";
+import styled from "styled-components"; // keyframes 임포트 추가
 import { formatDistanceToNow } from "date-fns";
-import { ko } from "date-fns/locale";
+import { ko, enUS } from "date-fns/locale"; // 한국어, 영어 로케일 임포트
 import ReportModal from "../ReportModal";
 import { useTranslation } from "react-i18next";
 import { useReviewsApi } from "../../api/reviews";
@@ -136,7 +136,7 @@ const ReviewText = styled.p<StyleType>`
   color: #000;
   /* 최대 3줄 프리뷰 */
   display: -webkit-box;
-  -webkit-line-clamp: 3;   /* 기존 1줄 → 3줄 프리뷰가 더 자연스럽다면 */
+  -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -242,7 +242,7 @@ const DetailReviewCard: React.FC<DetailReviewCardProps> = ({
   isMobile,
   onClick,
 }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation(); // i18n 객체도 가져오기
   const navigate = useNavigate();
   const { deleteReview } = useReviewsApi();
 
@@ -278,15 +278,17 @@ const DetailReviewCard: React.FC<DetailReviewCardProps> = ({
 
   /* 삭제 */
   const deletePost = async () => {
-    if (!window.confirm("정말로 이 게시글을 삭제하시겠습니까?")) return;
+    // TODO: window.confirm 대신 커스텀 모달 UI 사용
+    if (!window.confirm(t('detailReviewCard.deleteConfirm'))) return; // 다국어 처리
     try {
       const res = await deleteReview(review.reviewId);
       console.log("게시글 삭제 성공:", res.data);
-      alert("게시글이 삭제되었습니다.");
+      alert(t('detailReviewCard.deleteSuccess')); // 다국어 처리
+
       navigate("/community");
     } catch (e) {
       console.error("게시글 삭제 실패:", e);
-      alert("게시글 삭제에 실패했습니다. 다시 시도해주세요.");
+      alert(t('detailReviewCard.deleteFailure')); // 다국어 처리
     }
   };
 
@@ -294,11 +296,17 @@ const DetailReviewCard: React.FC<DetailReviewCardProps> = ({
   const createdLabel = (() => {
     const dt = new Date(review.createdAt);
     if (isNaN(dt.getTime())) return ""; // invalid date 방어
-    return formatDistanceToNow(dt, { addSuffix: true, locale: ko });
+
+    // i18n.language에 따라 date-fns 로케일 동적으로 선택
+    const dateFnsLocale = i18n.language === 'ko' ? ko : enUS; // 'en'일 경우 enUS 사용
+    return formatDistanceToNow(dt, { addSuffix: true, locale: dateFnsLocale });
   })();
 
   /* 포스터/프로필 이미지 결정 */
-  const posterSrc = review.image || review.userProfile; // fallback
+  // NOTE: review.image가 없는 경우 userProfile을 사용하지만,
+  // review.image는 영화 포스터, userProfile은 사용자 프로필 이미지이므로
+  // alt 텍스트를 분리하는 것이 더 정확합니다.
+  const posterSrc = review.image || `https://placehold.co/160x270/CCCCCC/FFFFFF?text=${t('detailReviewCard.noImageText')}`;
   const profileSrc = review.userProfile;
 
   return (
@@ -314,7 +322,7 @@ const DetailReviewCard: React.FC<DetailReviewCardProps> = ({
           $ismobile={isMobile}
           $showProfile={showProfile}
           src={posterSrc}
-          alt="리뷰 이미지"
+          alt={t('detailReviewCard.reviewImageAlt')}
         />
 
         <ProfileNReview $ismobile={isMobile}>
@@ -326,6 +334,13 @@ const DetailReviewCard: React.FC<DetailReviewCardProps> = ({
                 alt={`${review.userNickname} 프로필`}
                 onClick={(e) => {
                   e.stopPropagation();
+                alt={t('detailReviewCard.userProfileAlt', { nickname: review.userNickname })}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  // TODO: userId를 기반으로 navigate하는 것이 더 안전함.
+                  // 현재 review.userNickname을 사용하고 있는데, 닉네임이 변경될 경우 문제가 될 수 있음.
+                  // review 객체에 userId가 있다면 review.reviewer.userId를 사용하거나,
+                  // 없다면 API 호출을 통해 userId를 가져와야 함.
                   navigate(`/mypage/${review.userNickname}`); // 필요시 userId 경로로 수정
                 }}
               />
@@ -344,7 +359,7 @@ const DetailReviewCard: React.FC<DetailReviewCardProps> = ({
 
             {movieTitle && (
               <DetailReviewMovieTitleText>
-                영화: {movieTitle}
+                {t('movieTitle')}: {movieTitle} {/* 기존 'movieTitle' 키 재사용 */}
               </DetailReviewMovieTitleText>
             )}
 
@@ -359,13 +374,13 @@ const DetailReviewCard: React.FC<DetailReviewCardProps> = ({
               <MetaInfo $ismobile={isMobile}>
                 <Heart
                   src="https://img.icons8.com/?size=100&id=V4c6yYlvXtzy&format=png&color=000000"
-                  alt="좋아요"
+                  alt={t('detailReviewCard.likesAlt')}
                   $ismobile={isMobile}
                 />
                 <LikesDisplay>{review.likeCount}</LikesDisplay>
                 <CommentImage
                   src="https://img.icons8.com/?size=100&id=61f1pL4hEqO1&format=png&color=000000"
-                  alt="댓글"
+                  alt={t('detailReviewCard.commentsAlt')}
                   $ismobile={isMobile}
                 />
                 <CommentDisplay>{review.commentCount}</CommentDisplay>

@@ -2,6 +2,7 @@ import React, { useEffect } from "react";
 import styled from "styled-components";
 import { motion, AnimatePresence } from "framer-motion";
 import { useMediaQuery } from "react-responsive";
+import { useTranslation } from "react-i18next";
 
 interface styleType {
   $ismobile: boolean;
@@ -84,12 +85,14 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
   onCancel,
   isRedButton = false,
 }) => {
+  const { t } = useTranslation();
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         onCancel?.();
       }
     };
+
     window.addEventListener("keydown", handleEsc);
     return () => window.removeEventListener("keydown", handleEsc);
   }, [onCancel]);
@@ -125,7 +128,7 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
                   $backgroundColor="#eee"
                   color="#7C7C7C"
                 >
-                  취소
+                  {t("cancle")}
                 </Button>
               )}
               <Button
@@ -134,7 +137,7 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
                 $backgroundColor={isRedButton ? "#e20000" : "#002C5F"}
                 color="#fff"
               >
-                확인
+                {t("confirm")}
               </Button>
             </ButtonWrapper>
           </Dialog>

@@ -8,6 +8,13 @@ import useAuthApi from "../api/auth";
 import profileIcon from "../assets/img/profileIcon.png";
 import profileIconBlack from "../assets/img/profileIconBlack.png";
 import logoutIcon from "../assets/img/LogoutIcon.png";
+import { useTranslation } from "react-i18next";
+import ConfirmDialog from "./ConfirmDialog";
+declare global {
+  interface Window {
+    isLoggingOut?: boolean;
+  }
+}
 interface styleType {
   $ismobile: boolean;
 }
@@ -16,7 +23,7 @@ interface userImageType extends styleType {
   $image: string;
 }
 
-const HeaderContainer = styled.header<styleType>`
+const HeaderContainer = styled(motion.header)<styleType>`
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -185,13 +192,15 @@ const Header = () => {
   const popupRef = useRef<HTMLDivElement>(null);
   const menuPopupRef = useRef<HTMLDivElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const isMobile = useMediaQuery({ query: "(max-width: 767px)" });
+  const { t } = useTranslation();
   const { userInfoGet, logout } = useAuthApi();
   const menuItems = [
-    { label: "홈", path: "/home" },
-    { label: "커뮤니티", path: "/community" },
-    { label: "영화", path: "/movie" },
-    { label: "내가 찜한 리스트", path: "/wish" },
+    { label: "home", path: "/home" },
+    { label: "community", path: "/community" },
+    { label: "movie", path: "/movie" },
+    { label: "myPickMovies", path: "/mypage/movies/favorite" },
   ];
   const navigate = useNavigate();
 
@@ -203,13 +212,11 @@ const Header = () => {
   const handleMenuPopup = (path: string) => {
     setIsMenuPopupOpen((prev) => !prev);
     setIsPopupOpen(false);
-    console.log("dasdsad");
     navigate(`${path}`);
   };
 
   const onClickMypage = () => {
     setIsPopupOpen(false);
-    console.log("딸깍");
     navigate("/mypage");
   };
 
@@ -235,11 +242,12 @@ const Header = () => {
 
   const onClickLogout = async () => {
     try {
+      window.isLoggingOut = true;
       await logout();
     } finally {
+      setIsModalOpen(true);
       localStorage.removeItem("accessToken");
       localStorage.removeItem("refreshToken");
-      navigate("/");
     }
   };
   const [mounted, setMounted] = useState(false);
@@ -258,11 +266,17 @@ const Header = () => {
 
   return (
     <>
-      <HeaderContainer $ismobile={isMobile}>
+      <HeaderContainer
+        $ismobile={isMobile}
+        initial={{ y: -40, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        exit={{ y: -40, opacity: 0 }}
+        transition={{ duration: 0.5, type: "spring", bounce: 0.2 }}
+      >
         <Logo
           $ismobile={isMobile}
           src={logoText}
-          alt="로고 이미지"
+          alt="logo"
           onClick={() => navigate("/home")}
         />
         <HeaderMenuContainer $ismobile={isMobile}>
@@ -274,7 +288,7 @@ const Header = () => {
                   setIsMenuPopupOpen(true);
                 }}
               >
-                메뉴
+                {t("menu")}
                 <MenuPopupText $ismenupopupopen={isMenuPopupOpen}>
                   ▼
                 </MenuPopupText>
@@ -296,7 +310,7 @@ const Header = () => {
                         handleMenuPopup(path);
                       }}
                     >
-                      {label}
+                      {t(label)}
                     </HeaderMenuBtn>
                   ))}
                 </MenuPopup>
@@ -310,7 +324,7 @@ const Header = () => {
                   $ismobile={isMobile}
                   onClick={() => handleMenuPopup(path)}
                 >
-                  {label}
+                  {t(label)}
                 </HeaderMenuBtn>
               ))}
             </>
@@ -319,7 +333,7 @@ const Header = () => {
         <UserInfoContainer $ismobile={isMobile}>
           {user.nickname === "" ? (
             <LoginBtn $ismobile={isMobile} onClick={() => navigate("/")}>
-              {isMobile ? "로그인" : "로그인하러 가기"}
+              {isMobile ? t("login") : t("goToLogin")}
             </LoginBtn>
           ) : (
             <>
@@ -345,14 +359,24 @@ const Header = () => {
         >
           <PopupBtn onClick={onClickMypage}>
             <PopupImg src={theme.profileImg} $width="20px" $mr="5px" />
-            마이페이지
+            {t("mypage")}
           </PopupBtn>
           <PopupBtn onClick={onClickLogout}>
             <PopupImg src={logoutIcon} $width="15px" $mr="10px" />
-            로그아웃
+            {t("logout")}
           </PopupBtn>
         </Popup>
       )}
+      <ConfirmDialog
+        isOpen={isModalOpen}
+        title={t("notification")}
+        message={t("logoutMessage")}
+        onConfirm={() => {
+          navigate("/");
+        }}
+        showCancel={false}
+        isRedButton={true}
+      />
     </>
   );
 };
