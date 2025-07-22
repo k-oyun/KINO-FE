@@ -215,7 +215,7 @@ const Admin = () => {
                 />
               )}
             </>
-          ) : (
+          ) : !isMobile ? (
             <ChartContainer>
               <AdminChart
                 dataValues={ShortReviewStats}
@@ -231,17 +231,11 @@ const Admin = () => {
                 labelKey="month"
                 valueKey="banCount"
               />
-              {/* <AdminChart
-                dataValues={[1, 2, 3, 4, 5, 6, 7]}
-                chartTitle={"댓글 수"}
-                chartLabel={"라벨"}
-              />
-              <AdminChart
-                dataValues={[1, 2, 3, 4, 5, 6, 7]}
-                chartTitle={"좋아요 수"}
-                chartLabel={"라벨"}
-              /> */}
             </ChartContainer>
+          ) : (
+            <ManagementInfoContainer $ismobile={isMobile}>
+              PC에서만 사용 가능한 기능입니다.
+            </ManagementInfoContainer>
           )}
         </ManagementContainer>
       </AmdinContainer>
