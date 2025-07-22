@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 import styled from "styled-components";
 import type { Dispatch, SetStateAction } from "react";
+import { motion } from "framer-motion";
 
 interface PageType {
   currentPage: number;
@@ -178,9 +179,14 @@ const Pagination: React.FC<PaginationProps> = ({
 
     return buttons;
   };
-
+  const MotionPaginationContainer = motion(PaginationContainer);
   return (
-    <PaginationContainer>
+    <MotionPaginationContainer
+      initial={{ opacity: 0, y: 30 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 30 }}
+      transition={{ duration: 0.3, type: "spring", bounce: 0.15 }}
+    >
       <PageButton
         onClick={handlePrevious}
         $isdisabled={pageInfo.currentPage === 0}
@@ -196,7 +202,7 @@ const Pagination: React.FC<PaginationProps> = ({
       >
         다음
       </PageButton>
-    </PaginationContainer>
+    </MotionPaginationContainer>
   );
 };
 

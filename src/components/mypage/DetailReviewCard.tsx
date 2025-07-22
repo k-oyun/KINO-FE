@@ -1,23 +1,38 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+<<<<<<< HEAD
 import styled from "styled-components"; 
 import { formatDistanceToNow } from "date-fns";
 import { ko, enUS } from "date-fns/locale";
+=======
+import styled from "styled-components"; // keyframes 임포트 추가
+import { formatDistanceToNow } from "date-fns";
+import { ko, enUS } from "date-fns/locale"; // 한국어, 영어 로케일 임포트
+>>>>>>> origin/main
 import ReportModal from "../ReportModal";
 import { useTranslation } from "react-i18next";
 import { useReviewsApi } from "../../api/reviews";
 
 export interface DetailReview {
   reviewId: number;
+<<<<<<< HEAD
   image?: string;        
   userProfile: string;    
+=======
+  image?: string; // 썸네일/포스터 URL (옵션)
+  userProfile: string; // 작성자 프로필 이미지 URL
+>>>>>>> origin/main
   userNickname: string;
   title: string;
   content: string;
   likeCount: number;
   totalViews: number;
   commentCount: number;
+<<<<<<< HEAD
   createdAt: string;      
+=======
+  createdAt: string; // ISO string or yyyy.MM.dd HH:mm 등
+>>>>>>> origin/main
 }
 
 interface DetailReviewCardProps {
@@ -231,7 +246,11 @@ const DetailReviewCard: React.FC<DetailReviewCardProps> = ({
   isMobile,
   onClick,
 }) => {
+<<<<<<< HEAD
   const { t, i18n } = useTranslation();
+=======
+  const { t, i18n } = useTranslation(); // i18n 객체도 가져오기
+>>>>>>> origin/main
   const navigate = useNavigate();
   const { deleteReview } = useReviewsApi();
 
@@ -266,6 +285,7 @@ const DetailReviewCard: React.FC<DetailReviewCardProps> = ({
 
   const deletePost = async () => {
     // TODO: window.confirm 대신 커스텀 모달 UI 사용
+<<<<<<< HEAD
     if (!window.confirm(t('detailReviewCard.deleteConfirm'))) return;
     try {
       const res = await deleteReview(review.reviewId);
@@ -275,17 +295,48 @@ const DetailReviewCard: React.FC<DetailReviewCardProps> = ({
     } catch (e) {
       console.error("게시글 삭제 실패:", e);
       alert(t('detailReviewCard.deleteFailure'));
+=======
+    if (!window.confirm(t("detailReviewCard.deleteConfirm"))) return; // 다국어 처리
+    try {
+      const res = await deleteReview(review.reviewId);
+      console.log("게시글 삭제 성공:", res.data);
+      alert(t("detailReviewCard.deleteSuccess")); // 다국어 처리
+
+      navigate("/community");
+    } catch (e) {
+      console.error("게시글 삭제 실패:", e);
+      alert(t("detailReviewCard.deleteFailure")); // 다국어 처리
+>>>>>>> origin/main
     }
   };
 
   const createdLabel = (() => {
     const dt = new Date(review.createdAt);
+<<<<<<< HEAD
     if (isNaN(dt.getTime())) return "";
     const dateFnsLocale = i18n.language === 'ko' ? ko : enUS;
     return formatDistanceToNow(dt, { addSuffix: true, locale: dateFnsLocale });
   })();
 
   const posterSrc = review.image || `https://placehold.co/160x270/CCCCCC/FFFFFF?text=${t('detailReviewCard.noImageText')}`;
+=======
+    if (isNaN(dt.getTime())) return ""; // invalid date 방어
+
+    // i18n.language에 따라 date-fns 로케일 동적으로 선택
+    const dateFnsLocale = i18n.language === "ko" ? ko : enUS; // 'en'일 경우 enUS 사용
+    return formatDistanceToNow(dt, { addSuffix: true, locale: dateFnsLocale });
+  })();
+
+  /* 포스터/프로필 이미지 결정 */
+  // NOTE: review.image가 없는 경우 userProfile을 사용하지만,
+  // review.image는 영화 포스터, userProfile은 사용자 프로필 이미지이므로
+  // alt 텍스트를 분리하는 것이 더 정확합니다.
+  const posterSrc =
+    review.image ||
+    `https://placehold.co/160x270/CCCCCC/FFFFFF?text=${t(
+      "detailReviewCard.noImageText"
+    )}`;
+>>>>>>> origin/main
   const profileSrc = review.userProfile;
 
   return (
@@ -300,7 +351,11 @@ const DetailReviewCard: React.FC<DetailReviewCardProps> = ({
           $ismobile={isMobile}
           $showProfile={showProfile}
           src={posterSrc}
+<<<<<<< HEAD
           alt={t('detailReviewCard.reviewImageAlt')}
+=======
+          alt={t("detailReviewCard.reviewImageAlt")}
+>>>>>>> origin/main
         />
         <ProfileNReview $ismobile={isMobile}>
           {showProfile && (
@@ -308,7 +363,13 @@ const DetailReviewCard: React.FC<DetailReviewCardProps> = ({
               <UserImage
                 $ismobile={isMobile}
                 src={profileSrc}
+<<<<<<< HEAD
                 alt={t('detailReviewCard.userProfileAlt', { nickname: review.userNickname })}
+=======
+                alt={t("detailReviewCard.userProfileAlt", {
+                  nickname: review.userNickname,
+                })}
+>>>>>>> origin/main
                 onClick={(e) => {
                   e.stopPropagation();
                   // TODO: userId를 기반으로 navigate하는 것이 더 안전함.
@@ -333,7 +394,12 @@ const DetailReviewCard: React.FC<DetailReviewCardProps> = ({
 
             {movieTitle && (
               <DetailReviewMovieTitleText>
+<<<<<<< HEAD
                 {t('movieTitle')}: {movieTitle}
+=======
+                {t("movieTitle")}: {movieTitle}{" "}
+                {/* 기존 'movieTitle' 키 재사용 */}
+>>>>>>> origin/main
               </DetailReviewMovieTitleText>
             )}
 
@@ -348,13 +414,21 @@ const DetailReviewCard: React.FC<DetailReviewCardProps> = ({
               <MetaInfo $ismobile={isMobile}>
                 <Heart
                   src="https://img.icons8.com/?size=100&id=V4c6yYlvXtzy&format=png&color=000000"
+<<<<<<< HEAD
                   alt={t('detailReviewCard.likesAlt')}
+=======
+                  alt={t("detailReviewCard.likesAlt")}
+>>>>>>> origin/main
                   $ismobile={isMobile}
                 />
                 <LikesDisplay>{review.likeCount}</LikesDisplay>
                 <CommentImage
                   src="https://img.icons8.com/?size=100&id=61f1pL4hEqO1&format=png&color=000000"
+<<<<<<< HEAD
                   alt={t('detailReviewCard.commentsAlt')}
+=======
+                  alt={t("detailReviewCard.commentsAlt")}
+>>>>>>> origin/main
                   $ismobile={isMobile}
                 />
                 <CommentDisplay>{review.commentCount}</CommentDisplay>
@@ -411,9 +485,7 @@ const DetailReviewCard: React.FC<DetailReviewCardProps> = ({
         </ThreeDotsMenu>
       </DetailReviewCardContainer>
 
-      {isReportOpen && (
-        <ReportModal setIsModalOpen={setIsReportOpen} />
-      )}
+      {isReportOpen && <ReportModal setIsModalOpen={setIsReportOpen} />}
     </>
   );
 };

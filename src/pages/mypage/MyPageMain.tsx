@@ -224,7 +224,17 @@ interface FavoriteMovieType {
 const parseDateString = (dateStr: string): Date => {
   if (!dateStr) return new Date(NaN);
   const parts = dateStr.split(/[. :]/).map(Number);
+<<<<<<< HEAD
   return new Date(parts[0], (parts[1] || 1) - 1, parts[2] || 1, parts[3] ?? 0, parts[4] ?? 0);
+=======
+  return new Date(
+    parts[0],
+    parts[1] - 1,
+    parts[2],
+    parts[3] ?? 0,
+    parts[4] ?? 0
+  );
+>>>>>>> origin/main
 };
 
 const parseShortReviewDate = (dateStr: string): Date => {
@@ -270,10 +280,21 @@ const MyPageMain: React.FC = () => {
   const navigate = useNavigate();
   const { targetId } = useParams<{ targetId?: string }>();
 
-  const [shortReviewSort, setShortReviewSort] = useState<"latest" | "rating" | "likes">("latest");
-  const [detailReviewSort, setDetailReviewSort] = useState<"latest" | "views" | "likes">("latest");
+  const [shortReviewSort, setShortReviewSort] = useState<
+    "latest" | "rating" | "likes"
+  >("latest");
+  const [detailReviewSort, setDetailReviewSort] = useState<
+    "latest" | "views" | "likes"
+  >("latest");
 
+<<<<<<< HEAD
   const [loggedInUser, setLoggedInUser] = useState<UserProfileType | null>(null);
+=======
+  // 로그인한 내 정보
+  const [loggedInUser, setLoggedInUser] = useState<UserProfileType | null>(
+    null
+  );
+>>>>>>> origin/main
 
   const [viewedUser, setViewedUser] = useState<UserProfileType | null>(null);
   const [viewedFollow, setViewedFollow] = useState<Follow | null>(null);
@@ -355,9 +376,7 @@ const MyPageMain: React.FC = () => {
       try {
         const res = await mypageReview(uid);
         setDetailReviews(
-          Array.isArray(res.data?.data?.reviews)
-            ? res.data.data.reviews
-            : []
+          Array.isArray(res.data?.data?.reviews) ? res.data.data.reviews : []
         );
       } catch (error) {
         console.error("상세 리뷰 로드 실패:", error);
@@ -407,7 +426,11 @@ const MyPageMain: React.FC = () => {
     loadFavoriteMovies,
   ]);
 
+<<<<<<< HEAD
   /* ------------------ 메모 / 정렬 ------------------ */
+=======
+  // ------------------ 메모 / 정렬 ------------------
+>>>>>>> origin/main
   const isOwner = useMemo(() => {
     if (!loggedInUser) return false;
     if (!targetId) return true;
@@ -448,6 +471,7 @@ const MyPageMain: React.FC = () => {
     return arr;
   }, [detailReviews, detailReviewSort]);
 
+<<<<<<< HEAD
   const displayShortReviews = useMemo(() => {
     const now = new Date();
     return sortedShortReviews.map((r) => ({ ...r, createdAt: getRelativeTime(r.createdAt, t, now) }));
@@ -456,6 +480,11 @@ const MyPageMain: React.FC = () => {
   const displayDetailReviews = sortedDetailReviews;
 
   /* ------------------ 핸들러 ------------------ */
+=======
+  // ------------------ 핸들러 ------------------
+  // 이 함수는 DetailReviewCard 클릭 시 특정 상세 리뷰의 고유 페이지로 이동합니다.
+  // 즉, '/reviews/detail/:reviewId' 형태의 라우팅이 필요합니다.
+>>>>>>> origin/main
   const handleDetailReviewCardClick = (reviewId: number) => {
     navigate(`/reviews/detail/${reviewId}`);
   };
@@ -487,13 +516,18 @@ const MyPageMain: React.FC = () => {
     }
   };
 
+<<<<<<< HEAD
   /* --- 페이지 이동 헬퍼 함수 --- */
+=======
+  // --- 페이지 이동 헬퍼 함수 ---
+>>>>>>> origin/main
   const goShortReviewsPage = useCallback(() => {
     if (isOwner) {
       navigate("/mypage/reviews/short");
     } else if (viewedUser?.userId) {
       navigate(`/mypage/reviews/short/${viewedUser.userId}`);
     } else {
+<<<<<<< HEAD
       console.warn(t('mypage.main.navigation.noShortReviewPage'));
     }
   }, [isOwner, viewedUser, navigate, t]);
@@ -519,6 +553,36 @@ const MyPageMain: React.FC = () => {
   }, [isOwner, viewedUser, navigate, t]);
 
   /* ------------------ 렌더 ------------------ */
+=======
+      console.warn("viewedUser 없음: 한줄평 페이지로 이동 못함.");
+    }
+  }, [isOwner, viewedUser, navigate]);
+
+  const goDetailReviewsPage = useCallback(() => {
+    if (isOwner) {
+      // 내 상세 리뷰 목록 페이지로 이동 (파라미터 없음)
+      navigate("/mypage/reviews/detail");
+    } else if (viewedUser?.userId) {
+      // 타인 상세 리뷰 목록 페이지로 이동 (userId 파라미터 포함)
+      navigate(`/mypage/reviews/detail/${viewedUser.userId}`);
+    } else {
+      console.warn("viewedUser 없음: 상세 리뷰 페이지로 이동 못함.");
+    }
+  }, [isOwner, viewedUser, navigate]);
+
+  const goFavoritesPage = useCallback(() => {
+    if (isOwner) {
+      navigate("/mypage/movies/favorite");
+    } else if (viewedUser?.userId) {
+      navigate(`/mypage/movies/favorite/${viewedUser.userId}`);
+    } else {
+      console.warn("viewedUser 없음: 찜한 영화 페이지로 이동 못함.");
+    }
+  }, [isOwner, viewedUser, navigate]);
+
+  // ------------------ 렌더 ------------------
+  // `viewedUser`와 `viewedFollow`가 모두 로드될 때까지 로딩 상태를 보여줍니다.
+>>>>>>> origin/main
   if (!viewedUser || !viewedFollow) {
     return (
       <MyPageContainer>
@@ -582,6 +646,7 @@ const MyPageMain: React.FC = () => {
           </SortOptions>
         </SectionHeader>
         <PreviewContent>
+<<<<<<< HEAD
           {displayShortReviews.length > 0 ? (
             displayShortReviews.slice(0, 3).map((review) => (
               <ShortReviewCard
@@ -593,6 +658,21 @@ const MyPageMain: React.FC = () => {
                 isOwner={isOwner}
               />
             ))
+=======
+          {sortedShortReviews.length > 0 ? (
+            sortedShortReviews
+              .slice(0, 3)
+              .map((review) => (
+                <ShortReviewCard
+                  key={review.shortReviewId}
+                  review={review}
+                  onClick={goShortReviewsPage}
+                  onEdit={isOwner ? handleEditShortReview : undefined}
+                  onDelete={isOwner ? handleDeleteShortReview : undefined}
+                  isOwner={isOwner}
+                />
+              ))
+>>>>>>> origin/main
           ) : (
             <EmptyState>{t('mypage.main.shortReviewSection.emptyState')}</EmptyState>
           )}
@@ -689,9 +769,9 @@ const MyPageMain: React.FC = () => {
         </SectionHeader>
         <MovieCardGrid isEmpty={favoriteMovies.length === 0}>
           {favoriteMovies.length > 0 ? (
-            favoriteMovies.slice(0, 12).map((movie) => (
-              <MovieCard key={movie.myPickId} movie={movie} />
-            ))
+            favoriteMovies
+              .slice(0, 12)
+              .map((movie) => <MovieCard key={movie.myPickId} movie={movie} />)
           ) : (
             <EmptyState>{t('mypage.main.favoriteMoviesSection.emptyState')}</EmptyState>
           )}

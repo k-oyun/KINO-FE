@@ -17,7 +17,8 @@ export type CommentType = {
 
 const SectionWrapper = styled.div`
   margin-top: 18px;
-  background-color: #d9d9d9;
+  background-color: ${({ theme }) =>
+    theme.backgroundColor === "#ffffff" ? "#d9d9d9" : "#292929"};
   padding: 25px;
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
@@ -47,6 +48,9 @@ const StyledTextArea = styled.textarea`
   border: none;
   outline: none;
   resize: noen;
+  background-color: ${({ theme }) =>
+    theme.backgroundColor === "#ffffff" ? "#f0f0f0" : "#333333"};
+  color: ${({ theme }) => theme.textColor};
   &:focus {
     border: 1.5px solid #fe5890;
   }

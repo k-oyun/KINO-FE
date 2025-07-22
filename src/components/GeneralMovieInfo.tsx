@@ -50,8 +50,9 @@ const Title = styled.h1<styleType>`
 
 const ZzimBtn = styled.img<styleType>`
   cursor: pointer;
-  width: ${(props) => (props.$ismobile ? "30px" : "50px")};
-  height: ${(props) => (props.$ismobile ? "30px" : "50px")};
+  width: ${(props) => (props.$ismobile ? "20px" : "40px")};
+  height: ${(props) => (props.$ismobile ? "20px" : "40px")};
+  padding-top: ${(props) => (props.$ismobile ? "6px" : "8px")};
   background-size: cover;
   background-repeat: no-repeat;
   border: none;

@@ -1,8 +1,13 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
 import { IoIosArrowBack, IoIosSettings } from "react-icons/io";
+<<<<<<< HEAD
 import { useTranslation } from "react-i18next";
+=======
+import useFollowApi from "../../api/follow";
+import { useMediaQuery } from "react-responsive";
+>>>>>>> origin/main
 
 interface UserProfileType {
   userId: number;
@@ -21,6 +26,10 @@ interface UserProfileSectionProps {
   userProfile: UserProfileType;
   follow: Follow;
   isOwner?: boolean;
+}
+
+interface StyleType {
+  $ismobile?: boolean;
 }
 
 const UserProfileSectionWrapper = styled.section`
@@ -54,25 +63,26 @@ const ProfileContent = styled.div`
   text-align: center;
 `;
 
-const ProfileImageWrapper = styled.div`
-  width: 100px;
-  height: 100px;
+const ProfileImageWrapper = styled.div<StyleType>`
+  width: ${(props) => (props.$ismobile ? "70px" : "120px")};
+  height: ${(props) => (props.$ismobile ? "70px" : "120px")};
   border-radius: 50%;
   overflow: hidden;
   border: 3px solid #f0f0f0;
   margin-bottom: 15px;
 `;
 
-const ProfileImage = styled.img`
-  width: 100%;
-  height: 100%;
+const ProfileImage = styled.img<StyleType>`
+  width: ${(props) => (props.$ismobile ? "70px" : "120px")};
+  height: ${(props) => (props.$ismobile ? "70px" : "120px")};
   object-fit: cover;
+  object-position: center;
 `;
 
-const Nickname = styled.h2`
+const Nickname = styled.h2<StyleType>`
   color: #f0f0f0;
   margin: 0;
-  font-size: 2em;
+  font-size: ${(props) => (props.$ismobile ? "1em" : "2em")};
   font-weight: bold;
   text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.7);
 `;
@@ -83,11 +93,29 @@ const FollowStats = styled.p`
   margin: 5px 0 0;
   text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.7);
 `;
-const FollowItem = styled.span`
+const FollowItem = styled.span<StyleType>`
+  font-size: ${(props) => (props.$ismobile ? "0.7em" : "1em")};
   cursor: pointer;
   transition: color 0.2s ease-in-out;
   &:hover {
     color: #ff69b4;
+  }
+`;
+
+const FollowButton = styled.button<{ $isFollowed: boolean } & StyleType>`
+  background-color: ${(props) => (props.$isFollowed ? "#fd6782" : "#aaa")};
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 2px 5px;
+  font-size: ${(props) => (props.$ismobile ? "0.6em" : "1em")};
+  cursor: pointer;
+  margin-left: 10px;
+  transition: background-color 0.15s ease-in-out;
+
+  &:hover {
+    background-color: ${(props) => (props.$isFollowed ? "#aaa" : "#f73c63")};
+    transform: scale(1.03);
   }
 `;
 
@@ -146,12 +174,68 @@ const TagButton = styled(BaseIconButton)`
   }
 `;
 
+<<<<<<< HEAD
 const UserProfileSection: React.FC<UserProfileSectionProps> = ({ userProfile, follow, isOwner }) => {
   const { t } = useTranslation();
+=======
+const UserProfileSection: React.FC<UserProfileSectionProps> = ({
+  userProfile,
+  follow,
+  isOwner,
+}) => {
+>>>>>>> origin/main
   const navigate = useNavigate();
+  const [isFollowed, setIsFollowed] = useState(false);
+  const [followerCount, setFollowerCount] = useState(follow.follower);
+  const { getIsFollowed, postFollow, deleteFollow } = useFollowApi();
+  const isMobile = useMediaQuery({ query: "(max-width: 768px)" });
 
-  const handleFollowerClick = () => navigate("/mypage/followers");
-  const handleFollowingClick = () => navigate("/mypage/following");
+  useEffect(() => {
+    console.log(follow);
+    try {
+      // 팔로우 상태 확인
+      if (!isOwner) {
+        const res = getIsFollowed(userProfile.userId);
+        res
+          .then((data) => {
+            setIsFollowed(data.data.data.following);
+            console.log("팔로우 상태:", isFollowed);
+          })
+          .catch((error) => {
+            console.error("Error fetching follow status:", error);
+          });
+      }
+    } catch (error) {
+      console.error("Error checking follow status:", error);
+    }
+  }, []);
+
+  const handleFollowerClick = () => navigate(`followers`);
+  const handleFollowingClick = () =>
+    navigate(`/mypage/following/${userProfile.userId}`);
+
+  const handleFollow = () => {
+    console.log(`팔로우: ${userProfile.nickname}`);
+    try {
+      if (isFollowed) {
+        // 팔로우 취소
+        const res = deleteFollow(userProfile.userId);
+        res.then(() => {
+          setIsFollowed(false);
+          setFollowerCount(followerCount - 1);
+        });
+      } else {
+        // 팔로우
+        const res = postFollow(userProfile.userId);
+        res.then(() => {
+          setIsFollowed(true);
+          setFollowerCount(followerCount + 1);
+        });
+      }
+    } catch (error) {
+      console.error("Error toggling follow status:", error);
+    }
+  };
 
   return (
     <UserProfileSectionWrapper>
@@ -171,21 +255,40 @@ const UserProfileSection: React.FC<UserProfileSectionProps> = ({ userProfile, fo
       )}
 
       <ProfileContent>
-        <ProfileImageWrapper>
+        <ProfileImageWrapper $ismobile={isMobile}>
           <ProfileImage
+            $ismobile={isMobile}
             src={userProfile.image}
             alt={t('userProfileSection.profileImageAlt', { nickname: userProfile.nickname })}
           />
         </ProfileImageWrapper>
-        <Nickname>{userProfile.nickname}</Nickname>
+        <Nickname $ismobile={isMobile}>{userProfile.nickname}</Nickname>
         <FollowStats>
+<<<<<<< HEAD
           <FollowItem onClick={handleFollowerClick}>
             {t('userProfileSection.followerCount', { count: follow.follower })}
           </FollowItem>
           <span> {t('userProfileSection.separator')} </span>
           <FollowItem onClick={handleFollowingClick}>
             {t('userProfileSection.followingCount', { count: follow.following })}
+=======
+          <FollowItem onClick={handleFollowerClick} $ismobile={isMobile}>
+            팔로워 {followerCount}
           </FollowItem>
+          <span> | </span>
+          <FollowItem onClick={handleFollowingClick} $ismobile={isMobile}>
+            팔로잉 {follow.following}
+>>>>>>> origin/main
+          </FollowItem>
+          {!isOwner && (
+            <FollowButton
+              onClick={handleFollow}
+              $isFollowed={isFollowed}
+              $ismobile={isMobile}
+            >
+              팔로우
+            </FollowButton>
+          )}{" "}
         </FollowStats>
       </ProfileContent>
     </UserProfileSectionWrapper>
