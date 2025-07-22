@@ -16,7 +16,7 @@ const LanguageButton = styled.button<styledType>`
   bottom: 32px;
   right: 20px;
   padding: 8px 16px;
-  background-color: ${({ theme }) => theme.backgroundColor};
+  background-color: ${({ theme }) => theme.hoverColor};
   transition: background-color 0.2s, transform 0.1s;
   display: flex;
   align-items: center;
