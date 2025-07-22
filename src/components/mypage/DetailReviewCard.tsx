@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import styled from "styled-components"; 
+import styled from "styled-components";
 import { formatDistanceToNow } from "date-fns";
 import { ko, enUS } from "date-fns/locale";
 import ReportModal from "../ReportModal";
@@ -9,15 +9,16 @@ import { useReviewsApi } from "../../api/reviews";
 
 export interface DetailReview {
   reviewId: number;
-  image?: string;        
-  userProfile: string;    
+  image?: string;
+  userId: number;
+  userProfile: string;
   userNickname: string;
   title: string;
   content: string;
   likeCount: number;
   totalViews: number;
   commentCount: number;
-  createdAt: string;      
+  createdAt: string;
 }
 
 interface DetailReviewCardProps {
@@ -27,6 +28,7 @@ interface DetailReviewCardProps {
   movieTitle?: string;
   isMobile?: boolean;
   onClick?: () => void;
+  onDelete?: (reviewId: number) => void;
 }
 
 interface StyleType {
@@ -233,7 +235,7 @@ const DetailReviewCard: React.FC<DetailReviewCardProps> = ({
 }) => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
-  const { deleteReview } = useReviewsApi();
+  const { deleteReview, postReviewReport } = useReviewsApi();
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [isReportOpen, setIsReportOpen] = useState(false);
@@ -247,6 +249,26 @@ const DetailReviewCard: React.FC<DetailReviewCardProps> = ({
   const handleReportClick = () => {
     setIsReportOpen(true);
     setMenuOpen(false);
+  };
+
+  const submitReport = async (type: number, content: string) => {
+    try {
+      const res = postReviewReport(
+        type,
+        content,
+        review.reviewId,
+        review.userId
+      );
+      res.then((data) => {
+        console.log("Report submitted successfully:", data);
+        //완료 모달
+        alert(t("report.success"));
+      });
+    } catch (error) {
+      console.error("Failed to submit report:", error);
+      // 에러 모달
+      alert(t("report.failure"));
+    }
   };
 
   useEffect(() => {
@@ -263,29 +285,32 @@ const DetailReviewCard: React.FC<DetailReviewCardProps> = ({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [menuOpen]);
 
-
   const deletePost = async () => {
     // TODO: window.confirm 대신 커스텀 모달 UI 사용
-    if (!window.confirm(t('detailReviewCard.deleteConfirm'))) return;
+    if (!window.confirm(t("detailReviewCard.deleteConfirm"))) return;
     try {
       const res = await deleteReview(review.reviewId);
       console.log("게시글 삭제 성공:", res.data);
-      alert(t('detailReviewCard.deleteSuccess'));
+      alert(t("detailReviewCard.deleteSuccess"));
       navigate("/community");
     } catch (e) {
       console.error("게시글 삭제 실패:", e);
-      alert(t('detailReviewCard.deleteFailure'));
+      alert(t("detailReviewCard.deleteFailure"));
     }
   };
 
   const createdLabel = (() => {
     const dt = new Date(review.createdAt);
     if (isNaN(dt.getTime())) return "";
-    const dateFnsLocale = i18n.language === 'ko' ? ko : enUS;
+    const dateFnsLocale = i18n.language === "ko" ? ko : enUS;
     return formatDistanceToNow(dt, { addSuffix: true, locale: dateFnsLocale });
   })();
 
-  const posterSrc = review.image || `https://placehold.co/160x270/CCCCCC/FFFFFF?text=${t('detailReviewCard.noImageText')}`;
+  const posterSrc =
+    review.image ||
+    `https://placehold.co/160x270/CCCCCC/FFFFFF?text=${t(
+      "detailReviewCard.noImageText"
+    )}`;
   const profileSrc = review.userProfile;
 
   return (
@@ -300,7 +325,7 @@ const DetailReviewCard: React.FC<DetailReviewCardProps> = ({
           $ismobile={isMobile}
           $showProfile={showProfile}
           src={posterSrc}
-          alt={t('detailReviewCard.reviewImageAlt')}
+          alt={t("detailReviewCard.reviewImageAlt")}
         />
         <ProfileNReview $ismobile={isMobile}>
           {showProfile && (
@@ -308,7 +333,9 @@ const DetailReviewCard: React.FC<DetailReviewCardProps> = ({
               <UserImage
                 $ismobile={isMobile}
                 src={profileSrc}
-                alt={t('detailReviewCard.userProfileAlt', { nickname: review.userNickname })}
+                alt={t("detailReviewCard.userProfileAlt", {
+                  nickname: review.userNickname,
+                })}
                 onClick={(e) => {
                   e.stopPropagation();
                   // TODO: userId를 기반으로 navigate하는 것이 더 안전함.
@@ -333,7 +360,7 @@ const DetailReviewCard: React.FC<DetailReviewCardProps> = ({
 
             {movieTitle && (
               <DetailReviewMovieTitleText>
-                {t('movieTitle')}: {movieTitle}
+                {t("movieTitle")}: {movieTitle}
               </DetailReviewMovieTitleText>
             )}
 
@@ -348,13 +375,13 @@ const DetailReviewCard: React.FC<DetailReviewCardProps> = ({
               <MetaInfo $ismobile={isMobile}>
                 <Heart
                   src="https://img.icons8.com/?size=100&id=V4c6yYlvXtzy&format=png&color=000000"
-                  alt={t('detailReviewCard.likesAlt')}
+                  alt={t("detailReviewCard.likesAlt")}
                   $ismobile={isMobile}
                 />
                 <LikesDisplay>{review.likeCount}</LikesDisplay>
                 <CommentImage
                   src="https://img.icons8.com/?size=100&id=61f1pL4hEqO1&format=png&color=000000"
-                  alt={t('detailReviewCard.commentsAlt')}
+                  alt={t("detailReviewCard.commentsAlt")}
                   $ismobile={isMobile}
                 />
                 <CommentDisplay>{review.commentCount}</CommentDisplay>
@@ -412,7 +439,12 @@ const DetailReviewCard: React.FC<DetailReviewCardProps> = ({
       </DetailReviewCardContainer>
 
       {isReportOpen && (
-        <ReportModal setIsModalOpen={setIsReportOpen} />
+        <ReportModal
+          setIsModalOpen={setIsReportOpen}
+          onSubmit={({ type, content }) => {
+            submitReport(type, content);
+          }}
+        />
       )}
     </>
   );
