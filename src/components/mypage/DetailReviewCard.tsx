@@ -1,26 +1,23 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import styled from "styled-components";
+import styled from "styled-components"; 
 import { formatDistanceToNow } from "date-fns";
-import { ko } from "date-fns/locale";
+import { ko, enUS } from "date-fns/locale";
 import ReportModal from "../ReportModal";
 import { useTranslation } from "react-i18next";
 import { useReviewsApi } from "../../api/reviews";
 
-/* ------------------------------------------------------------------ *
- * Types
- * ------------------------------------------------------------------ */
 export interface DetailReview {
   reviewId: number;
-  image?: string;          // 썸네일/포스터 URL (옵션)
-  userProfile: string;     // 작성자 프로필 이미지 URL
+  image?: string;        
+  userProfile: string;    
   userNickname: string;
   title: string;
   content: string;
   likeCount: number;
   totalViews: number;
   commentCount: number;
-  createdAt: string;       // ISO string or yyyy.MM.dd HH:mm 등
+  createdAt: string;      
 }
 
 interface DetailReviewCardProps {
@@ -32,9 +29,6 @@ interface DetailReviewCardProps {
   onClick?: () => void;
 }
 
-/* ------------------------------------------------------------------ *
- * Styled
- * ------------------------------------------------------------------ */
 interface StyleType {
   $ismobile?: boolean;
   $showProfile?: boolean;
@@ -134,9 +128,8 @@ const ReviewText = styled.p<StyleType>`
   white-space: pre-wrap;
   word-break: break-word;
   color: #000;
-  /* 최대 3줄 프리뷰 */
   display: -webkit-box;
-  -webkit-line-clamp: 3;   /* 기존 1줄 → 3줄 프리뷰가 더 자연스럽다면 */
+  -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -228,12 +221,8 @@ const MenuItem = styled.li<StyleType>`
   }
 `;
 
-/* 별도 스타일 필요 없으면 합쳐도 됨 */
 const MenuItemReport = MenuItem;
 
-/* ------------------------------------------------------------------ *
- * Component
- * ------------------------------------------------------------------ */
 const DetailReviewCard: React.FC<DetailReviewCardProps> = ({
   review,
   isMine = false,
@@ -242,7 +231,7 @@ const DetailReviewCard: React.FC<DetailReviewCardProps> = ({
   isMobile,
   onClick,
 }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const { deleteReview } = useReviewsApi();
 
@@ -250,7 +239,6 @@ const DetailReviewCard: React.FC<DetailReviewCardProps> = ({
   const [isReportOpen, setIsReportOpen] = useState(false);
   const popMenuRef = useRef<HTMLUListElement | null>(null);
 
-  /* 메뉴 토글 (카드 클릭 전파 막기) */
   const handleMenuClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     setMenuOpen((prev) => !prev);
@@ -261,7 +249,6 @@ const DetailReviewCard: React.FC<DetailReviewCardProps> = ({
     setMenuOpen(false);
   };
 
-  /* 바깥 클릭시 메뉴 닫기 */
   useEffect(() => {
     if (!menuOpen) return;
     const handleClickOutside = (event: MouseEvent) => {
@@ -276,29 +263,29 @@ const DetailReviewCard: React.FC<DetailReviewCardProps> = ({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [menuOpen]);
 
-  /* 삭제 */
+
   const deletePost = async () => {
-    if (!window.confirm("정말로 이 게시글을 삭제하시겠습니까?")) return;
+    // TODO: window.confirm 대신 커스텀 모달 UI 사용
+    if (!window.confirm(t('detailReviewCard.deleteConfirm'))) return;
     try {
       const res = await deleteReview(review.reviewId);
       console.log("게시글 삭제 성공:", res.data);
-      alert("게시글이 삭제되었습니다.");
+      alert(t('detailReviewCard.deleteSuccess'));
       navigate("/community");
     } catch (e) {
       console.error("게시글 삭제 실패:", e);
-      alert("게시글 삭제에 실패했습니다. 다시 시도해주세요.");
+      alert(t('detailReviewCard.deleteFailure'));
     }
   };
 
-  /* createdAt 포맷 */
   const createdLabel = (() => {
     const dt = new Date(review.createdAt);
-    if (isNaN(dt.getTime())) return ""; // invalid date 방어
-    return formatDistanceToNow(dt, { addSuffix: true, locale: ko });
+    if (isNaN(dt.getTime())) return "";
+    const dateFnsLocale = i18n.language === 'ko' ? ko : enUS;
+    return formatDistanceToNow(dt, { addSuffix: true, locale: dateFnsLocale });
   })();
 
-  /* 포스터/프로필 이미지 결정 */
-  const posterSrc = review.image || review.userProfile; // fallback
+  const posterSrc = review.image || `https://placehold.co/160x270/CCCCCC/FFFFFF?text=${t('detailReviewCard.noImageText')}`;
   const profileSrc = review.userProfile;
 
   return (
@@ -309,23 +296,25 @@ const DetailReviewCard: React.FC<DetailReviewCardProps> = ({
         role="button"
         tabIndex={0}
       >
-        {/* 포스터 / 썸네일 */}
         <DetailMoviePoster
           $ismobile={isMobile}
           $showProfile={showProfile}
           src={posterSrc}
-          alt="리뷰 이미지"
+          alt={t('detailReviewCard.reviewImageAlt')}
         />
-
         <ProfileNReview $ismobile={isMobile}>
           {showProfile && (
             <UserProfileWrap $ismobile={isMobile}>
               <UserImage
                 $ismobile={isMobile}
                 src={profileSrc}
-                alt={`${review.userNickname} 프로필`}
+                alt={t('detailReviewCard.userProfileAlt', { nickname: review.userNickname })}
                 onClick={(e) => {
                   e.stopPropagation();
+                  // TODO: userId를 기반으로 navigate하는 것이 더 안전함.
+                  // 현재 review.userNickname을 사용하고 있는데, 닉네임이 변경될 경우 문제가 될 수 있음.
+                  // review 객체에 userId가 있다면 review.reviewer.userId를 사용하거나,
+                  // 없다면 API 호출을 통해 userId를 가져와야 함.
                   navigate(`/mypage/${review.userNickname}`); // 필요시 userId 경로로 수정
                 }}
               />
@@ -344,7 +333,7 @@ const DetailReviewCard: React.FC<DetailReviewCardProps> = ({
 
             {movieTitle && (
               <DetailReviewMovieTitleText>
-                영화: {movieTitle}
+                {t('movieTitle')}: {movieTitle}
               </DetailReviewMovieTitleText>
             )}
 
@@ -359,13 +348,13 @@ const DetailReviewCard: React.FC<DetailReviewCardProps> = ({
               <MetaInfo $ismobile={isMobile}>
                 <Heart
                   src="https://img.icons8.com/?size=100&id=V4c6yYlvXtzy&format=png&color=000000"
-                  alt="좋아요"
+                  alt={t('detailReviewCard.likesAlt')}
                   $ismobile={isMobile}
                 />
                 <LikesDisplay>{review.likeCount}</LikesDisplay>
                 <CommentImage
                   src="https://img.icons8.com/?size=100&id=61f1pL4hEqO1&format=png&color=000000"
-                  alt="댓글"
+                  alt={t('detailReviewCard.commentsAlt')}
                   $ismobile={isMobile}
                 />
                 <CommentDisplay>{review.commentCount}</CommentDisplay>
@@ -375,7 +364,6 @@ const DetailReviewCard: React.FC<DetailReviewCardProps> = ({
           </DetailReviewContentWrapper>
         </ProfileNReview>
 
-        {/* 점 3개 메뉴 */}
         <ThreeDotsMenu onClick={handleMenuClick}>
           ⋮
           {menuOpen && (

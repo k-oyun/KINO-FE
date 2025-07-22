@@ -9,8 +9,9 @@ import MovieCard from "../../components/mypage/MovieCard";
 import VideoBackground from "../../components/VideoBackground";
 
 import useMypageApi from "../../api/mypage";
+import { useTranslation } from "react-i18next";
 
-// ------------------ 스타일 ------------------
+// ---------- style --------------
 const MyPageContainer = styled.div`
   max-width: 1200px;
   margin: 0 auto;
@@ -24,7 +25,7 @@ const MyPageContainer = styled.div`
   @media (max-width: 767px) {
     padding: 20px 15px;
     padding-top: 80px;
-    gap: 15px;
+    // gap: 15px;
   }
 `;
 
@@ -170,7 +171,8 @@ const PinkText = styled.span`
   margin-left: 0.25em;
 `;
 
-// ------------------ 타입 ------------------
+
+// ---------- type --------------
 interface UserProfileType {
   userId: number;
   nickname: string;
@@ -218,27 +220,64 @@ interface FavoriteMovieType {
   posterUrl: string;
 }
 
+// ---------- util --------------
 const parseDateString = (dateStr: string): Date => {
+  if (!dateStr) return new Date(NaN);
   const parts = dateStr.split(/[. :]/).map(Number);
-  return new Date(parts[0], parts[1] - 1, parts[2], parts[3] ?? 0, parts[4] ?? 0);
+  return new Date(parts[0], (parts[1] || 1) - 1, parts[2] || 1, parts[3] ?? 0, parts[4] ?? 0);
 };
 
-// ------------------ 메인 컴포넌트 ------------------
+const parseShortReviewDate = (dateStr: string): Date => {
+  if (!dateStr) return new Date(NaN);
+  const isoTry = new Date(dateStr);
+  if (!isNaN(isoTry.getTime())) return isoTry;
+  return parseDateString(dateStr);
+};
+
+const getRelativeTime = (dateStr: string, t: (key: string, options?: Record<string, unknown>) => string, nowDate?: Date): string => {
+  const now = nowDate ?? new Date();
+  const past = parseShortReviewDate(dateStr);
+  const pastMs = past.getTime();
+  if (isNaN(pastMs)) return dateStr;
+
+  const diffSec = (now.getTime() - pastMs) / 1000;
+
+  if (diffSec < 0) {
+    const futureSec = Math.abs(diffSec);
+    if (futureSec < 60) return t("mypage.relativeTime.soon");
+    if (futureSec < 3600) return t("mypage.relativeTime.minutesLater", { count: Math.floor(futureSec / 60) });
+    if (futureSec < 86400) return t("mypage.relativeTime.hoursLater", { count: Math.floor(futureSec / 3600) });
+    return t("mypage.relativeTime.daysLater", { count: Math.floor(futureSec / 86400) });
+  }
+
+  if (diffSec < 60) return t("mypage.relativeTime.justNow");
+  if (diffSec < 3600) return t("mypage.relativeTime.minutesAgo", { count: Math.floor(diffSec / 60) });
+  if (diffSec < 86400) return t("mypage.relativeTime.hoursAgo", { count: Math.floor(diffSec / 3600) });
+
+  const diffDay = Math.floor(diffSec / 86400);
+  if (diffDay < 30) return t("mypage.relativeTime.daysAgo", { count: diffDay });
+
+  const diffMonth = Math.floor(diffDay / 30);
+  if (diffMonth < 12) return t("mypage.relativeTime.monthsAgo", { count: diffMonth });
+
+  const diffYear = Math.floor(diffMonth / 12);
+  return t("mypage.relativeTime.yearsAgo", { count: diffYear });
+};
+
+// ---------- component --------------
 const MyPageMain: React.FC = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { targetId } = useParams<{ targetId?: string }>();
 
   const [shortReviewSort, setShortReviewSort] = useState<"latest" | "rating" | "likes">("latest");
   const [detailReviewSort, setDetailReviewSort] = useState<"latest" | "views" | "likes">("latest");
 
-  // 로그인한 내 정보
   const [loggedInUser, setLoggedInUser] = useState<UserProfileType | null>(null);
 
-  // 현재 보고 있는 마이페이지 주인
   const [viewedUser, setViewedUser] = useState<UserProfileType | null>(null);
   const [viewedFollow, setViewedFollow] = useState<Follow | null>(null);
 
-  // 데이터
   const [shortReviews, setShortReviews] = useState<ShortReviewType[]>([]);
   const [detailReviews, setDetailReviews] = useState<DetailReviewType[]>([]);
   const [favoriteMovies, setFavoriteMovies] = useState<FavoriteMovieType[]>([]);
@@ -255,7 +294,7 @@ const MyPageMain: React.FC = () => {
     mypageMain,
   } = useMypageApi();
 
-  // ------------------ 데이터 로딩 ------------------
+  /* ------------------ 데이터 로딩 ------------------ */
   const loadLoggedInUser = useCallback(async () => {
     try {
       const res = await userInfoGet();
@@ -285,7 +324,6 @@ const MyPageMain: React.FC = () => {
             ? followingRes.data.data.length
             : 0,
         });
-        
       } catch (error) {
         console.error("페이지 주인 정보 로드 실패:", error);
         setViewedUser(null);
@@ -346,7 +384,7 @@ const MyPageMain: React.FC = () => {
     [mypageMyPickMovie]
   );
 
-  // ------------------ Effect ------------------
+  /* ------------------ Effect ------------------ */
   useEffect(() => {
     loadLoggedInUser();
   }, [loadLoggedInUser]);
@@ -354,7 +392,6 @@ const MyPageMain: React.FC = () => {
   useEffect(() => {
     if (!loggedInUser) return;
     const uid = targetId ? Number(targetId) : loggedInUser.userId;
-    // targetId가 유효하지 않은 숫자일 경우 loggedInUser.userId를 사용
     const finalUid = isNaN(uid) ? loggedInUser.userId : uid;
 
     loadViewedUserAndFollow(finalUid);
@@ -370,22 +407,22 @@ const MyPageMain: React.FC = () => {
     loadFavoriteMovies,
   ]);
 
-  // ------------------ 메모 / 정렬 ------------------
-const isOwner = useMemo(() => {
-  if (!loggedInUser) return false;
-  if (!targetId) return true;
-  const tid = Number(targetId);
-  if (Number.isNaN(tid)) return false;
-  return tid === loggedInUser.userId;
-}, [loggedInUser, targetId]);
+  /* ------------------ 메모 / 정렬 ------------------ */
+  const isOwner = useMemo(() => {
+    if (!loggedInUser) return false;
+    if (!targetId) return true;
+    const tid = Number(targetId);
+    if (Number.isNaN(tid)) return false;
+    return tid === loggedInUser.userId;
+  }, [loggedInUser, targetId]);
 
   const sortedShortReviews = useMemo(() => {
     const arr = [...shortReviews];
     if (shortReviewSort === "latest") {
       arr.sort(
         (a, b) =>
-          parseDateString(b.createdAt).getTime() -
-          parseDateString(a.createdAt).getTime()
+          parseShortReviewDate(b.createdAt).getTime() -
+          parseShortReviewDate(a.createdAt).getTime()
       );
     } else if (shortReviewSort === "likes") {
       arr.sort((a, b) => b.likes - a.likes);
@@ -411,78 +448,82 @@ const isOwner = useMemo(() => {
     return arr;
   }, [detailReviews, detailReviewSort]);
 
-  // ------------------ 핸들러 ------------------
-// 이 함수는 DetailReviewCard 클릭 시 특정 상세 리뷰의 고유 페이지로 이동합니다.
-// 즉, '/reviews/detail/:reviewId' 형태의 라우팅이 필요합니다.
-const handleDetailReviewCardClick = (reviewId: number) => {
-  navigate(`/reviews/detail/${reviewId}`);
-};
+  const displayShortReviews = useMemo(() => {
+    const now = new Date();
+    return sortedShortReviews.map((r) => ({ ...r, createdAt: getRelativeTime(r.createdAt, t, now) }));
+  }, [sortedShortReviews, t]);
 
+  const displayDetailReviews = sortedDetailReviews;
+
+  /* ------------------ 핸들러 ------------------ */
+  const handleDetailReviewCardClick = (reviewId: number) => {
+    navigate(`/reviews/detail/${reviewId}`);
+  };
 
   const handleEditShortReview = async (updated: ShortReviewType) => {
     if (!updated.shortReviewId || updated.movieId == null) return;
     try {
       const payload = { content: updated.content, rating: updated.rating };
       await updateShortReview(updated.movieId, updated.shortReviewId, payload);
-      alert("한줄평이 성공적으로 수정되었습니다.");
+      alert(t('mypage.main.shortReviewEdit.success'));
       if (viewedUser?.userId) loadShortReviews(viewedUser.userId);
     } catch (err) {
       console.error("한줄평 수정 실패:", err);
+      alert(t('mypage.main.shortReviewEdit.failure'));
     }
   };
 
   const handleDeleteShortReview = async (movieId: number, reviewId: string) => {
     if (!reviewId || movieId == null) return;
     try {
+      if (!window.confirm(t('mypage.shortReviews.delete.confirm'))) return; // 기존 키 재사용
+
       await deleteShortReview(movieId, reviewId);
-      alert("한줄평이 삭제되었습니다.");
+      alert(t('mypage.main.shortReviewDelete.success'));
       if (viewedUser?.userId) loadShortReviews(viewedUser.userId);
     } catch (err) {
       console.error("한줄평 삭제 실패:", err);
+      alert(t('mypage.main.shortReviewDelete.failure'));
     }
   };
 
-  // --- 페이지 이동 헬퍼 함수 ---
-const goShortReviewsPage = useCallback(() => {
-  if (isOwner) {
-    navigate("/mypage/reviews/short");
-  } else if (viewedUser?.userId) {
-    navigate(`/mypage/reviews/short/${viewedUser.userId}`);
-  } else {
-    console.warn("viewedUser 없음: 한줄평 페이지로 이동 못함.");
-  }
-}, [isOwner, viewedUser, navigate]);
+  /* --- 페이지 이동 헬퍼 함수 --- */
+  const goShortReviewsPage = useCallback(() => {
+    if (isOwner) {
+      navigate("/mypage/reviews/short");
+    } else if (viewedUser?.userId) {
+      navigate(`/mypage/reviews/short/${viewedUser.userId}`);
+    } else {
+      console.warn(t('mypage.main.navigation.noShortReviewPage'));
+    }
+  }, [isOwner, viewedUser, navigate, t]);
 
-const goDetailReviewsPage = useCallback(() => {
-  if (isOwner) {
-    // 내 상세 리뷰 목록 페이지로 이동 (파라미터 없음)
-    navigate("/mypage/reviews/detail");
-  } else if (viewedUser?.userId) {
-    // 타인 상세 리뷰 목록 페이지로 이동 (userId 파라미터 포함)
-    navigate(`/mypage/reviews/detail/${viewedUser.userId}`);
-  } else {
-    console.warn("viewedUser 없음: 상세 리뷰 페이지로 이동 못함.");
-  }
-}, [isOwner, viewedUser, navigate]);
+  const goDetailReviewsPage = useCallback(() => {
+    if (isOwner) {
+      navigate("/mypage/reviews/detail");
+    } else if (viewedUser?.userId) {
+      navigate(`/mypage/reviews/detail/${viewedUser.userId}`);
+    } else {
+      console.warn(t('mypage.main.navigation.noDetailReviewPage'));
+    }
+  }, [isOwner, viewedUser, navigate, t]);
 
-const goFavoritesPage = useCallback(() => {
-  if (isOwner) {
-    navigate("/mypage/movies/favorite");
-  } else if (viewedUser?.userId) {
-    navigate(`/mypage/movies/favorite/${viewedUser.userId}`);
-  } else {
-    console.warn("viewedUser 없음: 찜한 영화 페이지로 이동 못함.");
-  }
-}, [isOwner, viewedUser, navigate]);
+  const goFavoritesPage = useCallback(() => {
+    if (isOwner) {
+      navigate("/mypage/movies/favorite");
+    } else if (viewedUser?.userId) {
+      navigate(`/mypage/movies/favorite/${viewedUser.userId}`);
+    } else {
+      console.warn(t('mypage.main.navigation.noFavoriteMoviesPage'));
+    }
+  }, [isOwner, viewedUser, navigate, t]);
 
-
-  // ------------------ 렌더 ------------------
-  // `viewedUser`와 `viewedFollow`가 모두 로드될 때까지 로딩 상태를 보여줍니다.
+  /* ------------------ 렌더 ------------------ */
   if (!viewedUser || !viewedFollow) {
     return (
       <MyPageContainer>
         <VideoBackground />
-        <EmptyState>프로필 정보를 로드 중입니다...</EmptyState>
+        <EmptyState>{t('mypage.main.loadingProfile')}</EmptyState>
       </MyPageContainer>
     );
   }
@@ -501,8 +542,8 @@ const goFavoritesPage = useCallback(() => {
         <SectionHeader>
           {/* SectionTitle 클릭 시 한줄평 목록 페이지로 이동 */}
           <SectionTitle onClick={goShortReviewsPage}>
-            {isOwner ? "내가 작성한" : `${viewedUser.nickname} 님이 작성한`}
-            <PinkText>한줄평</PinkText>
+            {isOwner ? t('mypage.main.shortReviewSection.titlePrefix.my') : t('mypage.main.shortReviewSection.titlePrefix.other', { nickname: viewedUser.nickname })}
+            <PinkText>{t('shortReview')}</PinkText>
             <svg
               width="24"
               height="24"
@@ -524,25 +565,25 @@ const goFavoritesPage = useCallback(() => {
               isActive={shortReviewSort === "latest"}
               onClick={() => setShortReviewSort("latest")}
             >
-              최신순
+              {t('Bylatest')}
             </SortButton>
             <SortButton
               isActive={shortReviewSort === "rating"}
               onClick={() => setShortReviewSort("rating")}
             >
-              별점순
+              {t('Byrating')}
             </SortButton>
             <SortButton
               isActive={shortReviewSort === "likes"}
               onClick={() => setShortReviewSort("likes")}
             >
-              좋아요순
+              {t('Bylikdes')}
             </SortButton>
           </SortOptions>
         </SectionHeader>
         <PreviewContent>
-          {sortedShortReviews.length > 0 ? (
-            sortedShortReviews.slice(0, 3).map((review) => (
+          {displayShortReviews.length > 0 ? (
+            displayShortReviews.slice(0, 3).map((review) => (
               <ShortReviewCard
                 key={review.shortReviewId}
                 review={review}
@@ -553,7 +594,7 @@ const goFavoritesPage = useCallback(() => {
               />
             ))
           ) : (
-            <EmptyState>작성한 한줄평이 없습니다.</EmptyState>
+            <EmptyState>{t('mypage.main.shortReviewSection.emptyState')}</EmptyState>
           )}
         </PreviewContent>
       </SectionWrapper>
@@ -563,8 +604,8 @@ const goFavoritesPage = useCallback(() => {
         <SectionHeader>
           {/* SectionTitle 클릭 시 상세 리뷰 목록 페이지로 이동 */}
           <SectionTitle onClick={goDetailReviewsPage}>
-            {isOwner ? "내가 작성한" : `${viewedUser.nickname} 님이 작성한`}
-            <PinkText>상세 리뷰</PinkText>
+            {isOwner ? t('mypage.main.detailedReviewSection.titlePrefix.my') : t('mypage.main.detailedReviewSection.titlePrefix.other', { nickname: viewedUser.nickname })}
+            <PinkText>{t('detailedReview')}</PinkText>
             <svg
               width="24"
               height="24"
@@ -586,36 +627,35 @@ const goFavoritesPage = useCallback(() => {
               isActive={detailReviewSort === "latest"}
               onClick={() => setDetailReviewSort("latest")}
             >
-              최신순
+              {t('Bylatest')}
             </SortButton>
             <SortButton
               isActive={detailReviewSort === "views"}
               onClick={() => setDetailReviewSort("views")}
             >
-              조회순
+              {t('Byviews')}
             </SortButton>
             <SortButton
               isActive={detailReviewSort === "likes"}
               onClick={() => setDetailReviewSort("likes")}
             >
-              좋아요순
+              {t('Bylikdes')}
             </SortButton>
           </SortOptions>
         </SectionHeader>
         <PreviewContent>
-          {sortedDetailReviews.length > 0 ? (
-            sortedDetailReviews.slice(0, 3).map((review) => (
+          {displayDetailReviews.length > 0 ? (
+            displayDetailReviews.slice(0, 3).map((review) => (
               <DetailReviewCard
                 key={review.reviewId}
                 review={review}
                 isMine={isOwner}
                 showProfile={true}
-                // DetailReviewCard 클릭 시 특정 리뷰 ID의 상세 페이지로 이동
                 onClick={() => handleDetailReviewCardClick(review.reviewId)}
               />
             ))
           ) : (
-            <EmptyState>작성한 상세 리뷰가 없습니다.</EmptyState>
+            <EmptyState>{t('mypage.main.detailedReviewSection.emptyState')}</EmptyState>
           )}
         </PreviewContent>
       </SectionWrapper>
@@ -625,8 +665,8 @@ const goFavoritesPage = useCallback(() => {
         <SectionHeader>
           {/* SectionTitle 클릭 시 찜한 영화 목록 페이지로 이동 */}
           <SectionTitle onClick={goFavoritesPage}>
-            {isOwner ? "내가" : `${viewedUser.nickname} 님이`}
-            <PinkText>찜한 영화</PinkText>
+            {isOwner ? t('mypage.main.favoriteMoviesSection.titlePrefix.my') : t('mypage.main.favoriteMoviesSection.titlePrefix.other', { nickname: viewedUser.nickname })}
+            <PinkText>{t('myPickMovies')}</PinkText>
             <svg
               width="24"
               height="24"
@@ -644,7 +684,7 @@ const goFavoritesPage = useCallback(() => {
             </svg>
           </SectionTitle>
           <SortOptions>
-            <SortButton isActive={true}>최신순</SortButton>
+            <SortButton isActive={true}>{t('Bylatest')}</SortButton> {/* 찜한 영화는 최신순만 있음 */}
           </SortOptions>
         </SectionHeader>
         <MovieCardGrid isEmpty={favoriteMovies.length === 0}>
@@ -653,11 +693,10 @@ const goFavoritesPage = useCallback(() => {
               <MovieCard key={movie.myPickId} movie={movie} />
             ))
           ) : (
-            <EmptyState>찜한 영화가 없습니다.</EmptyState>
+            <EmptyState>{t('mypage.main.favoriteMoviesSection.emptyState')}</EmptyState>
           )}
         </MovieCardGrid>
       </SectionWrapper>
-      
     </MyPageContainer>
   );
 };

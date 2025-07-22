@@ -1,52 +1,28 @@
 import React from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
-/** 행에 표시할 사용자 정보 */
 export interface UserListItemUser {
   id: string;
   nickname: string;
   profileImageUrl: string;
-  isFollowing?: boolean; // 서버에서 온 실제 상태(선택)
+  isFollowing?: boolean;
 }
 
-/** 리스트 아이템용 Prop */
 export interface UserListItemProps {
   user: UserListItemUser;
-  /**
-   * 팔로우/언팔로우 토글 콜백.
-   * parent에서 API 호출 후 상태 업데이트.
-   * userId, 현재 팔로잉 여부, 닉네임 전달.
-   */
   onFollowToggle?: (
     userId: string,
     isCurrentlyFollowing: boolean,
     nickname: string
   ) => Promise<void>;
 
-  /**
-   * 리스트 컨텍스트(선택). 지정 안 하면 'searchResult' 취급.
-   * - 'follower': 나를 팔로우하는 사람
-   * - 'following': 내가 팔로우하는 사람
-   * - 'searchResult': 검색결과 등 중립 상태
-   */
   type?: 'follower' | 'following' | 'searchResult';
-
-  /**
-   * 이 행이 로그인한 '나' 자신인가? (true면 버튼 숨김)
-   */
   isMyAccount?: boolean;
-
-  /**
-   * 부모가 강제 버튼 표시/숨김을 제어할 때 사용.
-   * 전달되지 않으면 type/onFollowToggle/isMyAccount 로 계산.
-   */
   showFollowButton?: boolean;
 }
 
-// ------------------------------------------------------------------
-// styled-components
-// ------------------------------------------------------------------
 const UserItemContainer = styled.div`
   display: flex;
   align-items: center;
@@ -116,9 +92,6 @@ const FollowButton = styled.button<{ $isFollowing: boolean }>`
   }
 `;
 
-// ------------------------------------------------------------------
-// Component
-// ------------------------------------------------------------------
 const UserListItem: React.FC<UserListItemProps> = ({
   user,
   onFollowToggle,
@@ -126,9 +99,9 @@ const UserListItem: React.FC<UserListItemProps> = ({
   isMyAccount = false,
   showFollowButton,
 }) => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
-  // 실제 팔로잉 상태: 서버 값 우선, 없으면 type 추론
   const currentIsFollowingStatus =
     user.isFollowing !== undefined ? user.isFollowing : type === 'following';
 
@@ -137,21 +110,16 @@ const UserListItem: React.FC<UserListItemProps> = ({
   };
 
   const handleFollowButtonClick = (e: React.MouseEvent) => {
-    e.stopPropagation(); // row 클릭 이동 막기
+    e.stopPropagation();
     if (onFollowToggle) {
       onFollowToggle(user.id, currentIsFollowingStatus, user.nickname);
     }
   };
 
-  // 버튼 표시 여부 계산
   const computedShouldShowFollowButton = (() => {
-    // 강제 지정이 최우선
     if (typeof showFollowButton === 'boolean') return showFollowButton;
-    // '나'면 숨김
     if (isMyAccount) return false;
-    // 토글 핸들러 없으면 표시 의미 없음
     if (!onFollowToggle) return false;
-    // 기본: 지정된 type에 따라 표시
     return type === 'follower' || type === 'following' || type === 'searchResult';
   })();
 
@@ -164,7 +132,7 @@ const UserListItem: React.FC<UserListItemProps> = ({
   return (
     <UserItemContainer>
       <UserInfo onClick={handleUserClick}>
-        <ProfileImage src={imgSrc} alt={user.nickname} />
+        <ProfileImage src={imgSrc} alt={t('userListItem.profileImageAlt', { nickname: user.nickname })} />
         <Nickname>{user.nickname}</Nickname>
       </UserInfo>
 
@@ -173,7 +141,7 @@ const UserListItem: React.FC<UserListItemProps> = ({
           $isFollowing={currentIsFollowingStatus}
           onClick={handleFollowButtonClick}
         >
-          {currentIsFollowingStatus ? '팔로잉' : '팔로우'}
+          {currentIsFollowingStatus ? t('following') : t('follow')}
         </FollowButton>
       )}
     </UserItemContainer>

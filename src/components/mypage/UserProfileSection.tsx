@@ -2,6 +2,7 @@ import React from "react";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
 import { IoIosArrowBack, IoIosSettings } from "react-icons/io";
+import { useTranslation } from "react-i18next";
 
 interface UserProfileType {
   userId: number;
@@ -19,7 +20,7 @@ interface Follow {
 interface UserProfileSectionProps {
   userProfile: UserProfileType;
   follow: Follow;
-  isOwner?: boolean; // 본인 여부
+  isOwner?: boolean;
 }
 
 const UserProfileSectionWrapper = styled.section`
@@ -146,6 +147,7 @@ const TagButton = styled(BaseIconButton)`
 `;
 
 const UserProfileSection: React.FC<UserProfileSectionProps> = ({ userProfile, follow, isOwner }) => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
   const handleFollowerClick = () => navigate("/mypage/followers");
@@ -161,7 +163,7 @@ const UserProfileSection: React.FC<UserProfileSectionProps> = ({ userProfile, fo
 
       {isOwner && (
         <ButtonsContainer>
-          <TagButton onClick={() => navigate("/mypage/tags")}>태그</TagButton>
+          <TagButton onClick={() => navigate("/mypage/tags")}>{t('userProfileSection.tagButton')}</TagButton>
           <IconButton onClick={() => navigate("/mypage/settings")}>
             <IoIosSettings />
           </IconButton>
@@ -172,17 +174,17 @@ const UserProfileSection: React.FC<UserProfileSectionProps> = ({ userProfile, fo
         <ProfileImageWrapper>
           <ProfileImage
             src={userProfile.image}
-            alt={`${userProfile.nickname} 프로필 이미지`}
+            alt={t('userProfileSection.profileImageAlt', { nickname: userProfile.nickname })}
           />
         </ProfileImageWrapper>
         <Nickname>{userProfile.nickname}</Nickname>
         <FollowStats>
           <FollowItem onClick={handleFollowerClick}>
-            팔로워 {follow.follower}
+            {t('userProfileSection.followerCount', { count: follow.follower })}
           </FollowItem>
-          <span> | </span>
+          <span> {t('userProfileSection.separator')} </span>
           <FollowItem onClick={handleFollowingClick}>
-            팔로잉 {follow.following}
+            {t('userProfileSection.followingCount', { count: follow.following })}
           </FollowItem>
         </FollowStats>
       </ProfileContent>

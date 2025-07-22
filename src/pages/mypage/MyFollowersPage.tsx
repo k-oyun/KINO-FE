@@ -2,13 +2,11 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import styled, { keyframes } from 'styled-components';
 import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
-
 import UserListItem from '../../components/mypage/UserListItem';
 import VideoBackground from '../../components/VideoBackground';
 import useMyPageApi from '../../api/mypage';
 import Pagination from '../../components/Pagenation';
 
-// ------------------ 인터페이스 정의 ------------------
 export interface FollowerApiResponse {
   status: number;
   success: boolean;
@@ -44,7 +42,6 @@ interface PageInfo {
 
 const ITEMS_PER_PAGE = 20;
 
-// ------------------ 스타일 정의 ------------------
 const PageContainer = styled.div`
   max-width: 1200px;
   margin: 0 auto;
@@ -144,7 +141,6 @@ const PinkText = styled.span`
   margin-left: 0.25em;
 `;
 
-// --- 팝업 애니메이션 정의 ---
 const fadeIn = keyframes`
   from {
     opacity: 0;
@@ -201,7 +197,6 @@ const PopupContainer = styled.div<{ $isVisible: boolean }>`
   }
 `;
 
-// ------------------ 컴포넌트 ------------------
 const MyFollowersPage: React.FC = () => {
   const navigate = useNavigate();
   const { targetId } = useParams<{ targetId?: string }>();
@@ -240,7 +235,6 @@ const MyFollowersPage: React.FC = () => {
     return tid === loggedInUser.userId;
   }, [loggedInUser, targetId]);
 
-  // 로그인한 사용자 정보 로드
   useEffect(() => {
     const loadLoggedInUser = async () => {
       try {
@@ -254,7 +248,6 @@ const MyFollowersPage: React.FC = () => {
     loadLoggedInUser();
   }, [userInfoGet]);
 
-  // 팔로워 목록 및 닉네임 로드
   useEffect(() => {
     if (!loggedInUser) {
       setLoading(false);
