@@ -1,7 +1,7 @@
-import React from 'react';
-import styled from 'styled-components';
-import { useNavigate } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
+import React from "react";
+import styled from "styled-components";
+import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 export interface UserListItemUser {
   id: string;
@@ -18,7 +18,7 @@ export interface UserListItemProps {
     nickname: string
   ) => Promise<void>;
 
-  type?: 'follower' | 'following' | 'searchResult';
+  type?: "follower" | "following" | "searchResult";
   isMyAccount?: boolean;
   showFollowButton?: boolean;
 }
@@ -73,7 +73,7 @@ const Nickname = styled.span`
 `;
 
 const FollowButton = styled.button<{ $isFollowing: boolean }>`
-  background-color: ${props => (props.$isFollowing ? '#555' : '#ff69b4')};
+  background-color: ${(props) => (props.$isFollowing ? "#555" : "#ff69b4")};
   color: #fff;
   border: none;
   border-radius: 20px;
@@ -83,7 +83,7 @@ const FollowButton = styled.button<{ $isFollowing: boolean }>`
   transition: background-color 0.2s ease-in-out;
 
   &:hover {
-    background-color: ${props => (props.$isFollowing ? '#777' : '#e0509a')};
+    background-color: ${(props) => (props.$isFollowing ? "#777" : "#e0509a")};
   }
 
   @media (max-width: 767px) {
@@ -95,7 +95,7 @@ const FollowButton = styled.button<{ $isFollowing: boolean }>`
 const UserListItem: React.FC<UserListItemProps> = ({
   user,
   onFollowToggle,
-  type = 'searchResult',
+  type = "searchResult",
   isMyAccount = false,
   showFollowButton,
 }) => {
@@ -103,10 +103,10 @@ const UserListItem: React.FC<UserListItemProps> = ({
   const navigate = useNavigate();
 
   const currentIsFollowingStatus =
-    user.isFollowing !== undefined ? user.isFollowing : type === 'following';
+    user.isFollowing !== undefined ? user.isFollowing : type === "following";
 
   const handleUserClick = () => {
-    navigate(`/profile/${user.id}`);
+    navigate(`/mypage/${user.id}`);
   };
 
   const handleFollowButtonClick = (e: React.MouseEvent) => {
@@ -117,10 +117,12 @@ const UserListItem: React.FC<UserListItemProps> = ({
   };
 
   const computedShouldShowFollowButton = (() => {
-    if (typeof showFollowButton === 'boolean') return showFollowButton;
+    if (typeof showFollowButton === "boolean") return showFollowButton;
     if (isMyAccount) return false;
     if (!onFollowToggle) return false;
-    return type === 'follower' || type === 'following' || type === 'searchResult';
+    return (
+      type === "follower" || type === "following" || type === "searchResult"
+    );
   })();
 
   const imgSrc =
@@ -132,7 +134,10 @@ const UserListItem: React.FC<UserListItemProps> = ({
   return (
     <UserItemContainer>
       <UserInfo onClick={handleUserClick}>
-        <ProfileImage src={imgSrc} alt={t('userListItem.profileImageAlt', { nickname: user.nickname })} />
+        <ProfileImage
+          src={imgSrc}
+          alt={t("userListItem.profileImageAlt", { nickname: user.nickname })}
+        />
         <Nickname>{user.nickname}</Nickname>
       </UserInfo>
 
@@ -141,7 +146,7 @@ const UserListItem: React.FC<UserListItemProps> = ({
           $isFollowing={currentIsFollowingStatus}
           onClick={handleFollowButtonClick}
         >
-          {currentIsFollowingStatus ? t('following') : t('follow')}
+          {currentIsFollowingStatus ? t("following") : t("follow")}
         </FollowButton>
       )}
     </UserItemContainer>
