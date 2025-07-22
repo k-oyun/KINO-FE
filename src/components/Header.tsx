@@ -23,7 +23,7 @@ interface userImageType extends styleType {
   $image: string;
 }
 
-const HeaderContainer = styled.header<styleType>`
+const HeaderContainer = styled(motion.header)<styleType>`
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -266,7 +266,13 @@ const Header = () => {
 
   return (
     <>
-      <HeaderContainer $ismobile={isMobile}>
+      <HeaderContainer
+        $ismobile={isMobile}
+        initial={{ y: -40, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        exit={{ y: -40, opacity: 0 }}
+        transition={{ duration: 0.5, type: "spring", bounce: 0.2 }}
+      >
         <Logo
           $ismobile={isMobile}
           src={logoText}

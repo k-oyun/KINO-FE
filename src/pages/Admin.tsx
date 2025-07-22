@@ -7,6 +7,7 @@ import Pagenation from "../components/Pagenation";
 import AdminChart from "../components/admin/AdminChart";
 import useAdminApi from "../api/admin";
 import ShortReview from "../components/ShortReview";
+import { motion } from "framer-motion";
 
 interface styleProp {
   $ismobile: boolean;
@@ -30,7 +31,7 @@ const AmdinContainer = styled.div<styleProp>`
   color: black;
 `;
 
-const Sidebar = styled.div<styleProp>`
+const Sidebar = styled(motion.div)<styleProp>`
   display: flex;
   flex-direction: ${(props) => (props.$ismobile ? "row" : "column")};
   align-items: center;
@@ -72,7 +73,7 @@ const ManagementContainer = styled.div<styleProp>`
   /* background-color: ${({ theme }) => theme.backgroundColor}; */
 `;
 
-const ManagementInfoContainer = styled.div<styleProp>`
+const ManagementInfoContainer = styled(motion.div)<styleProp>`
   display: flex;
   width: ${(props) => (props.$ismobile ? "auto" : "80%")};
   height: auto;
@@ -175,10 +176,19 @@ const Admin = () => {
     }
   }, [selectedOption]);
 
+  useEffect(() => {
+    console.log(localStorage.getItem("accessToken"));
+  }, []);
+
   return (
     <>
       <AmdinContainer $ismobile={isMobile}>
-        <Sidebar $ismobile={isMobile}>
+        <Sidebar
+          $ismobile={isMobile}
+          initial={{ x: -50, opacity: 0 }}
+          animate={{ x: 0, opacity: 1 }}
+          transition={{ type: "spring", stiffness: 80, damping: 15 }}
+        >
           {!isMobile && <AdminText>관리자 {adminName}</AdminText>}
           {sideBarOption.map((label, idx) => (
             <SidebarBtn
@@ -194,7 +204,14 @@ const Admin = () => {
         <ManagementContainer $ismobile={isMobile}>
           {selectedOption !== "통계" ? (
             <>
-              <ManagementInfoContainer $ismobile={isMobile}>
+              <ManagementInfoContainer
+                $ismobile={isMobile}
+                key={selectedOption}
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 30 }}
+                transition={{ duration: 0.4, type: "spring", stiffness: 100 }}
+              >
                 <AdminList
                   selectedOption={selectedOption}
                   setIsModalOpen={setIsModalOpen}
