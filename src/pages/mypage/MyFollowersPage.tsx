@@ -1,13 +1,14 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react'; // useCallback 추가
-import styled, { keyframes } from 'styled-components'; // keyframes 추가
-import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import React, { useState, useEffect, useMemo, useCallback } from "react";
+import styled, { keyframes } from "styled-components";
+import { useNavigate, useParams } from "react-router-dom";
+import axios from "axios";
 
-import UserListItem from '../../components/mypage/UserListItem';
-import VideoBackground from '../../components/VideoBackground';
-import useMyPageApi from '../../api/mypage';
-import Pagination from '../../components/Pagenation';
+import UserListItem from "../../components/mypage/UserListItem";
+import VideoBackground from "../../components/VideoBackground";
+import useMyPageApi from "../../api/mypage";
+import Pagination from "../../components/Pagenation";
 
+// ------------------ 인터페이스 정의 ------------------
 export interface FollowerApiResponse {
   status: number;
   success: boolean;
@@ -20,11 +21,19 @@ export interface FollowerApiResponse {
   }>;
 }
 
+interface UserProfileType {
+  userId: number;
+  nickname: string;
+  image: string;
+  email: string;
+  isFirstLogin: boolean;
+}
+
 interface FollowerType {
-  id: string;
+  userId: string;
   nickname: string;
   profileImageUrl: string;
-  isFollowing: boolean;
+  follow: boolean;
 }
 
 interface PageInfo {
@@ -35,6 +44,7 @@ interface PageInfo {
 
 const ITEMS_PER_PAGE = 20;
 
+// ------------------ 스타일 정의 ------------------
 const PageContainer = styled.div`
   max-width: 1200px;
   margin: 0 auto;
@@ -138,11 +148,11 @@ const PinkText = styled.span`
 const fadeIn = keyframes`
   from {
     opacity: 0;
-    transform: translate(-50%, 0px) scale(0.9); /* 중앙에서 나타나도록 시작 위치 조정 */
+    transform: translate(-50%, 0px) scale(0.9);
   }
   to {
     opacity: 1;
-    transform: translate(-50%, -50%) scale(1); /* 최종 중앙 위치 */
+    transform: translate(-50%, -50%) scale(1);
   }
 `;
 
@@ -153,15 +163,15 @@ const fadeOut = keyframes`
   }
   to {
     opacity: 0;
-    transform: translate(-50%, -100px) scale(0.9); /* 위로 사라지도록 종료 위치 조정 */
+    transform: translate(-50%, -100px) scale(0.9);
   }
 `;
 
 const PopupContainer = styled.div<{ $isVisible: boolean }>`
   position: fixed;
-  top: 50%; /* 변경: 중앙 정렬 */
-  left: 50%; /* 변경: 중앙 정렬 */
-  transform: translate(-50%, -50%); /* 변경: 자신의 크기만큼 역방향으로 이동하여 정확히 중앙 정렬 */
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   background-color: rgba(0, 0, 0, 0.85);
   color: #fff;
   padding: 15px 25px;
@@ -175,36 +185,40 @@ const PopupContainer = styled.div<{ $isVisible: boolean }>`
   min-width: 250px;
   text-align: center;
 
-  animation: ${({ $isVisible }) => ($isVisible ? fadeIn : fadeOut)} 0.5s forwards;
-  visibility: ${({ $isVisible }) => ($isVisible ? 'visible' : 'hidden')};
+  animation: ${({ $isVisible }) => ($isVisible ? fadeIn : fadeOut)} 0.5s
+    forwards;
+  visibility: ${({ $isVisible }) => ($isVisible ? "visible" : "hidden")};
   opacity: ${({ $isVisible }) => ($isVisible ? 1 : 0)};
   transition: visibility 0.5s, opacity 0.5s;
 
   @media (max-width: 767px) {
-    top: 50%; /* 변경 */
-    left: 50%; /* 변경 */
-    transform: translate(-50%, -50%); /* 변경 */
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
     padding: 12px 20px;
     font-size: 1em;
     min-width: unset;
-    width: 90%; /* 모바일에서 너비 조정 */
+    width: 90%;
   }
 `;
 
+// ------------------ 컴포넌트 ------------------
 const MyFollowersPage: React.FC = () => {
   const navigate = useNavigate();
-  const { getFollower, followUser, unfollowUser } = useMyPageApi();
+  const { targetId } = useParams<{ targetId?: string }>();
+  const { getFollower, followUser, unfollowUser, userInfoGet, mypageMain } =
+    useMyPageApi();
 
   const [followers, setFollowers] = useState<FollowerType[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [loggedInUser, setLoggedInUser] = useState<UserProfileType | null>(
+    null
+  );
+  const [viewedUserNickname, setViewedUserNickname] = useState<string>("");
 
-  // 팝업 상태 관리
   const [showPopup, setShowPopup] = useState(false);
-  const [popupMessage, setPopupMessage] = useState('');
-
-  // TODO: 로그인 유 ID 연동 (실제 로그인된 사용자의 ID를 여기에 설정해야 합니다.)
-  const myUserId = "1";
+  const [popupMessage, setPopupMessage] = useState("");
 
   const [pageInfo, setPageInfo] = useState<PageInfo>({
     currentPage: 0,
@@ -212,53 +226,99 @@ const MyFollowersPage: React.FC = () => {
     pageContentAmount: 0,
   });
 
-  // 팝업을 띄우는 함수
   const triggerPopup = useCallback((message: string) => {
     setPopupMessage(message);
     setShowPopup(true);
     const timer = setTimeout(() => {
       setShowPopup(false);
-      setPopupMessage(''); // 메시지 초기화
-    }, 2000); // 2초 후에 팝업 숨김
-    return () => clearTimeout(timer); // 클린업 함수
-  }, []); // 의존성 배열 비워두기: 함수 자체가 변경되지 않도록
+      setPopupMessage("");
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, []);
 
+  const isOwner = useMemo(() => {
+    if (!loggedInUser) return false;
+    if (!targetId) return true;
+    const tid = Number(targetId);
+    if (Number.isNaN(tid)) return false;
+    return tid === loggedInUser.userId;
+  }, [loggedInUser, targetId]);
+
+  // 로그인한 사용자 정보 로드
   useEffect(() => {
-    const loadFollowers = async () => {
+    const loadLoggedInUser = async () => {
+      try {
+        const res = await userInfoGet();
+        setLoggedInUser(res.data?.data ?? null);
+      } catch (err) {
+        console.error("로그인 사용자 정보 로드 실패:", err);
+        setLoggedInUser(null);
+      }
+    };
+    loadLoggedInUser();
+  }, [userInfoGet]);
+
+  // 팔로워 목록 및 닉네임 로드
+  useEffect(() => {
+    if (!loggedInUser) {
+      setLoading(false);
+      return;
+    }
+
+    const userIdToLoad = targetId ? Number(targetId) : loggedInUser.userId;
+    const finalUid = isNaN(userIdToLoad) ? loggedInUser.userId : userIdToLoad;
+
+    const loadFollowersAndUserName = async () => {
       setLoading(true);
       setError(null);
       try {
-        const res = await getFollower(Number(myUserId));
-        const data: FollowerApiResponse["data"] | null = res.data.data;
-        if (data) {
-          const mappedFollowers: FollowerType[] = data.map((follower) => ({
-            id: String(follower.userId),
-            nickname: follower.nickname,
-            profileImageUrl:
-              follower.profileImageUrl ||
-              `https://via.placeholder.com/50/CCCCCC/FFFFFF?text=${follower.nickname.substring(0, 1)}`,
-            isFollowing: follower.follow,
-          }));
-          setFollowers(mappedFollowers);
+        const followerRes = await getFollower(finalUid);
+        const followerData: FollowerApiResponse["data"] | null =
+          followerRes.data.data;
+        console.log("팔로워 데이터:", followerData);
+        setFollowers(
+          followerData
+            ? followerData.map((follower) => ({
+                userId: String(follower.userId),
+                nickname: follower.nickname,
+                profileImageUrl:
+                  follower.profileImageUrl ||
+                  `https://via.placeholder.com/50/CCCCCC/FFFFFF?text=${follower.nickname.substring(
+                    0,
+                    1
+                  )}`,
+                follow: follower.follow,
+              }))
+            : []
+        );
+
+        if (isOwner) {
+          setViewedUserNickname(loggedInUser.nickname);
         } else {
-          setFollowers([]);
+          const userProfileRes = await mypageMain(finalUid);
+          setViewedUserNickname(
+            userProfileRes.data?.data?.nickname || "알 수 없음"
+          );
         }
       } catch (err) {
-        console.error("팔로워 데이터 불러오기 실패:", err);
+        console.error("팔로워 데이터 또는 사용자 정보 불러오기 실패:", err);
         if (axios.isAxiosError(err) && err.response?.status === 401) {
-          console.log("401 Unauthorized: Access token invalid or expired. Redirecting to login.");
           localStorage.removeItem("accessToken");
-          navigate("/login");
-          return;
+          localStorage.removeItem("refreshToken");
+          window.dispatchEvent(
+            new CustomEvent("unauthorized", { detail: { status: 401 } })
+          );
         } else {
           setError("팔로워 목록을 불러오는 데 실패했습니다.");
         }
+        setFollowers([]);
+        setViewedUserNickname("알 수 없음");
       } finally {
         setLoading(false);
       }
     };
-    loadFollowers();
-  }, [getFollower, myUserId, navigate]);
+    loadFollowersAndUserName();
+  }, [loggedInUser, targetId, getFollower, mypageMain, isOwner]);
 
   useEffect(() => {
     const totalPages = Math.ceil(followers.length / ITEMS_PER_PAGE) || 0;
@@ -279,49 +339,85 @@ const MyFollowersPage: React.FC = () => {
   const handleFollowToggle = async (
     targetUserId: string,
     isCurrentlyFollowing: boolean,
-    targetUserNickname: string // 팝업 메시지에 사용할 닉네임 추가
+    targetUserNickname: string
   ) => {
     try {
       if (isCurrentlyFollowing) {
         await unfollowUser(Number(targetUserId));
-        console.log(`User ${targetUserId} 언팔로우 성공`);
-        setFollowers((prevFollowers) =>
-          prevFollowers.filter((follower) => follower.id !== targetUserId)
-        );
-        triggerPopup(`${targetUserNickname}님을 언팔로우했습니다.`); // 팝업 메시지
+        if (isOwner) {
+          setFollowers((prev) => prev.filter((f) => f.userId !== targetUserId));
+        } else {
+          setFollowers((prev) =>
+            prev.map((f) =>
+              f.userId === targetUserId ? { ...f, isFollowing: false } : f
+            )
+          );
+        }
+        triggerPopup(`${targetUserNickname}님을 언팔로우했습니다.`);
       } else {
         await followUser(Number(targetUserId));
-        console.log(`User ${targetUserId} 팔로우 성공`);
-        setFollowers((prevFollowers) =>
-          prevFollowers.map((f) =>
-            f.id === targetUserId ? { ...f, isFollowing: true } : f
+        setFollowers((prev) =>
+          prev.map((f) =>
+            f.userId === targetUserId ? { ...f, isFollowing: true } : f
           )
         );
-        triggerPopup(`${targetUserNickname}님을 팔로우했습니다.`); // 팝업 메시지
+        triggerPopup(`${targetUserNickname}님을 팔로우했습니다.`);
       }
     } catch (err) {
       console.error(`팔로우/언팔로우 실패 for user ${targetUserId}:`, err);
       if (axios.isAxiosError(err) && err.response?.status === 401) {
-          console.log("401 Unauthorized: Access token invalid or expired. Redirecting to login.");
-          localStorage.removeItem("accessToken");
-          navigate("/login");
+        localStorage.removeItem("accessToken");
+        localStorage.removeItem("refreshToken");
+        window.dispatchEvent(
+          new CustomEvent("unauthorized", { detail: { status: 401 } })
+        );
       } else {
-          alert("팔로우/언팔로우 처리 중 오류가 발생했습니다.");
+        alert("팔로우/언팔로우 처리 중 오류가 발생했습니다.");
       }
     }
   };
+
+  const getBackPath = useMemo(
+    () => (targetId ? `/mypage/${targetId}` : "/mypage"),
+    [targetId]
+  );
+
+  const pageTitleText = useMemo(
+    () =>
+      loading
+        ? "팔로워"
+        : isOwner
+        ? "내가 팔로우하는"
+        : `${viewedUserNickname} 님의`,
+    [isOwner, viewedUserNickname, loading]
+  );
 
   return (
     <PageContainer>
       <VideoBackground />
       <SectionWrapper>
         <PageHeader>
-          <BackButton onClick={() => navigate('/mypage')}>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M15 5L9 12L15 19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          <BackButton onClick={() => navigate(getBackPath)}>
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M15 5L9 12L15 19"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
             </svg>
           </BackButton>
-          <PageTitle><PinkText>팔로워</PinkText></PageTitle>
+          <PageTitle>
+            {pageTitleText}
+            <PinkText>팔로워</PinkText>
+          </PageTitle>
         </PageHeader>
 
         {loading ? (
@@ -333,14 +429,16 @@ const MyFollowersPage: React.FC = () => {
             <UserList>
               {currentFollowers.map((follower) => (
                 <UserListItem
-                  key={follower.id}
+                  key={follower.userId}
                   user={follower}
-                  onFollowToggle={handleFollowToggle}
-                  type="follower"
+                  onFollowToggle={isOwner ? handleFollowToggle : undefined}
+                  showFollowButton={
+                    !isOwner && loggedInUser?.userId !== Number(follower.userId)
+                  }
+                  isMyAccount={loggedInUser?.userId === Number(follower.userId)}
                 />
               ))}
             </UserList>
-
             {pageInfo.pageContentAmount > 1 && (
               <Pagination
                 size={pageInfo.size}
@@ -349,7 +447,7 @@ const MyFollowersPage: React.FC = () => {
                 pageContentAmount={pageInfo.pageContentAmount}
                 setPageInfo={setPageInfo}
                 pageInfo={pageInfo}
-                selectedOption=''
+                selectedOption=""
               />
             )}
           </>
@@ -358,10 +456,8 @@ const MyFollowersPage: React.FC = () => {
         )}
       </SectionWrapper>
 
-      {/* 팝업 컴포넌트 렌더링 */}
-      <PopupContainer $isVisible={showPopup}>
-        {popupMessage}
-      </PopupContainer>
+      {/* 팝업 */}
+      <PopupContainer $isVisible={showPopup}>{popupMessage}</PopupContainer>
     </PageContainer>
   );
 };

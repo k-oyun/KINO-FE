@@ -1,4 +1,3 @@
-// components/mypage/DetailReviewCard.tsx
 import React, { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components"; // keyframes 임포트 추가
@@ -285,6 +284,7 @@ const DetailReviewCard: React.FC<DetailReviewCardProps> = ({
       const res = await deleteReview(review.reviewId);
       console.log("게시글 삭제 성공:", res.data);
       alert(t('detailReviewCard.deleteSuccess')); // 다국어 처리
+
       navigate("/community");
     } catch (e) {
       console.error("게시글 삭제 실패:", e);
@@ -296,6 +296,7 @@ const DetailReviewCard: React.FC<DetailReviewCardProps> = ({
   const createdLabel = (() => {
     const dt = new Date(review.createdAt);
     if (isNaN(dt.getTime())) return ""; // invalid date 방어
+
     // i18n.language에 따라 date-fns 로케일 동적으로 선택
     const dateFnsLocale = i18n.language === 'ko' ? ko : enUS; // 'en'일 경우 enUS 사용
     return formatDistanceToNow(dt, { addSuffix: true, locale: dateFnsLocale });
@@ -330,6 +331,9 @@ const DetailReviewCard: React.FC<DetailReviewCardProps> = ({
               <UserImage
                 $ismobile={isMobile}
                 src={profileSrc}
+                alt={`${review.userNickname} 프로필`}
+                onClick={(e) => {
+                  e.stopPropagation();
                 alt={t('detailReviewCard.userProfileAlt', { nickname: review.userNickname })}
                 onClick={(e) => {
                   e.stopPropagation();
