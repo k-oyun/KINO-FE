@@ -276,14 +276,15 @@ const CommunityDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
-  const [post, setPost] = useState<DetailReview | null>(null);
+  const [post, setPost] = useState<DetailReview>({} as DetailReview);
   const [error, setError] = useState<string | null>(null);
   const [isReportOpen, setIsReportOpen] = useState<boolean>(false);
   const isMobile = useMediaQuery({ query: "(max-width: 768px)" });
   const theme = useTheme();
   console.log("Current theme:", theme);
 
-  const { getReviewById, likeReview, deleteReview } = useReviewsApi();
+  const { getReviewById, likeReview, deleteReview, postReviewReport } =
+    useReviewsApi();
 
   const getPost = async () => {
     setIsLoading(true);
@@ -307,6 +308,27 @@ const CommunityDetailPage: React.FC = () => {
     }
   };
 
+  const submitReport = async (type: number, content: string) => {
+    try {
+      const res = postReviewReport(
+        type,
+        content,
+        post.reviewId,
+        post?.writerId
+      );
+      res.then((data) => {
+        console.log("신고 제출 성공:", data.data);
+        // 신고 제출 성공 후 모달
+        alert("신고가 접수되었습니다. 감사합니다.");
+        setIsReportOpen(false);
+      });
+    } catch (e) {
+      console.error("신고 제출 실패:", e);
+      // 에러 처리 모달
+      alert("신고 제출에 실패했습니다. 다시 시도해주세요.");
+    }
+  };
+
   useEffect(() => {
     getPost();
   }, []); // id가 변경될 때마다 게시글 다시 로드
@@ -315,7 +337,6 @@ const CommunityDetailPage: React.FC = () => {
     likeReview(reviewId).then((data) => {
       console.log("좋아요 상태 변경:", data.data);
       setPost((prevPost) => {
-        if (!prevPost) return null;
         return {
           ...prevPost,
           isHeart: data.data.data,
@@ -349,7 +370,6 @@ const CommunityDetailPage: React.FC = () => {
 
   const increaseCommentCount = () => {
     setPost((prev) => {
-      if (!prev) return null;
       return {
         ...prev,
         reviewCommentCount: prev.reviewCommentCount + 1,
@@ -358,7 +378,6 @@ const CommunityDetailPage: React.FC = () => {
   };
   const decreaseCommentCount = () => {
     setPost((prev) => {
-      if (!prev) return null;
       return {
         ...prev,
         reviewCommentCount: prev.reviewCommentCount - 1,
@@ -494,7 +513,14 @@ const CommunityDetailPage: React.FC = () => {
           </WarningBox>
         )}
       </PostDetailContainer>
-      {isReportOpen && <ReportModal setIsModalOpen={setIsReportOpen} />}
+      {isReportOpen && (
+        <ReportModal
+          setIsModalOpen={setIsReportOpen}
+          onSubmit={({ type, content }) => {
+            submitReport(type, content);
+          }}
+        />
+      )}
     </OutContainer>
   );
 };

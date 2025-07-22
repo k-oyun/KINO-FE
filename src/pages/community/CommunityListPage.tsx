@@ -10,6 +10,7 @@ import { useMypageApi } from "../../api/mypage";
 interface DetailReview {
   reviewId: number;
   image: string;
+  userId: number;
   userProfile: string;
   userNickname: string;
   title: string;
