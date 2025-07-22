@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { IoIosArrowBack, IoIosSettings } from "react-icons/io";
 import useFollowApi from "../../api/follow";
 import { useMediaQuery } from "react-responsive";
+import DefaultProfileImg from "../../assets/img/profileIcon.png";
 
 interface UserProfileType {
   userId: number;
@@ -249,7 +250,7 @@ const UserProfileSection: React.FC<UserProfileSectionProps> = ({
         <ProfileImageWrapper $ismobile={isMobile}>
           <ProfileImage
             $ismobile={isMobile}
-            src={userProfile.image}
+            src={userProfile.image || DefaultProfileImg}
             alt={`${userProfile.nickname} 프로필 이미지`}
           />
         </ProfileImageWrapper>
