@@ -321,6 +321,12 @@ const CommunityListPage: React.FC = () => {
                 isMobile={isMobile}
                 showProfile={true}
                 onClick={() => handlePostClick(post.reviewId)}
+                onDelete={(reviewId) => {
+                  setPosts((prev) =>
+                    prev.filter((p) => p.reviewId !== reviewId)
+                  );
+                  setTotalCount((prev) => prev - 1);
+                }}
               />
             ))}
             <div ref={observerRef} style={{ height: 1 }} />{" "}

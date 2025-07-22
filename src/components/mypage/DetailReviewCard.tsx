@@ -1,26 +1,26 @@
-import React, { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import styled from "styled-components"; // keyframes 임포트 추가
+import styled, { useTheme } from "styled-components";
 import { formatDistanceToNow } from "date-fns";
-import { ko, enUS } from "date-fns/locale"; // 한국어, 영어 로케일 임포트
+import { ko, se } from "date-fns/locale";
 import ReportModal from "../ReportModal";
+import parse from "html-react-parser";
+import useReviewsApi from "../../api/reviews";
 import { useTranslation } from "react-i18next";
-import { useReviewsApi } from "../../api/reviews";
 
-/* ------------------------------------------------------------------ *
- * Types
- * ------------------------------------------------------------------ */
-export interface DetailReview {
+interface DetailReview {
   reviewId: number;
-  image?: string; // 썸네일/포스터 URL (옵션)
-  userProfile: string; // 작성자 프로필 이미지 URL
+  image: string;
+  userId: number;
+  userProfile: string;
   userNickname: string;
   title: string;
   content: string;
+  isMine: boolean;
   likeCount: number;
   totalViews: number;
   commentCount: number;
-  createdAt: string; // ISO string or yyyy.MM.dd HH:mm 등
+  createdAt: string;
 }
 
 interface DetailReviewCardProps {
@@ -30,24 +30,23 @@ interface DetailReviewCardProps {
   movieTitle?: string;
   isMobile?: boolean;
   onClick?: () => void;
+  onDelete?: (revieId: number) => void;
 }
 
-/* ------------------------------------------------------------------ *
- * Styled
- * ------------------------------------------------------------------ */
-interface StyleType {
+// --- 공통 스타일드 컴포넌트 ---
+interface styleType {
   $ismobile?: boolean;
   $showProfile?: boolean;
 }
 
-const CardBase = styled.div<StyleType>`
-  background-color: #d9d9d9;
+const CardBase = styled.div<styleType>`
+  background-color: ${({ theme }) =>
+    theme.backgroundColor === "#ffffff" ? "#d9d9d9" : "#333"};
   border-radius: 8px;
-  padding: ${(p) => (p.$ismobile ? "15px" : "25px 20px")};
-  margin-bottom: 15px;
+  padding: ${(props) => (props.$ismobile ? "15px" : "25px")};
+  margin-bottom: 10px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
   transition: transform 0.2s ease-in-out;
   cursor: pointer;
   &:hover {
@@ -55,115 +54,41 @@ const CardBase = styled.div<StyleType>`
   }
 `;
 
-const DetailReviewCardContainer = styled(CardBase)<StyleType>`
-  flex-direction: row;
-  align-items: flex-start;
-  gap: ${(p) => (p.$ismobile ? "0px" : "20px")};
-`;
+const ReviewText = styled.div<styleType>`
+  margin: 0;
+  font-size: ${(props) => (props.$ismobile ? "0.7em" : "1em")};
+  white-space: pre-wrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 0 10px;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  word-break: break-word;
+  /* min-height: ${(props) => (props.$ismobile ? "5vh" : "2vh")}; */
 
-const DetailMoviePoster = styled.img<StyleType>`
-  width: 20vw;
-  max-width: 160px;
-  height: ${(p) => (p.$ismobile ? "15vh" : "27vh")};
-  object-fit: cover;
-  border-radius: 4px;
-  flex-shrink: 0;
-  margin-right: 15px;
-`;
-
-const ProfileNReview = styled.div<StyleType>`
-  display: flex;
-  flex-direction: column;
-  padding: ${(p) => (p.$ismobile ? "0" : "0 20px")};
-  width: 60vw;
-  max-width: 100%;
-  color: #000;
-`;
-
-const UserProfileWrap = styled.div<StyleType>`
-  margin-bottom: ${(p) => (p.$ismobile ? "10px" : "20px")};
-  display: flex;
-  align-items: center;
-`;
-
-const UserImage = styled.img<StyleType>`
-  width: ${(p) => (p.$ismobile ? "30px" : "60px")};
-  height: ${(p) => (p.$ismobile ? "30px" : "60px")};
-  border: 2px solid #fd6782;
-  object-fit: cover;
-  border-radius: 50%;
-  &:hover {
-    border: 3px solid #f73c63;
+  img {
+    max-width: 100%;
+    max-height: ${(props) => (props.$ismobile ? "100px" : "200px")};
+    object-fit: cover;
+    border-radius: 8px;
+    height: auto;
+    display: block;
   }
 `;
 
-const UserText = styled.div<StyleType>`
-  display: flex;
-  flex-direction: column;
-  margin-left: ${(p) => (p.$ismobile ? "5px" : "20px")};
-  margin-top: ${(p) => (p.$ismobile ? "5px" : "6px")};
-`;
-
-const UserNickname = styled.div<StyleType>`
-  font-weight: bold;
-  font-size: ${(p) => (p.$ismobile ? "12px" : "18px")};
-`;
-
-const DetailReviewContentWrapper = styled.div`
-  display: flex;
-  flex-direction: column;
-  flex-grow: 1;
-`;
-
-const DetailReviewTitleText = styled.h4<StyleType>`
-  font-size: ${(p) => (p.$ismobile ? "0.8em" : "1.15em")};
-  margin-bottom: ${(p) => (p.$ismobile ? "5px" : "15px")};
-  margin-top: 0;
-  color: #000;
-`;
-
-const DetailReviewMovieTitleText = styled.p`
-  color: #555;
-  font-size: 0.9em;
-  margin: 0 0 8px;
-`;
-
-const ReviewText = styled.p<StyleType>`
-  margin: 0;
-  font-size: ${(p) => (p.$ismobile ? "0.7em" : "1em")};
-  white-space: pre-wrap;
-  word-break: break-word;
-  color: #000;
-  /* 최대 3줄 프리뷰 */
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  min-height: ${(p) => (p.$ismobile ? "5vh" : "8vh")};
-  padding: 0 10px;
-`;
-
-const DetailReviewFooter = styled.div<StyleType>`
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  margin-top: ${(p) => (p.$ismobile ? "10px" : "20px")};
-  border-top: 1px solid #444;
-  padding-top: 10px;
-`;
-
-const MetaInfo = styled.div<StyleType>`
-  font-size: ${(p) => (p.$ismobile ? "0.7em" : "0.9em")};
+const MetaInfo = styled.div<styleType>`
+  font-size: ${(props) => (props.$ismobile ? "0.7em" : "1em")};
   color: #888;
   display: flex;
   align-items: center;
-  gap: ${(p) => (p.$ismobile ? "3px" : "7px")};
+  gap: ${(props) => (props.$ismobile ? "3px" : "7px")};
 `;
 
-const Heart = styled.img<StyleType>`
-  width: ${(p) => (p.$ismobile ? "16px" : "20px")};
-  height: ${(p) => (p.$ismobile ? "16px" : "20px")};
+const Heart = styled.img<styleType>`
+  width: ${(props) => (props.$ismobile ? "16px" : "20px")};
+  height: ${(props) => (props.$ismobile ? "16px" : "20px")};
   object-fit: cover;
 `;
 
@@ -171,12 +96,11 @@ const LikesDisplay = styled.span`
   display: flex;
   align-items: center;
   gap: 3px;
-  color: #000;
 `;
 
-const CommentImage = styled.img<StyleType>`
-  width: ${(p) => (p.$ismobile ? "16px" : "20px")};
-  height: ${(p) => (p.$ismobile ? "16px" : "20px")};
+const CommentImage = styled.img<styleType>`
+  width: ${(props) => (props.$ismobile ? "16px" : "20px")};
+  height: ${(props) => (props.$ismobile ? "16px" : "20px")};
   object-fit: cover;
   margin-left: 5px;
 `;
@@ -185,7 +109,6 @@ const CommentDisplay = styled.span`
   display: flex;
   align-items: center;
   gap: 3px;
-  color: #000;
   margin-right: 5px;
 `;
 
@@ -197,18 +120,104 @@ const ThreeDotsMenu = styled.button`
   font-size: 1.2em;
   cursor: pointer;
   padding: 0 5px;
-  position: relative;
   &:hover {
-    color: #f0f0f0;
+    color: #555;
   }
 `;
 
-const PopMenu = styled.ul<StyleType>`
+// --- DetailReviewCard 컴포넌트 고유 스타일 ---
+const DetailReviewCardContainer = styled(CardBase)<styleType>`
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: ${(props) => (props.$ismobile ? "10px" : "20px")};
+  padding-right: ${(props) => (props.$ismobile ? "15px" : "25px")};
+`;
+
+// 사용자 프로필 스타일
+const UserProfile = styled.div<styleType>`
+  margin-bottom: ${(props) => (props.$ismobile ? "10px" : "20px")};
+  display: flex;
+  align-items: center;
+`;
+
+const UserImage = styled.img<styleType>`
+  width: ${(props) => (props.$ismobile ? "28px" : "50px")};
+  height: ${(props) => (props.$ismobile ? "28px" : "50px")};
+  border: 2px solid #fd6782;
+  object-fit: cover;
+  border-radius: 50%;
+  &:hover {
+    border: 3px solid #f73c63;
+  }
+`;
+
+const UserText = styled.div<styleType>`
+  display: flex;
+  flex-direction: column;
+  margin-left: ${(props) => (props.$ismobile ? "10px" : "10px")};
+`;
+
+const UserNickname = styled.div<styleType>`
+  font-weight: bold;
+  font-size: ${(props) => (props.$ismobile ? "14px" : "18px")};
+`;
+
+// 리뷰 스타일
+const ContentWrapper = styled.div<styleType>`
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  width: ${(props) =>
+    props.$ismobile
+      ? "auto"
+      : "calc(100% - 150px - 20px)"}; /* 이미지 너비(150px) + gap(20px) */
+`;
+
+// const DetailMoviePoster = styled.img<styleType>`
+//     width: ${(props) => (props.$ismobile ? "80px" : "150px")};
+//     height: ${(props) => (props.$ismobile ? "110px" : "220px")};
+//     object-fit: cover;
+//     border-radius: 4px;
+//     flex-shrink: 0;
+// `;
+
+const DetailReviewContentWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+`;
+
+const DetailReviewTitleText = styled.h4<styleType>`
+  font-size: ${(props) => (props.$ismobile ? "0.9em" : "1.2em")};
+  margin-bottom: ${(props) => (props.$ismobile ? "5px" : "10px")};
+  margin-top: 0;
+  padding: 0 10px;
+`;
+
+const DetailReviewMovieTitleText = styled.p`
+  color: #555;
+  font-size: 0.85em;
+  margin: 0 0 8px;
+  padding: 0 10px;
+`;
+
+const DetailReviewFooter = styled.div<styleType>`
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  margin-top: ${(props) => (props.$ismobile ? "10px" : "20px")};
+  border-top: 1px solid #cccccc;
+  padding: 10px 10px 0 10px;
+`;
+
+const PopMenu = styled.ul<styleType>`
   position: absolute;
-  right: -2px;
-  top: 22px;
+  right: 0;
+  top: 25px;
   background: #fff;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  border: 1px solid #eee;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   border-radius: 6px;
   padding: 8px 0;
   z-index: 10;
@@ -217,53 +226,58 @@ const PopMenu = styled.ul<StyleType>`
   margin: 0;
 `;
 
-const MenuItem = styled.li<StyleType>`
-  padding: 4px 8px;
-  font-size: ${(p) => (p.$ismobile ? "0.8em" : "1em")};
-  color: #222;
+const MenuItem = styled.li<styleType>`
+  padding: 8px 12px;
+  font-size: ${(props) => (props.$ismobile ? "0.8em" : "0.9em")};
+  color: #333;
   cursor: pointer;
+  white-space: nowrap;
+
   &:hover {
-    background: #f9e5ed;
+    background: #f0f0f0;
+    color: #333;
+  }
+`;
+
+const MenuItemReport = styled(MenuItem)`
+  color: #fd6782;
+  &:hover {
+    background: #fce7ed;
     color: #fd6782;
   }
 `;
 
-/* 별도 스타일 필요 없으면 합쳐도 됨 */
-const MenuItemReport = MenuItem;
-
-/* ------------------------------------------------------------------ *
- * Component
- * ------------------------------------------------------------------ */
 const DetailReviewCard: React.FC<DetailReviewCardProps> = ({
   review,
-  isMine = false,
-  showProfile = false,
+  isMine,
+  showProfile,
   movieTitle,
   isMobile,
   onClick,
+  onDelete,
 }) => {
-  const { t, i18n } = useTranslation(); // i18n 객체도 가져오기
+  const theme = useTheme();
+  const { t } = useTranslation();
   const navigate = useNavigate();
-  const { deleteReview } = useReviewsApi();
+  const popMenuRef = useRef<HTMLUListElement | null>(null);
+  const { deleteReview, postReviewReport } = useReviewsApi();
+  const [reportedReviewId, setReportedReviewId] = useState<number>(0);
+  const [reporteeId, setReporteeId] = useState<number>(0);
 
   const [menuOpen, setMenuOpen] = useState(false);
-  const [isReportOpen, setIsReportOpen] = useState(false);
-  const popMenuRef = useRef<HTMLUListElement | null>(null);
-
-  /* 메뉴 토글 (카드 클릭 전파 막기) */
   const handleMenuClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     setMenuOpen((prev) => !prev);
   };
-
+  const [isReportOpen, setIsReportOpen] = useState(false);
   const handleReportClick = () => {
+    setReportedReviewId(review.reviewId);
+    setReporteeId(review.userId);
     setIsReportOpen(true);
     setMenuOpen(false);
   };
 
-  /* 바깥 클릭시 메뉴 닫기 */
   useEffect(() => {
-    if (!menuOpen) return;
     const handleClickOutside = (event: MouseEvent) => {
       if (
         popMenuRef.current &&
@@ -276,126 +290,100 @@ const DetailReviewCard: React.FC<DetailReviewCardProps> = ({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [menuOpen]);
 
-  /* 삭제 */
   const deletePost = async () => {
-    // TODO: window.confirm 대신 커스텀 모달 UI 사용
-    if (!window.confirm(t("detailReviewCard.deleteConfirm"))) return; // 다국어 처리
+    if (!window.confirm("정말로 이 게시글을 삭제하시겠습니까?")) return;
     try {
-      const res = await deleteReview(review.reviewId);
-      console.log("게시글 삭제 성공:", res.data);
-      alert(t("detailReviewCard.deleteSuccess")); // 다국어 처리
-
-      navigate("/community");
+      const res = deleteReview(review.reviewId);
+      res.then((data) => {
+        console.log("게시글 삭제 성공:", data.data);
+        onDelete?.(review.reviewId);
+        // 모달 처리
+        // alert("게시글이 삭제되었습니다.");
+        navigate("/community"); // 목록 페이지로 이동
+      });
     } catch (e) {
       console.error("게시글 삭제 실패:", e);
-      alert(t("detailReviewCard.deleteFailure")); // 다국어 처리
+      alert("게시글 삭제에 실패했습니다. 다시 시도해주세요.");
     }
   };
 
-  /* createdAt 포맷 */
-  const createdLabel = (() => {
-    const dt = new Date(review.createdAt);
-    if (isNaN(dt.getTime())) return ""; // invalid date 방어
-
-    // i18n.language에 따라 date-fns 로케일 동적으로 선택
-    const dateFnsLocale = i18n.language === "ko" ? ko : enUS; // 'en'일 경우 enUS 사용
-    return formatDistanceToNow(dt, { addSuffix: true, locale: dateFnsLocale });
-  })();
-
-  /* 포스터/프로필 이미지 결정 */
-  // NOTE: review.image가 없는 경우 userProfile을 사용하지만,
-  // review.image는 영화 포스터, userProfile은 사용자 프로필 이미지이므로
-  // alt 텍스트를 분리하는 것이 더 정확합니다.
-  const posterSrc =
-    review.image ||
-    `https://placehold.co/160x270/CCCCCC/FFFFFF?text=${t(
-      "detailReviewCard.noImageText"
-    )}`;
-  const profileSrc = review.userProfile;
+  const submitReport = async (type: number, content: string) => {
+    try {
+      const res = postReviewReport(type, content, reportedReviewId, reporteeId);
+      res.then(() => {
+        console.log("리뷰 신고 성공");
+        // 완료 모달
+        // alert("리뷰가 신고되었습니다.");
+        setIsReportOpen(false);
+      });
+    } catch (error) {
+      console.error("리뷰 신고 실패:", error);
+      // 에러 모달
+      alert("리뷰 신고에 실패했습니다. 다시 시도해주세요.");
+    }
+  };
 
   return (
     <>
-      <DetailReviewCardContainer
-        $ismobile={isMobile}
-        onClick={onClick}
-        role="button"
-        tabIndex={0}
-      >
-        {/* 포스터 / 썸네일 */}
-        <DetailMoviePoster
+      <DetailReviewCardContainer $ismobile={isMobile} onClick={onClick}>
+        {/* <DetailMoviePoster
           $ismobile={isMobile}
-          $showProfile={showProfile}
-          src={posterSrc}
-          alt={t("detailReviewCard.reviewImageAlt")}
-        />
-
-        <ProfileNReview $ismobile={isMobile}>
+          src={review.image}
+          alt={review.title || "리뷰 첨부 이미지"}
+        /> */}
+        <ContentWrapper $ismobile={isMobile}>
           {showProfile && (
-            <UserProfileWrap $ismobile={isMobile}>
+            <UserProfile $ismobile={isMobile}>
               <UserImage
                 $ismobile={isMobile}
-                src={profileSrc}
-                alt={t("detailReviewCard.userProfileAlt", {
-                  nickname: review.userNickname,
-                })}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  // TODO: userId를 기반으로 navigate하는 것이 더 안전함.
-                  // 현재 review.userNickname을 사용하고 있는데, 닉네임이 변경될 경우 문제가 될 수 있음.
-                  // review 객체에 userId가 있다면 review.reviewer.userId를 사용하거나,
-                  // 없다면 API 호출을 통해 userId를 가져와야 함.
-                  navigate(`/mypage/${review.userNickname}`); // 필요시 userId 경로로 수정
-                }}
+                src={review.userProfile}
+                alt={review.userNickname}
               />
               <UserText $ismobile={isMobile}>
                 <UserNickname $ismobile={isMobile}>
                   {review.userNickname}
                 </UserNickname>
               </UserText>
-            </UserProfileWrap>
+            </UserProfile>
           )}
-
           <DetailReviewContentWrapper>
             <DetailReviewTitleText $ismobile={isMobile}>
               {review.title}
             </DetailReviewTitleText>
-
             {movieTitle && (
               <DetailReviewMovieTitleText>
-                {t("movieTitle")}: {movieTitle}{" "}
-                {/* 기존 'movieTitle' 키 재사용 */}
+                영화: {movieTitle}
               </DetailReviewMovieTitleText>
             )}
-
-            <ReviewText
-              $ismobile={isMobile}
-              className="review-content"
-              // NOTE: content가 이미 HTML sanitizing 되었는지 확인 필요
-              dangerouslySetInnerHTML={{ __html: review.content }}
-            />
-
+            <ReviewText $ismobile={isMobile}>
+              {parse(review.content)}
+            </ReviewText>
             <DetailReviewFooter $ismobile={isMobile}>
               <MetaInfo $ismobile={isMobile}>
                 <Heart
                   src="https://img.icons8.com/?size=100&id=V4c6yYlvXtzy&format=png&color=000000"
-                  alt={t("detailReviewCard.likesAlt")}
+                  alt="좋아요"
                   $ismobile={isMobile}
-                />
+                ></Heart>
                 <LikesDisplay>{review.likeCount}</LikesDisplay>
                 <CommentImage
-                  src="https://img.icons8.com/?size=100&id=61f1pL4hEqO1&format=png&color=000000"
-                  alt={t("detailReviewCard.commentsAlt")}
+                  src={
+                    theme.backgroundColor === "#141414"
+                      ? "https://img.icons8.com/?size=100&id=11167&format=png&color=FFFFFF"
+                      : "https://img.icons8.com/?size=100&id=61f1pL4hEqO1&format=png&color=000000"
+                  }
+                  alt="댓글"
                   $ismobile={isMobile}
-                />
+                ></CommentImage>
                 <CommentDisplay>{review.commentCount}</CommentDisplay>
-                {createdLabel}
               </MetaInfo>
             </DetailReviewFooter>
           </DetailReviewContentWrapper>
-        </ProfileNReview>
-
-        {/* 점 3개 메뉴 */}
-        <ThreeDotsMenu onClick={handleMenuClick}>
+        </ContentWrapper>
+        <ThreeDotsMenu
+          style={{ alignSelf: "flex-start", position: "relative" }}
+          onClick={handleMenuClick}
+        >
           ⋮
           {menuOpen && (
             <PopMenu
@@ -408,9 +396,14 @@ const DetailReviewCard: React.FC<DetailReviewCardProps> = ({
                   <MenuItem
                     $ismobile={isMobile}
                     onClick={(e) => {
+                      if (!e) {
+                        alert("undefined 이벤트!");
+                        return;
+                      }
                       e.stopPropagation();
+                      console.log("수정 클릭");
                       navigate(`/community/edit/${review.reviewId}`);
-                      setMenuOpen(false);
+                      console.log("수정 페이지로 이동");
                     }}
                   >
                     {t("edit")}
@@ -429,9 +422,8 @@ const DetailReviewCard: React.FC<DetailReviewCardProps> = ({
               ) : (
                 <MenuItemReport
                   $ismobile={isMobile}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleReportClick();
+                  onClick={() => {
+                    handleReportClick(); /* 신고 함수 */
                   }}
                 >
                   {t("report")}
@@ -441,8 +433,14 @@ const DetailReviewCard: React.FC<DetailReviewCardProps> = ({
           )}
         </ThreeDotsMenu>
       </DetailReviewCardContainer>
-
-      {isReportOpen && <ReportModal setIsModalOpen={setIsReportOpen} />}
+      {isReportOpen && (
+        <ReportModal
+          setIsModalOpen={setIsReportOpen}
+          onSubmit={({ type, content }) => {
+            submitReport(type, content);
+          }}
+        ></ReportModal>
+      )}
     </>
   );
 };
