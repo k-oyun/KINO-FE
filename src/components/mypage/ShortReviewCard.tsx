@@ -1,7 +1,15 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import styled from "styled-components";
-import { FaThumbsUp, FaEllipsisV, FaStar, FaRegStar } from "react-icons/fa";
+import {
+  FaThumbsUp,
+  FaEllipsisV,
+  FaStar,
+  FaRegStar,
+} from "react-icons/fa";
 
+/* ------------------------------------------------------------------ *
+ * Types
+ * ------------------------------------------------------------------ */
 export interface ShortReview {
   movieId: number;
   shortReviewId: string;
@@ -15,19 +23,26 @@ export interface ShortReview {
 export interface ShortReviewCardProps {
   review: ShortReview;
   onClick: () => void;
+  /** 소유자만 전달. 없으면 읽기 전용 카드 */
   onEdit?: (updatedReview: ShortReview) => void;
   onDelete?: (movieId: number, reviewId: string) => void;
+  /** 반응형 힌트 */
   isMobile?: boolean;
+  /** 명시적으로 본인 여부 지정 (MyPageMain에서 내려줄 것) */
+  isOwner?: boolean;
 }
 
-interface styleType {
+/* ------------------------------------------------------------------ *
+ * Styled
+ * ------------------------------------------------------------------ */
+interface StyleType {
   $ismobile?: boolean;
 }
 
-const CardBase = styled.div<styleType>`
+const CardBase = styled.div<StyleType>`
   background-color: #1a1a1a;
   border-radius: 6px;
-  padding: ${(props) => (props.$ismobile ? "10px 15px" : "15px 20px")};
+  padding: ${(p) => (p.$ismobile ? "10px 15px" : "15px 20px")};
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -36,7 +51,6 @@ const CardBase = styled.div<styleType>`
   cursor: pointer;
   color: #f0f0f0;
   margin-bottom: 10px;
-
   &:hover {
     transform: translateY(-3px);
   }
@@ -46,7 +60,7 @@ const ShortReviewCardContainer = styled(CardBase)`
   position: relative;
 `;
 
-const MenuTrigger = styled.div`
+const MenuTrigger = styled.button`
   background: none;
   border: none;
   color: #888;
@@ -54,7 +68,9 @@ const MenuTrigger = styled.div`
   cursor: pointer;
   padding: 0 5px;
   position: relative;
-
+  line-height: 1;
+  display: flex;
+  align-items: center;
   &:hover {
     color: #f0f0f0;
   }
@@ -200,6 +216,8 @@ const CardContent = styled.div`
   font-size: 0.9em;
   color: #ccc;
   line-height: 1.4;
+  white-space: pre-wrap;
+  word-break: break-word;
 `;
 
 const CardFooter = styled.div`
@@ -237,39 +255,57 @@ const RatingStars = styled.div`
   }
 `;
 
+/* ------------------------------------------------------------------ *
+ * Component
+ * ------------------------------------------------------------------ */
 const ShortReviewCard: React.FC<ShortReviewCardProps> = ({
   review,
   onClick,
   onEdit,
   onDelete,
   isMobile,
+  isOwner,
 }) => {
+  /* 관리 권한: 명시적 isOwner가 우선, 없으면 콜백 존재로 추론 */
+  const canManage = (typeof isOwner === "boolean" ? isOwner : Boolean(onEdit && onDelete));
+
   const [isMenuOpen, setMenuOpen] = useState(false);
   const [isEditModalOpen, setEditModalOpen] = useState(false);
   const [editContent, setEditContent] = useState(review.content);
   const [editRating, setEditRating] = useState(review.rating);
 
-  const canManage = Boolean(onEdit && onDelete);
-
-  const handleCardClick = (e: React.MouseEvent) => {
-    if (isMenuOpen) {
-      setMenuOpen(false);
-      e.stopPropagation();
-    } else {
+  /* 카드 클릭 */
+  const handleCardClick = useCallback(
+    (e: React.MouseEvent) => {
+      if (isMenuOpen) {
+        e.stopPropagation();
+        setMenuOpen(false);
+        return;
+      }
       onClick();
-    }
-  };
+    },
+    [isMenuOpen, onClick]
+  );
 
-  const handleEdit = (e: React.MouseEvent) => {
+  /* 메뉴 열기 */
+  const toggleMenu = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!canManage) return;
+    setMenuOpen((v) => !v);
+  }, [canManage]);
+
+  /* 수정 */
+  const handleEdit = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
     if (!canManage) return;
     setEditContent(review.content);
     setEditRating(review.rating);
     setEditModalOpen(true);
     setMenuOpen(false);
-  };
+  }, [canManage, review.content, review.rating]);
 
-  const handleDelete = (e: React.MouseEvent) => {
+  /* 삭제 */
+  const handleDelete = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
     if (!canManage) return;
     setMenuOpen(false);
@@ -280,9 +316,11 @@ const ShortReviewCard: React.FC<ShortReviewCardProps> = ({
     if (window.confirm("이 한줄평을 정말 삭제할까요?")) {
       onDelete?.(review.movieId, review.shortReviewId);
     }
-  };
+  }, [canManage, onDelete, review.movieId, review.shortReviewId]);
 
-  const handleEditSubmit = () => {
+  /* 수정 제출 */
+  const handleEditSubmit = useCallback(() => {
+    if (!canManage) return;
     if (review.movieId == null) {
       alert("movieId가 없어 수정할 수 없습니다.");
       return;
@@ -293,11 +331,12 @@ const ShortReviewCard: React.FC<ShortReviewCardProps> = ({
       rating: editRating,
     });
     setEditModalOpen(false);
-  };
+  }, [canManage, onEdit, review, editContent, editRating]);
 
+  /* 별 렌더 */
   const renderStars = (rating: number) => {
     const stars = [];
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < 5; i += 1) {
       stars.push(i < rating ? <FaStar key={i} /> : <FaRegStar key={i} />);
     }
     return stars;
@@ -305,19 +344,22 @@ const ShortReviewCard: React.FC<ShortReviewCardProps> = ({
 
   return (
     <>
-      <ShortReviewCardContainer onClick={handleCardClick} $ismobile={isMobile}>
+      <ShortReviewCardContainer
+        onClick={handleCardClick}
+        $ismobile={isMobile}
+        role="button"
+        tabIndex={0}
+      >
         <CardHeader>
           <MovieTitle>{review.movieTitle}</MovieTitle>
           {canManage && (
-            <MenuTrigger
-              onClick={(e) => {
-                e.stopPropagation();
-                setMenuOpen(!isMenuOpen);
-              }}
-            >
+            <MenuTrigger aria-label="더보기 메뉴" onClick={toggleMenu}>
               <FaEllipsisV />
               {isMenuOpen && (
-                <DropdownMenu>
+                <DropdownMenu
+                  onClick={(e) => e.stopPropagation()}
+                  role="menu"
+                >
                   <DropdownItem onClick={handleEdit}>수정</DropdownItem>
                   <DropdownItem onClick={handleDelete}>삭제</DropdownItem>
                 </DropdownMenu>
@@ -355,13 +397,16 @@ const ShortReviewCard: React.FC<ShortReviewCardProps> = ({
                   key={star}
                   className="star-icon"
                   onClick={() => setEditRating(star)}
+                  role="button"
                 >
                   {star <= editRating ? <FaStar /> : <FaRegStar />}
                 </span>
               ))}
             </div>
             <div className="actions">
-              <CancelButton onClick={() => setEditModalOpen(false)}>취소</CancelButton>
+              <CancelButton onClick={() => setEditModalOpen(false)}>
+                취소
+              </CancelButton>
               <SaveButton onClick={handleEditSubmit}>저장</SaveButton>
             </div>
           </ModalContent>
