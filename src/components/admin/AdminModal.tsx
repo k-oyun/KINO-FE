@@ -5,6 +5,7 @@ import logo from "../../assets/img/Logo.png";
 import { motion } from "framer-motion";
 import axios from "axios";
 import { useFormatDate } from "../../hooks/useFormatDate";
+import useAdminApi from "../../api/admin";
 
 interface styleType {
   $ismobile: boolean;
@@ -238,36 +239,27 @@ const AdminModal = ({
     console.log(reportProcessType);
   };
 
-  const reportGet = async () => {
-    const res = await axios.get(
-      `http://43.203.218.183:8080/api/admin/${reportType}/${reportId}`
-    );
-    return res.data;
-  };
+  const { reportModalGet, reportModalPost } = useAdminApi();
 
-  const reportProcess = async (
-    reportId: number,
-    reportedId: number,
-    result: string
-  ) => {
-    const res = await axios.post(
-      "http://43.203.218.183:8080/api/admin/process",
-      {
-        reportId,
-        reportedId,
-        result: Number(result),
-      }
+  const reportGet = async () => {};
+
+  const reportProcess = async () => {
+    const res = await reportModalPost(
+      reportInfo.reportId ?? 0,
+      reportInfo.reportedId ?? 0,
+      reportProcessType ?? 0
     );
     console.log(res);
-    return res;
+    return res.data.data;
   };
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await reportGet();
-        console.log(res.data);
-        setReportInfo(res.data);
+        if (reportType !== undefined && reportId !== undefined) {
+          const res = await reportModalGet(reportType, reportId);
+          setReportInfo(res.data.data);
+        }
       } catch (error) {
         console.error("신고 페이지 조회 실패:", error);
       }
@@ -344,13 +336,9 @@ const AdminModal = ({
           $ismobile={isMobile}
           $isbtnpos={reportProcessType !== "선택하세요."}
           disabled={reportProcessType === "선택하세요."}
-          onClick={() => {
+          onClick={async () => {
+            await reportProcess();
             setIsModalOpen(false);
-            reportProcess(
-              reportInfo.reportId ?? 0,
-              reportInfo.reportedId ?? 0,
-              reportProcessType ?? 0
-            );
             setIsConfirmBtnprs(true);
           }}
           initial={{ opacity: 0, visibility: "hidden", y: -20 }}

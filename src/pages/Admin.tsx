@@ -75,10 +75,12 @@ const ManagementContainer = styled.div<styleProp>`
 const ManagementInfoContainer = styled.div<styleProp>`
   display: flex;
   width: ${(props) => (props.$ismobile ? "auto" : "80%")};
-  height: ${(props) => (props.$ismobile ? "auto" : "80%")};
+  height: auto;
+  min-height: 80%;
   border: ${(props) => (props.$ismobile ? "none" : "1.5px solid #d9d9d9")};
   margin-top: 40px;
   border-radius: 1px;
+  align-items: flex-start;
 `;
 
 const ChartContainer = styled.div`

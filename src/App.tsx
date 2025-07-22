@@ -142,9 +142,18 @@ const AppContents = () => {
           <Route path="/admin" element={<Admin />}></Route>
 
           <Route path="/mypage" element={<MyPageMain />} />
-          <Route path="/mypage/reviews/short" element={<MyReviewsShortPage />}/>
-          <Route path="/mypage/reviews/detail" element={<MyReviewsDetailPage />}/>
-          <Route path="/mypage/movies/favorite" element={<MyFavoriteMoviesPage />}/>
+          <Route
+            path="/mypage/reviews/short"
+            element={<MyReviewsShortPage />}
+          />
+          <Route
+            path="/mypage/reviews/detail"
+            element={<MyReviewsDetailPage />}
+          />
+          <Route
+            path="/mypage/movies/favorite"
+            element={<MyFavoriteMoviesPage />}
+          />
           <Route path="/mypage/settings" element={<MySettingsPage />} />
           <Route path="/mypage/tags" element={<MyTagsPage />} />
           <Route path="/mypage/followers" element={<MyFollowersPage />} />
