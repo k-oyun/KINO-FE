@@ -1,13 +1,12 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import styled, { keyframes } from 'styled-components';
-import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import React, { useState, useEffect, useMemo, useCallback } from "react";
+import styled, { keyframes } from "styled-components";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
-import UserListItem from '../../components/mypage/UserListItem';
-import VideoBackground from '../../components/VideoBackground';
-import useMyPageApi from '../../api/mypage';
-import Pagination from '../../components/Pagenation';
-
+import UserListItem from "../../components/mypage/UserListItem";
+import VideoBackground from "../../components/VideoBackground";
+import useMyPageApi from "../../api/mypage";
+import Pagination from "../../components/Pagenation";
 
 export interface FollowingApiResponse {
   status: number;
@@ -35,7 +34,6 @@ interface PageInfo {
 }
 
 const ITEMS_PER_PAGE = 20;
-
 
 const PageContainer = styled.div`
   max-width: 1200px;
@@ -186,14 +184,15 @@ const PopupContainer = styled.div<{ $isVisible: boolean }>`
   min-width: 250px;
   text-align: center;
 
-  animation: ${({ $isVisible }) => ($isVisible ? fadeIn : fadeOut)} 0.5s forwards;
-  visibility: ${({ $isVisible }) => ($isVisible ? 'visible' : 'hidden')};
+  animation: ${({ $isVisible }) => ($isVisible ? fadeIn : fadeOut)} 0.5s
+    forwards;
+  visibility: ${({ $isVisible }) => ($isVisible ? "visible" : "hidden")};
   opacity: ${({ $isVisible }) => ($isVisible ? 1 : 0)};
   transition: visibility 0.5s, opacity 0.5s;
 
   @media (max-width: 767px) {
     top: 50%;
-    left: 50%; 
+    left: 50%;
     transform: translate(-50%, -50%);
     padding: 12px 20px;
     font-size: 1em;
@@ -211,7 +210,7 @@ const MyFollowingPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   const [showPopup, setShowPopup] = useState(false);
-  const [popupMessage, setPopupMessage] = useState('');
+  const [popupMessage, setPopupMessage] = useState("");
 
   const myUserId = "1";
 
@@ -226,11 +225,10 @@ const MyFollowingPage: React.FC = () => {
     setShowPopup(true);
     const timer = setTimeout(() => {
       setShowPopup(false);
-      setPopupMessage('');
+      setPopupMessage("");
     }, 2000);
     return () => clearTimeout(timer);
   }, []);
-
 
   useEffect(() => {
     const loadFollowing = async () => {
@@ -240,11 +238,15 @@ const MyFollowingPage: React.FC = () => {
         const res = await getFollowing(Number(myUserId));
         const data: FollowingApiResponse["data"] | null = res.data.data;
         if (data) {
-          const mappedFollowing: FollowingType[] = data.map(followedUser => ({
+          const mappedFollowing: FollowingType[] = data.map((followedUser) => ({
             id: String(followedUser.userId),
             nickname: followedUser.nickname,
-            profileImageUrl: followedUser.profileImageUrl ||
-            `https://via.placeholder.com/50/CCCCCC/FFFFFF?text=${followedUser.nickname.substring(0,1)}`,
+            profileImageUrl:
+              followedUser.profileImageUrl ||
+              `https://via.placeholder.com/50/CCCCCC/FFFFFF?text=${followedUser.nickname.substring(
+                0,
+                1
+              )}`,
             isFollowing: followedUser.follow,
           }));
           setFollowing(mappedFollowing);
@@ -254,7 +256,9 @@ const MyFollowingPage: React.FC = () => {
       } catch (err) {
         console.error("팔로잉 데이터 불러오기 실패:", err);
         if (axios.isAxiosError(err) && err.response?.status === 401) {
-          console.log("401 Unauthorized: Access token invalid or expired. Redirecting to login.");
+          console.log(
+            "401 Unauthorized: Access token invalid or expired. Redirecting to login."
+          );
           localStorage.removeItem("accessToken");
           navigate("/login");
           return;
@@ -270,20 +274,20 @@ const MyFollowingPage: React.FC = () => {
   }, [getFollowing, myUserId, navigate]);
 
   useEffect(() => {
-      const totalPages = Math.ceil(following.length / ITEMS_PER_PAGE) || 0;
-      setPageInfo((prev) => ({
-        ...prev,
-        currentPage: prev.currentPage >= totalPages ? 0 : prev.currentPage,
-        size: ITEMS_PER_PAGE,
-        pageContentAmount: totalPages,
-      }));
-    }, [following]);
+    const totalPages = Math.ceil(following.length / ITEMS_PER_PAGE) || 0;
+    setPageInfo((prev) => ({
+      ...prev,
+      currentPage: prev.currentPage >= totalPages ? 0 : prev.currentPage,
+      size: ITEMS_PER_PAGE,
+      pageContentAmount: totalPages,
+    }));
+  }, [following]);
 
-    const currentFollowing = useMemo(() => {
-      const startIdx = pageInfo.currentPage * pageInfo.size;
-      const endIdx = startIdx + pageInfo.size;
-      return following.slice(startIdx, endIdx);
-    }, [following, pageInfo]);
+  const currentFollowing = useMemo(() => {
+    const startIdx = pageInfo.currentPage * pageInfo.size;
+    const endIdx = startIdx + pageInfo.size;
+    return following.slice(startIdx, endIdx);
+  }, [following, pageInfo]);
 
   const handleFollowToggle = async (
     targetUserId: string,
@@ -294,43 +298,59 @@ const MyFollowingPage: React.FC = () => {
       if (isCurrentlyFollowing) {
         await unfollowUser(Number(targetUserId));
         console.log(`User ${targetUserId} 언팔로우 성공`);
-        setFollowing(prevFollowing =>
-          prevFollowing.filter(user => user.id !== targetUserId)
+        setFollowing((prevFollowing) =>
+          prevFollowing.filter((user) => user.id !== targetUserId)
         );
         triggerPopup(`${targetUserNickname}님을 언팔로우했습니다.`);
       } else {
         await followUser(Number(targetUserId));
         console.log(`User ${targetUserId} 팔로우 성공`);
-        setFollowing(
-          prevFollowing =>
-            prevFollowing.map(u => u.id === targetUserId ? { ...u, isFollowing: true } : u)
+        setFollowing((prevFollowing) =>
+          prevFollowing.map((u) =>
+            u.id === targetUserId ? { ...u, isFollowing: true } : u
+          )
         );
         triggerPopup(`${targetUserNickname}님을 팔로우했습니다.`);
       }
     } catch (err) {
       console.error(`팔로우/언팔로우 실패 for user ${targetUserId}:`, err);
       if (axios.isAxiosError(err) && err.response?.status === 401) {
-          console.log("401 Unauthorized: Access token invalid or expired. Redirecting to login.");
-          localStorage.removeItem("accessToken");
-          navigate("/login");
+        console.log(
+          "401 Unauthorized: Access token invalid or expired. Redirecting to login."
+        );
+        localStorage.removeItem("accessToken");
+        navigate("/login");
       } else {
-          alert("팔로우/언팔로우 처리 중 오류가 발생했습니다.");
+        alert("팔로우/언팔로우 처리 중 오류가 발생했습니다.");
       }
     }
   };
-
 
   return (
     <PageContainer>
       <VideoBackground />
       <SectionWrapper>
         <PageHeader>
-          <BackButton onClick={() => navigate('/mypage')}>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M15 5L9 12L15 19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          <BackButton onClick={() => navigate("/mypage")}>
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M15 5L9 12L15 19"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
             </svg>
           </BackButton>
-          <PageTitle><PinkText>팔로잉</PinkText></PageTitle>
+          <PageTitle>
+            <PinkText>팔로잉</PinkText>
+          </PageTitle>
         </PageHeader>
         {loading ? (
           <EmptyState>팔로잉 목록을 불러오는 중...</EmptyState>
@@ -344,6 +364,9 @@ const MyFollowingPage: React.FC = () => {
                   key={followedUser.id}
                   user={followedUser}
                   onFollowToggle={handleFollowToggle}
+                  isMyAccount={
+                    loggedInUser?.userId === Number(followedUser.userId)
+                  }
                   type="following"
                 />
               ))}
@@ -357,19 +380,17 @@ const MyFollowingPage: React.FC = () => {
                 pageContentAmount={pageInfo.pageContentAmount}
                 setPageInfo={setPageInfo}
                 pageInfo={pageInfo}
-                selectedOption=''
+                selectedOption=""
               />
             )}
           </>
-          ) : (
-            <EmptyState>아직 팔로잉이 없습니다.</EmptyState>
-          )}
+        ) : (
+          <EmptyState>아직 팔로잉이 없습니다.</EmptyState>
+        )}
       </SectionWrapper>
 
       {/* 팝업 */}
-      <PopupContainer $isVisible={showPopup}>
-        {popupMessage}
-      </PopupContainer>
+      <PopupContainer $isVisible={showPopup}>{popupMessage}</PopupContainer>
     </PageContainer>
   );
 };
