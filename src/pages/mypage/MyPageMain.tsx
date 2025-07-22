@@ -197,11 +197,12 @@ interface ShortReviewType {
 interface DetailReviewType {
   reviewId: number;
   image: string;
+  userId: number;
   userProfile: string;
   userNickname: string;
   title: string;
   content: string;
-  mine: boolean;
+  isMine: boolean;
   liked: boolean;
   likeCount: number;
   totalViews: number;
