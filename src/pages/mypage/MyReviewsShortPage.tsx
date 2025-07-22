@@ -358,8 +358,6 @@ const MyReviewsShortPage: React.FC = () => {
       return;
     }
 
-    if (!window.confirm(t('mypage.shortReviews.delete.confirm'))) return;
-
     try {
       await deleteShortReview(movieId, reviewId);
       await loadShortReviews();
