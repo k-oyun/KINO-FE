@@ -405,6 +405,7 @@ const MyPageMain: React.FC = () => {
             ? res.data.data.myPickMovies
             : []
         );
+        console.log("찜한 영화 로드 성공:", res.data.data.myPickMovies);
       } catch (error) {
         console.error("찜한 영화 로드 실패:", error);
         setFavoriteMovies([]);
