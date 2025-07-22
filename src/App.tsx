@@ -1,12 +1,6 @@
 import "./App.css";
 import Header from "./components/Header";
-import {
-  BrowserRouter,
-  Route,
-  Routes,
-  useLocation,
-  useNavigate,
-} from "react-router-dom";
+import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom";
 import { darkTheme, lightTheme } from "./styles/theme";
 import { ThemeProvider } from "styled-components";
 import MyPageMain from "./pages/mypage/MyPageMain";
@@ -170,7 +164,6 @@ const AppContents = () => {
             path="/mypage/movies/favorite/:targetId?"
             element={<MyFavoriteMoviesPage />}
           />
-
 
           <Route path="/mypage/settings" element={<MySettingsPage />} />
           <Route path="/mypage/tags" element={<MyTagsPage />} />

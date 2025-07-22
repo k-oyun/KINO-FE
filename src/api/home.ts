@@ -1,4 +1,4 @@
-import axios from "./AxiosInstance";
+import axios from "./axiosInstance";
 
 export const useHomeApi = () => {
   const getHomeApi = async () => {

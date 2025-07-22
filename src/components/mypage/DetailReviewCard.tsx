@@ -12,15 +12,15 @@ import { useReviewsApi } from "../../api/reviews";
  * ------------------------------------------------------------------ */
 export interface DetailReview {
   reviewId: number;
-  image?: string;          // 썸네일/포스터 URL (옵션)
-  userProfile: string;     // 작성자 프로필 이미지 URL
+  image?: string; // 썸네일/포스터 URL (옵션)
+  userProfile: string; // 작성자 프로필 이미지 URL
   userNickname: string;
   title: string;
   content: string;
   likeCount: number;
   totalViews: number;
   commentCount: number;
-  createdAt: string;       // ISO string or yyyy.MM.dd HH:mm 등
+  createdAt: string; // ISO string or yyyy.MM.dd HH:mm 등
 }
 
 interface DetailReviewCardProps {
@@ -279,16 +279,16 @@ const DetailReviewCard: React.FC<DetailReviewCardProps> = ({
   /* 삭제 */
   const deletePost = async () => {
     // TODO: window.confirm 대신 커스텀 모달 UI 사용
-    if (!window.confirm(t('detailReviewCard.deleteConfirm'))) return; // 다국어 처리
+    if (!window.confirm(t("detailReviewCard.deleteConfirm"))) return; // 다국어 처리
     try {
       const res = await deleteReview(review.reviewId);
       console.log("게시글 삭제 성공:", res.data);
-      alert(t('detailReviewCard.deleteSuccess')); // 다국어 처리
+      alert(t("detailReviewCard.deleteSuccess")); // 다국어 처리
 
       navigate("/community");
     } catch (e) {
       console.error("게시글 삭제 실패:", e);
-      alert(t('detailReviewCard.deleteFailure')); // 다국어 처리
+      alert(t("detailReviewCard.deleteFailure")); // 다국어 처리
     }
   };
 
@@ -298,7 +298,7 @@ const DetailReviewCard: React.FC<DetailReviewCardProps> = ({
     if (isNaN(dt.getTime())) return ""; // invalid date 방어
 
     // i18n.language에 따라 date-fns 로케일 동적으로 선택
-    const dateFnsLocale = i18n.language === 'ko' ? ko : enUS; // 'en'일 경우 enUS 사용
+    const dateFnsLocale = i18n.language === "ko" ? ko : enUS; // 'en'일 경우 enUS 사용
     return formatDistanceToNow(dt, { addSuffix: true, locale: dateFnsLocale });
   })();
 
@@ -306,7 +306,11 @@ const DetailReviewCard: React.FC<DetailReviewCardProps> = ({
   // NOTE: review.image가 없는 경우 userProfile을 사용하지만,
   // review.image는 영화 포스터, userProfile은 사용자 프로필 이미지이므로
   // alt 텍스트를 분리하는 것이 더 정확합니다.
-  const posterSrc = review.image || `https://placehold.co/160x270/CCCCCC/FFFFFF?text=${t('detailReviewCard.noImageText')}`;
+  const posterSrc =
+    review.image ||
+    `https://placehold.co/160x270/CCCCCC/FFFFFF?text=${t(
+      "detailReviewCard.noImageText"
+    )}`;
   const profileSrc = review.userProfile;
 
   return (
@@ -322,7 +326,7 @@ const DetailReviewCard: React.FC<DetailReviewCardProps> = ({
           $ismobile={isMobile}
           $showProfile={showProfile}
           src={posterSrc}
-          alt={t('detailReviewCard.reviewImageAlt')}
+          alt={t("detailReviewCard.reviewImageAlt")}
         />
 
         <ProfileNReview $ismobile={isMobile}>
@@ -331,10 +335,9 @@ const DetailReviewCard: React.FC<DetailReviewCardProps> = ({
               <UserImage
                 $ismobile={isMobile}
                 src={profileSrc}
-                alt={`${review.userNickname} 프로필`}
-                onClick={(e) => {
-                  e.stopPropagation();
-                alt={t('detailReviewCard.userProfileAlt', { nickname: review.userNickname })}
+                alt={t("detailReviewCard.userProfileAlt", {
+                  nickname: review.userNickname,
+                })}
                 onClick={(e) => {
                   e.stopPropagation();
                   // TODO: userId를 기반으로 navigate하는 것이 더 안전함.
@@ -359,7 +362,8 @@ const DetailReviewCard: React.FC<DetailReviewCardProps> = ({
 
             {movieTitle && (
               <DetailReviewMovieTitleText>
-                {t('movieTitle')}: {movieTitle} {/* 기존 'movieTitle' 키 재사용 */}
+                {t("movieTitle")}: {movieTitle}{" "}
+                {/* 기존 'movieTitle' 키 재사용 */}
               </DetailReviewMovieTitleText>
             )}
 
@@ -374,13 +378,13 @@ const DetailReviewCard: React.FC<DetailReviewCardProps> = ({
               <MetaInfo $ismobile={isMobile}>
                 <Heart
                   src="https://img.icons8.com/?size=100&id=V4c6yYlvXtzy&format=png&color=000000"
-                  alt={t('detailReviewCard.likesAlt')}
+                  alt={t("detailReviewCard.likesAlt")}
                   $ismobile={isMobile}
                 />
                 <LikesDisplay>{review.likeCount}</LikesDisplay>
                 <CommentImage
                   src="https://img.icons8.com/?size=100&id=61f1pL4hEqO1&format=png&color=000000"
-                  alt={t('detailReviewCard.commentsAlt')}
+                  alt={t("detailReviewCard.commentsAlt")}
                   $ismobile={isMobile}
                 />
                 <CommentDisplay>{review.commentCount}</CommentDisplay>
@@ -438,9 +442,7 @@ const DetailReviewCard: React.FC<DetailReviewCardProps> = ({
         </ThreeDotsMenu>
       </DetailReviewCardContainer>
 
-      {isReportOpen && (
-        <ReportModal setIsModalOpen={setIsReportOpen} />
-      )}
+      {isReportOpen && <ReportModal setIsModalOpen={setIsReportOpen} />}
     </>
   );
 };
