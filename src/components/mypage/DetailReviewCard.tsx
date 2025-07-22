@@ -11,6 +11,7 @@ import { useTranslation } from "react-i18next";
 interface DetailReview {
   reviewId: number;
   image: string;
+  userId: number;
   userProfile: string;
   userNickname: string;
   title: string;
@@ -29,6 +30,7 @@ interface DetailReviewCardProps {
   movieTitle?: string;
   isMobile?: boolean;
   onClick?: () => void;
+  onDelete?: (revieId: number) => void;
 }
 
 // --- 공통 스타일드 컴포넌트 ---
@@ -252,20 +254,25 @@ const DetailReviewCard: React.FC<DetailReviewCardProps> = ({
   movieTitle,
   isMobile,
   onClick,
+  onDelete,
 }) => {
   const theme = useTheme();
   const { t } = useTranslation();
   const navigate = useNavigate();
   const popMenuRef = useRef<HTMLUListElement | null>(null);
-  const { deleteReview } = useReviewsApi();
+  const { deleteReview, postReviewReport } = useReviewsApi();
+  const [reportedReviewId, setReportedReviewId] = useState<number>(0);
+  const [reporteeId, setReporteeId] = useState<number>(0);
+
   const [menuOpen, setMenuOpen] = useState(false);
   const handleMenuClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     setMenuOpen((prev) => !prev);
   };
-
   const [isReportOpen, setIsReportOpen] = useState(false);
   const handleReportClick = () => {
+    setReportedReviewId(review.reviewId);
+    setReporteeId(review.userId);
     setIsReportOpen(true);
     setMenuOpen(false);
   };
@@ -289,12 +296,30 @@ const DetailReviewCard: React.FC<DetailReviewCardProps> = ({
       const res = deleteReview(review.reviewId);
       res.then((data) => {
         console.log("게시글 삭제 성공:", data.data);
-        alert("게시글이 삭제되었습니다.");
+        onDelete?.(review.reviewId);
+        // 모달 처리
+        // alert("게시글이 삭제되었습니다.");
         navigate("/community"); // 목록 페이지로 이동
       });
     } catch (e) {
       console.error("게시글 삭제 실패:", e);
       alert("게시글 삭제에 실패했습니다. 다시 시도해주세요.");
+    }
+  };
+
+  const submitReport = async (type: number, content: string) => {
+    try {
+      const res = postReviewReport(type, content, reportedReviewId, reporteeId);
+      res.then(() => {
+        console.log("리뷰 신고 성공");
+        // 완료 모달
+        // alert("리뷰가 신고되었습니다.");
+        setIsReportOpen(false);
+      });
+    } catch (error) {
+      console.error("리뷰 신고 실패:", error);
+      // 에러 모달
+      alert("리뷰 신고에 실패했습니다. 다시 시도해주세요.");
     }
   };
 
@@ -409,7 +434,12 @@ const DetailReviewCard: React.FC<DetailReviewCardProps> = ({
         </ThreeDotsMenu>
       </DetailReviewCardContainer>
       {isReportOpen && (
-        <ReportModal setIsModalOpen={setIsReportOpen}></ReportModal>
+        <ReportModal
+          setIsModalOpen={setIsReportOpen}
+          onSubmit={({ type, content }) => {
+            submitReport(type, content);
+          }}
+        ></ReportModal>
       )}
     </>
   );

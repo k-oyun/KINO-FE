@@ -317,6 +317,29 @@ const CommunityCreatePage: React.FC = () => {
     }
   };
 
+  const searchMovieByTitle = async (title: string) => {
+    if (!title.trim()) {
+      setSearchedMovieList([]);
+      return;
+    }
+    try {
+      const res = searchHomeApi(title);
+      res.then((data) => {
+        console.log("영화 검색 결과:", data.data);
+        const movieData = data.data.data[0];
+        if (movieData) {
+          setSelectedMovie(movieData);
+          setMovieId(movieData.movie_id);
+        } else {
+          setError("해당 영화를 찾을 수 없습니다.");
+        }
+      });
+    } catch (error) {
+      console.error("영화 검색 중 오류 발생:", error);
+      setError("영화 검색 중 오류가 발생했습니다. 다시 시도해주세요.");
+    }
+  };
+
   useEffect(() => {
     if (id) {
       // 수정 모드
@@ -327,7 +350,8 @@ const CommunityCreatePage: React.FC = () => {
             console.log("불러온 게시글 데이터:", data.data);
             setTitle(data.data.data.reviewTitle);
             setContent(data.data.data.reviewContent);
-            setMovieId(data.data.data.movieId || 0);
+            setMovieId(data.data.data.movieId);
+            searchMovieByTitle(data.data.data.movieTitle);
           });
         } catch (e) {
           console.error("Failed to fetch review for editing:", e);
@@ -335,11 +359,12 @@ const CommunityCreatePage: React.FC = () => {
         }
       };
       fetchReview();
-    } else if (movie) {
-      // 영화 ID가 있을 경우
-      setMovieId(parseInt(movie));
     }
-  }, [id]);
+    if (movie) {
+      // 영화 제목이 있을 경우 -> 영화 상세 페이지에서 글쓰기 들어옴
+      searchMovieByTitle(movie);
+    }
+  }, [id, movie]);
 
   const customUploadAdapter = (loader: any) => {
     return {

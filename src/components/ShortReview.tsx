@@ -3,6 +3,7 @@ import StarRatings from "react-star-ratings";
 import { useEffect, useState } from "react";
 import ReportModal from "./ReportModal";
 import useMovieDetailApi from "../api/details";
+import useReviewsApi from "../api/reviews";
 import { formatDistanceToNow, set } from "date-fns";
 import { ko } from "date-fns/locale";
 import { formatDate, utcToKstString } from "../utils/date";
@@ -229,6 +230,9 @@ const ShortReview = ({ isMobile, movieId, isUserActive }: ShortReviewProps) => {
   const [isReportOpen, setIsReportOpen] = useState<boolean>(false);
   const [editReviewId, setEditReviewId] = useState<number>(0);
   const [editText, setEditText] = useState<string>("");
+  const [reportedReviewId, setReportedReviewId] = useState<number>(0);
+  const [reporteeId, setReporteeId] = useState<number>(0);
+  const { postShortReviewReport } = useReviewsApi();
   const {
     postShortReview,
     updateShortReview,
@@ -288,7 +292,9 @@ const ShortReview = ({ isMobile, movieId, isUserActive }: ShortReviewProps) => {
       });
     }
   };
-  const handleReportClick = () => {
+  const handleReportClick = (shortReviewId: number, userId: number) => {
+    setReportedReviewId(shortReviewId);
+    setReporteeId(userId);
     setIsReportOpen(true);
   };
   const handleReviewEdit = (
@@ -349,6 +355,26 @@ const ShortReview = ({ isMobile, movieId, isUserActive }: ShortReviewProps) => {
     } catch (error: any) {
       console.error("Error deleting review:", error);
       // alert("리뷰 삭제에 실패했습니다.");
+    }
+  };
+
+  const submitReport = async (type: number, content: string) => {
+    try {
+      // Report submission logic here
+      console.log("Report submitted:", { type, content });
+      const res = postShortReviewReport(
+        type,
+        content,
+        reportedReviewId,
+        reporteeId
+      );
+      res.then(() => {
+        console.log("Report submitted successfully");
+        // 완료 모달
+      });
+      setIsReportOpen(false);
+    } catch (error) {
+      console.error("Error submitting report:", error);
     }
   };
 
@@ -531,7 +557,12 @@ const ShortReview = ({ isMobile, movieId, isUserActive }: ShortReviewProps) => {
                       ) : (
                         <Btn
                           $ismobile={isMobile}
-                          onClick={() => handleReportClick()}
+                          onClick={() =>
+                            handleReportClick(
+                              review.shortReviewId,
+                              review.userId
+                            )
+                          }
                         >
                           {t("report")}
                         </Btn>
@@ -543,7 +574,14 @@ const ShortReview = ({ isMobile, movieId, isUserActive }: ShortReviewProps) => {
             ))}
         </ReviewList>
       </ReviewContainer>
-      {isReportOpen && <ReportModal setIsModalOpen={setIsReportOpen} />}
+      {isReportOpen && (
+        <ReportModal
+          setIsModalOpen={setIsReportOpen}
+          onSubmit={({ type, content }) => {
+            submitReport(type, content);
+          }}
+        />
+      )}
     </>
   );
 };

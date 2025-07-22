@@ -9,6 +9,7 @@ interface styleType {
 }
 interface reportProp {
   setIsModalOpen: (value: boolean) => void;
+  onSubmit: (report: { type: number; content: string }) => void;
 }
 
 const ModalContainer = styled.div<styleType>`
@@ -133,26 +134,29 @@ const CloseBtn = styled.svg`
   height: 25px;
 `;
 
-const ReportModal = ({ setIsModalOpen }: reportProp) => {
+const ReportModal = ({ setIsModalOpen, onSubmit }: reportProp) => {
   const isMobile = useMediaQuery({ query: "(max-width: 767px)" });
-  const [reportProcessType, setReportProcessType] = useState("선택하세요.");
+  const [reportProcessType, setReportProcessType] = useState(0);
   const [reportReason, setReportReason] = useState("");
-  const isBtnDisable =
-    reportProcessType === "선택하세요." || reportReason === "";
-  const processType: string[] = [
-    "선택하세요.",
-    "욕설 / 비방",
-    "음란물 / 선정적 내용",
-    "폭력적 / 혐오 표현",
-    "스팸 / 광고",
-    "개인정보 노출",
-    "허위 사실 / 잘못된 정보",
-    "도배 / 중복 게시",
-    "저작권 침해",
-    "정치적 / 종교적 선전",
-    "불법 행위 및 범죄 조장",
-    "기타 운영 정책 위반",
-    "혐오 표현 및 차별",
+  const isBtnDisable = reportProcessType === 0 || reportReason === "";
+
+  const processType = [
+    { value: 0, label: "선택하세요." },
+    { value: 1, label: "욕설 / 비방" },
+    { value: 2, label: "음란물 / 선정적 내용" },
+    { value: 3, label: "폭력적 / 혐오 표현" },
+    { value: 4, label: "욕설 / 비방" },
+    { value: 5, label: "음란물 / 선정적 내용" },
+    { value: 6, label: "폭력적 / 혐오 표현" },
+    { value: 7, label: "스팸 / 광고" },
+    { value: 8, label: "개인정보 노출" },
+    { value: 9, label: "허위 사실 / 잘못된 정보" },
+    { value: 10, label: "도배 / 중복 게시" },
+    { value: 11, label: "저작권 침해" },
+    { value: 12, label: "정치적 / 종교적 선전" },
+    { value: 13, label: "불법 행위 및 범죄 조장" },
+    { value: 14, label: "기타 운영 정책 위반" },
+    { value: 15, label: "혐오 표현 및 차별" },
   ];
 
   const onChangeTextarea = (text: ChangeEvent<HTMLTextAreaElement>) => {
@@ -160,8 +164,8 @@ const ReportModal = ({ setIsModalOpen }: reportProp) => {
   };
 
   const handleSelectBox = (option: ChangeEvent<HTMLSelectElement>) => {
-    setReportProcessType(option.target.value);
-    console.log(reportProcessType);
+    setReportProcessType(parseInt(option.target.value));
+    console.log(option.target.value);
   };
   return (
     <ModalContainer $ismobile={isMobile}>
@@ -191,8 +195,10 @@ const ReportModal = ({ setIsModalOpen }: reportProp) => {
         <GreySection>
           <SubText>신고 사유</SubText>
           <SelectBox value={reportProcessType} onChange={handleSelectBox}>
-            {processType.map((opt, idx) => (
-              <option key={idx}>{opt}</option>
+            {processType.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
             ))}
           </SelectBox>
         </GreySection>
@@ -201,15 +207,18 @@ const ReportModal = ({ setIsModalOpen }: reportProp) => {
           <ReportTextarea
             onChange={onChangeTextarea}
             value={reportReason}
-            disabled={reportProcessType === "선택하세요."}
+            disabled={reportProcessType === 0}
           ></ReportTextarea>
         </GreySection>
 
         <ConfirmBtn
           $ismobile={isMobile}
-          $isbtnpos={reportProcessType !== "선택하세요."}
+          $isbtnpos={reportProcessType !== 0}
           disabled={isBtnDisable}
-          onClick={() => setIsModalOpen(false)}
+          onClick={() => {
+            setIsModalOpen(false);
+            onSubmit({ type: reportProcessType, content: reportReason });
+          }}
           initial={{ opacity: 0, visibility: "hidden", y: -20 }}
           animate={{ opacity: 1, visibility: "visible", y: 0 }}
           exit={{ opacity: 0, visibility: "hidden", y: -20 }}

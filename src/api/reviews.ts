@@ -80,6 +80,48 @@ export const useReviewsApi = () => {
     });
   };
 
+  const postShortReviewReport = async (
+    reportType: number,
+    content: string,
+    relatedId: number,
+    reporteeId: number
+  ) => {
+    return await axios.post(`/report`, {
+      reportType,
+      content,
+      relatedId,
+      reporteeId,
+      relatedType: -1, // -1 indicates short review
+    });
+  };
+
+  const postReviewReport = async (
+    reportType: number,
+    content: string,
+    relatedId: number,
+    reporteeId: number
+  ) => {
+    return await axios.post(`/report`, {
+      reportType,
+      content,
+      relatedId,
+      reporteeId,
+      relatedType: -2, // -2 indicates review
+    });
+  };
+
+  const postCommentReport = async (
+    reviewId: number,
+    commentId: number,
+    reason: string
+  ) => {
+    return await axios.post(`/report`, {
+      reviewId,
+      commentId,
+      reason,
+    });
+  };
+
   return {
     getReviews,
     postReview,
@@ -92,6 +134,9 @@ export const useReviewsApi = () => {
     deleteComment,
     updateComment,
     uploadImage,
+    postShortReviewReport,
+    postReviewReport,
+    postCommentReport,
   };
 };
 
