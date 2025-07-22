@@ -1,5 +1,6 @@
 import { AnimatePresence, motion } from "framer-motion";
 import React, { useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 
 const Overlay = styled(motion.div)`
@@ -85,7 +86,7 @@ const MainConfirmDialog: React.FC<ConfirmDialogProps> = ({
     window.addEventListener("keydown", handleEsc);
     return () => window.removeEventListener("keydown", handleEsc);
   }, [onCancel]);
-
+  const { t } = useTranslation();
   return (
     <AnimatePresence>
       {isOpen && (
@@ -121,7 +122,7 @@ const MainConfirmDialog: React.FC<ConfirmDialogProps> = ({
                 $backgroundColor={isRedButton ? "#e20000" : "#002C5F"}
                 color="#fff"
               >
-                확인
+                {t("confirm")}
               </Button>
             </ButtonWrapper>
           </Dialog>
