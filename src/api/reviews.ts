@@ -1,4 +1,4 @@
-import axios from "./AxiosInstance";
+import axios from "./axiosInstance";
 
 export const useReviewsApi = () => {
   const getReviews = async (page: number, size: number) => {

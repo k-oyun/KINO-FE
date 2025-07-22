@@ -1,8 +1,6 @@
-// src/components/community/PostCard.tsx
 import React from 'react';
 import styled from 'styled-components';
 
-// PostType 정의를 이 파일 내에 직접 선언
 export type PostType = {
   id: string;
   title: string;

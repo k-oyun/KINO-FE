@@ -1,12 +1,6 @@
 import "./App.css";
 import Header from "./components/Header";
-import {
-  BrowserRouter,
-  Route,
-  Routes,
-  useLocation,
-  useNavigate,
-} from "react-router-dom";
+import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom";
 import { darkTheme, lightTheme } from "./styles/theme";
 import { ThemeProvider } from "styled-components";
 import MyPageMain from "./pages/mypage/MyPageMain";
@@ -32,7 +26,10 @@ import { DialogProvider, useDialog } from "./context/DialogContext";
 import ConfirmDialog from "./components/ConfirmDialog";
 import { useEffect, useRef } from "react";
 import { useMediaQuery } from "react-responsive";
+import MyFollowersPage from "./pages/mypage/MyFollowersPage";
 import Language from "./components/Language";
+import MyFollowingPage from "./pages/mypage/MyFollowingPage";
+import { useTranslation } from "react-i18next";
 
 const HeaderSelector = ({ path }: { path: string }) => {
   if (path === "/") return null;
@@ -66,18 +63,18 @@ const AppContents = () => {
   const isMyPage = path.startsWith("/mypage");
   const { openDialog, closeDialog } = useDialog();
   const errorTimeoutRef = useRef<number | null>(null);
+  const { t } = useTranslation();
   const isMobile = useMediaQuery({ query: "(max-width: 767px)" });
   useEffect(() => {
     const handler = (e: Event) => {
+      if (window.isLoggingOut) return;
       const code = (e as CustomEvent).detail?.status || 401;
       if (code === 500) {
         if (errorTimeoutRef.current) clearTimeout(errorTimeoutRef.current);
         errorTimeoutRef.current = setTimeout(() => {
           openDialog({
-            title: "서버에 문제가 발생했습니다",
-            message: isMobile
-              ? "잠시 후 다시 시도해주세요."
-              : "일시적인 문제일 수 있으니 잠시 후 다시 시도해주세요.",
+            title: t("serverWarningMessage"),
+            message: isMobile ? t("tryAgainLater") : t("temporaryIssue"),
             showCancel: false,
             isRedButton: true,
             onConfirm: () => closeDialog(),
@@ -88,8 +85,8 @@ const AppContents = () => {
         if (errorTimeoutRef.current) clearTimeout(errorTimeoutRef.current);
         errorTimeoutRef.current = setTimeout(() => {
           openDialog({
-            title: "인증 시간이 만료되었습니다.",
-            message: "다시 로그인 해주세요.",
+            title: t("AuthenticationExpired"),
+            message: t("LoginAgain"),
             showCancel: false,
             isRedButton: true,
             onConfirm: () => {
@@ -123,7 +120,7 @@ const AppContents = () => {
         }
       >
         <GlobalStyle />
-        {path === "/" ? null : <Language />}
+        {path === "/" || path === "/admin" ? null : <Language />}
         <HeaderSelector path={path} />
         <Routes>
           <Route path="/" element={<Login />}></Route>
@@ -139,20 +136,47 @@ const AppContents = () => {
           <Route path="/admin" element={<Admin />}></Route>
 
           <Route path="/mypage" element={<MyPageMain />} />
+          <Route path="/mypage/:targetId?" element={<MyPageMain />} />
+
           <Route
             path="/mypage/reviews/short"
             element={<MyReviewsShortPage />}
           />
           <Route
+            path="/mypage/reviews/short/:targetId?"
+            element={<MyReviewsShortPage />}
+          />
+
+          <Route
             path="/mypage/reviews/detail"
             element={<MyReviewsDetailPage />}
           />
           <Route
+            path="/mypage/reviews/detail/:targetId?"
+            element={<MyReviewsDetailPage />}
+          />
+
+          <Route
             path="/mypage/movies/favorite"
             element={<MyFavoriteMoviesPage />}
           />
+          <Route
+            path="/mypage/movies/favorite/:targetId?"
+            element={<MyFavoriteMoviesPage />}
+          />
+
           <Route path="/mypage/settings" element={<MySettingsPage />} />
           <Route path="/mypage/tags" element={<MyTagsPage />} />
+          <Route path="/mypage/followers" element={<MyFollowersPage />} />
+          <Route
+            path="/mypage/:targetId/followers"
+            element={<MyFollowersPage />}
+          />
+          <Route path="/mypage/following" element={<MyFollowingPage />} />
+          <Route
+            path="/mypage/following/:targetId"
+            element={<MyFollowingPage />}
+          />
 
           <Route path="/community" element={<CommunityListPage />} />
           <Route path="/community/:id" element={<CommunityDetailPage />} />

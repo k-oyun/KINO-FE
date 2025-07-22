@@ -2,6 +2,7 @@ import styled from "styled-components";
 import { motion, useAnimate } from "framer-motion";
 import { useState, type ChangeEvent } from "react";
 import { useMediaQuery } from "react-responsive";
+import { useTranslation } from "react-i18next";
 
 interface SearchBarProps {
   keyword: string;
@@ -64,6 +65,7 @@ export const SearchBar = ({ keyword, setKeyword }: SearchBarProps) => {
   const onChange = (e: ChangeEvent<HTMLInputElement>) => {
     setKeyword(e.target.value);
   };
+  const { t } = useTranslation();
 
   return (
     <SearchWrapper $issearchbtnpos={isSearchBtnPos}>
@@ -98,7 +100,7 @@ export const SearchBar = ({ keyword, setKeyword }: SearchBarProps) => {
         style={{ scaleX: 0 }}
         value={keyword}
         onChange={onChange}
-        placeholder="검색.."
+        placeholder={t("search") + ".."}
       />
     </SearchWrapper>
   );

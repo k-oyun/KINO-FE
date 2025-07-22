@@ -1,9 +1,13 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState, useCallback } from "react";
 import styled from "styled-components";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom"; // useParams 다시 추가
+
 import DetailReviewCard from "../../components/mypage/DetailReviewCard";
 import useMypageApi from "../../api/mypage";
+import VideoBackground from "../../components/VideoBackground";
+import Pagination from "../../components/Pagenation";
 
+// ---------------- Types ----------------
 interface UserProfileType {
   userId: number;
   nickname: string;
@@ -14,96 +18,34 @@ interface UserProfileType {
 
 interface DetailReviewType {
   reviewId: number;
-  image: string;
-  userProfile: string;
-  userNickname: string;
+  image: string; // 이 필드는 사용되지 않는 것으로 보여 주석 처리 또는 제거 고려
+  userProfile: string; // 이 필드는 사용되지 않는 것으로 보여 주석 처리 또는 제거 고려
+  userNickname: string; // 이 필드는 사용되지 않는 것으로 보여 주석 처리 또는 제거 고려
   title: string;
   content: string;
-  isMine: boolean;
+  mine: boolean; // 로그인한 사용자 본인의 리뷰인지 여부
   liked: boolean;
   likeCount: number;
   totalViews: number;
   commentCount: number;
   createdAt: string;
-  // reviewer?: {
-  //   id: string;
-  //   nickname: string;
-  //   image: string;
-  // };
-  reviewer: UserProfileType;
+  reviewer: UserProfileType; // 리뷰를 작성한 유저의 프로필 정보
 }
 
-// const DUMMY_DETAIL_REVIEWS: DetailReviewType[] = [
-//   {
-//     id: "dr1",
-//     title: "엘리오 내용 평가 4.0",
-//     image: "https://sitem.ssgcdn.com/72/10/00/item/1000569001072_i1_750.jpg",
-//     content:
-//       "엘리오는 영화 (콜 미 바이 유어 네임) 속에서 섬세하고 감성적인 소년으로 그려진다. 그는 이탈리아의 한적한 시골 마을에서 가족과 함께 지내며 지적이고 조용한 삶을 살고 있지만, 여름 방학 동안 올리버를 만나면서 그의 일상은 서서히 변화하기 시작한다. 처음에는 올리버에게 낯섦과 경계심을 느끼지만, 시간이 흐를수록 그들은 서로에게 깊은 감정을 느끼게 된다. 그 감정은 삶에 대한 새로운 통찰과 함께 서로에게 변화를 가져다준다. 시간이 흐를수록 그는 모든 것을 올리버에게 걸게 된다.",
-//     likes: 15,
-//     createdAt: "2024.07.18 11:00",
-//     views: 217,
-//     comments: 3,
-//     reviewer: {
-//       id: "user1",
-//       nickname: "영화평론가1",
-//       image: "https://via.placeholder.com/50/FF69B4/FFFFFF?text=R1",
-//     },
-//   },
-//   {
-//     id: "dr2",
-//     title: "2025년 7/10 박스오피스",
-//     image: "https://via.placeholder.com/200x300/9b59b6/ffffff?text=BoxOffice",
-//     content: "매트릭스를 보고, 나라면 빨간약과 파란약 중에... (중략)",
-//     likes: 10,
-//     createdAt: "2023.09.01 10:00",
-//     views: 500,
-//     comments: 2,
-//     reviewer: {
-//       id: "user2",
-//       nickname: "영화광2",
-//       image: "https://via.placeholder.com/50/00CED1/FFFFFF?text=R2",
-//     },
-//   },
-//   {
-//     id: "dr3",
-//     title: "2025년 7/10 박스오피스",
-//     image: "https://via.placeholder.com/200x300/9b59b6/ffffff?text=BoxOffice",
-//     content: "매트릭스를 보고, 나라면 빨간약과 파란약 중에... (중략)",
-//     likes: 10,
-//     createdAt: "2023.09.01 10:00",
-//     views: 500,
-//     comments: 21,
-//     reviewer: {
-//       id: "user3",
-//       nickname: "무비마스터",
-//       image: "https://via.placeholder.com/50/FFD700/FFFFFF?text=R3",
-//     },
-//   },
-//   {
-//     id: "dr4",
-//     title: "2025년 7/10 박스오피스",
-//     image: "https://via.placeholder.com/200x300/9b59b6/ffffff?text=BoxOffice",
-//     content: "매트릭스를 보고, 나라면 빨간약과 파란약 중에... (중략)",
-//     likes: 10,
-//     createdAt: "2023.09.01 10:00",
-//     views: 500,
-//     comments: 12,
-//     reviewer: {
-//       id: "user4",
-//       nickname: "비평가",
-//       image: "https://via.placeholder.com/50/3498DB/FFFFFF?text=R4",
-//     },
-//   },
-// ];
+interface PageInfo {
+  currentPage: number;
+  size: number;
+  pageContentAmount: number;
+}
 
-// Helper function to parse "YYYY.MM.DD HH:MM" string to Date object
-// DUMMY_DETAIL_REVIEWS의 createdAt 형식에 맞춰 필요
+const ITEMS_PER_PAGE = 5;
+
 const parseDateString = (dateStr: string): Date => {
   const parts = dateStr.split(/[. :]/).map(Number);
-  return new Date(parts[0], parts[1] - 1, parts[2], parts[3], parts[4]);
+  return new Date(parts[0], parts[1] - 1, parts[2], parts[3] ?? 0, parts[4] ?? 0);
 };
 
+// --- styled-components (변경 없음) ---
 const PageContainer = styled.div`
   max-width: 1200px;
   margin: 0 auto;
@@ -111,10 +53,8 @@ const PageContainer = styled.div`
   background-color: transparent;
   min-height: calc(100vh - 60px);
   color: #f0f0f0;
-
   display: flex;
   flex-direction: column;
-
   @media (max-width: 767px) {
     padding: 20px 15px;
     padding-top: 80px;
@@ -122,12 +62,11 @@ const PageContainer = styled.div`
 `;
 
 const SectionWrapper = styled.div`
-  background-color: #000000;
+  background-color: rgba(0, 0, 0, 0.7);
   padding: 25px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
   border-radius: 8px;
   margin-bottom: 25px;
-
   @media (max-width: 767px) {
     padding: 20px;
     margin-bottom: 15px;
@@ -138,7 +77,6 @@ const PageHeader = styled.div`
   display: flex;
   align-items: center;
   margin-bottom: 20px;
-
   @media (max-width: 767px) {
     flex-direction: column;
     align-items: flex-start;
@@ -155,17 +93,14 @@ const BackButton = styled.button`
   margin-right: 15px;
   cursor: pointer;
   transition: transform 0.2s ease-in-out;
-
   &:hover {
     transform: translateX(-5px);
   }
-
   svg {
     width: 24px;
     height: 24px;
     vertical-align: middle;
   }
-
   @media (max-width: 767px) {
     margin-right: 0;
     margin-bottom: 10px;
@@ -177,7 +112,6 @@ const PageTitle = styled.h1`
   font-size: 1.8em;
   font-weight: bold;
   color: #e0e0e0;
-
   @media (max-width: 767px) {
     font-size: 1.4em;
   }
@@ -192,7 +126,6 @@ const SortOptions = styled.div`
   font-size: 0.9em;
   margin-bottom: 20px;
   justify-content: flex-end;
-
   @media (max-width: 767px) {
     font-size: 0.8em;
     justify-content: flex-start;
@@ -207,11 +140,9 @@ const SortButton = styled.button<{ isActive: boolean }>`
   cursor: pointer;
   padding: 5px 0;
   position: relative;
-
   &:hover {
     color: #f0f0f0;
   }
-
   ${(props) =>
     props.isActive &&
     `
@@ -230,11 +161,6 @@ const SortButton = styled.button<{ isActive: boolean }>`
 const ReviewList = styled.div`
   display: flex;
   flex-direction: column;
-  /* gap: 15px; -> DetailReviewCard의 margin-bottom으로 간격 조절 */
-
-  @media (max-width: 767px) {
-    /* gap: 10px; */
-  }
 `;
 
 const EmptyState = styled.div`
@@ -242,59 +168,186 @@ const EmptyState = styled.div`
   text-align: center;
   padding: 30px 0;
   font-size: 1.1em;
-
   @media (max-width: 767px) {
     padding: 20px 0;
     font-size: 1em;
   }
 `;
 
+const PinkText = styled.span`
+  color: #ff69b4;
+  font-weight: bold;
+  margin-left: 0.25em;
+`;
+// --- styled-components 끝 ---
+
 const MyReviewsDetailPage: React.FC = () => {
   const navigate = useNavigate();
-  const [sortOrder, setSortOrder] = useState<"latest" | "views" | "likes">(
-    "latest"
-  );
+  // useParams를 사용하여 targetId를 다시 받습니다.
+  const { targetId: rawTargetId } = useParams<{ targetId?: string }>();
 
-  const { mypageReview } = useMypageApi();
+  // 안전 파싱: 숫자가 아니면 undefined 처리
+  const parsed = rawTargetId !== undefined ? Number(rawTargetId) : undefined;
+  const targetUserId = rawTargetId && !Number.isNaN(parsed) ? parsed : undefined;
+
+  const { mypageReview, userInfoGet, mypageMain } = useMypageApi(); // mypageMain 추가
+
+  const [loggedInUser, setLoggedInUser] = useState<UserProfileType | null>(null);
+  const [targetUserNickname, setTargetUserNickname] = useState<string | null>(null);
+
+  const [sortOrder, setSortOrder] = useState<"latest" | "views" | "likes">("latest");
   const [detailReviews, setDetailReviews] = useState<DetailReviewType[]>([]);
-  // const detailReviews: DetailReviewType[] = DUMMY_DETAIL_REVIEWS;
 
-  useEffect(() => {
-    const myReviewGet = async () => {
-      const res = await mypageReview();
-      const review = Array.isArray(res.data.data.reviews)
-        ? res.data.data.reviews
-        : [];
-      console.log(res.data.data.reviews);
-      setDetailReviews(review);
-    };
-    myReviewGet();
-  }, []);
-
-  const sortedReviews = [...detailReviews].sort((a, b) => {
-    if (sortOrder === "latest") {
-      return (
-        parseDateString(b.createdAt).getTime() -
-        parseDateString(a.createdAt).getTime()
-      );
-    } else if (sortOrder === "views") {
-      return (b.totalViews || 0) - (a.totalViews || 0);
-    } else if (sortOrder === "likes") {
-      return b.likeCount - a.likeCount;
-    }
-    return 0;
+  const [pageInfo, setPageInfo] = useState<PageInfo>({
+    currentPage: 0,
+    size: ITEMS_PER_PAGE,
+    pageContentAmount: 0,
   });
 
+  // ---------------- Load Logged-in User ----------------
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await userInfoGet();
+        setLoggedInUser(res.data?.data || null);
+      } catch (err) {
+        console.error("[MyReviewsDetailPage] 로그인 사용자 로드 실패:", err);
+        setLoggedInUser(null);
+      }
+    })();
+  }, [userInfoGet]);
+
+  // ---------------- Load Target Nickname (if viewing someone else) ----------------
+  useEffect(() => {
+    if (targetUserId == null) {
+      setTargetUserNickname(null); // 내 페이지일 경우 닉네임 설정 안 함
+      return;
+    }
+    (async () => {
+      try {
+        const res = await mypageMain(targetUserId);
+        const profile: UserProfileType | undefined = res.data?.data;
+        setTargetUserNickname(profile?.nickname ?? `사용자 ${targetUserId}`);
+      } catch {
+        setTargetUserNickname(`사용자 ${targetUserId}`); // 로드 실패 시 대체 닉네임
+      }
+    })();
+  }, [targetUserId, mypageMain]);
+
+  // ---------------- Load Detail Reviews ----------------
+  const loadDetailReviews = useCallback(async () => {
+    // 어떤 유저의 리뷰를 볼지 결정
+    const idToLoad =
+      targetUserId ?? // URL에 명시된 타겟 (타인의 페이지)
+      loggedInUser?.userId; // 없으면 내 것
+
+    if (idToLoad == null || Number.isNaN(idToLoad)) {
+      console.warn("[MyReviewsDetailPage] 로드할 사용자 ID가 없습니다.");
+      setDetailReviews([]);
+      return;
+    }
+
+    try {
+      const res = await mypageReview(idToLoad); // 결정된 ID로 API 호출
+      const arr = Array.isArray(res?.data?.data?.reviews)
+        ? res.data.data.reviews
+        : [];
+      setDetailReviews(arr);
+    } catch (err) {
+      console.error("[MyReviewsDetailPage] 상세 리뷰 로드 실패:", err);
+      setDetailReviews([]);
+    }
+  }, [mypageReview, targetUserId, loggedInUser]); // loggedInUser와 targetUserId를 의존성에 추가
+
+  useEffect(() => {
+    // 로그인 사용자 정보가 준비된 후에 데이터 로드 (내 페이지일 때 필요)
+    // rawTargetId가 있으면 (타인 페이지) 바로 로드 시도, 없으면 loggedInUser 대기
+    if (!rawTargetId && !loggedInUser) return;
+    loadDetailReviews();
+  }, [rawTargetId, loggedInUser, loadDetailReviews]);
+
+
+  // ---------------- Owner 판단 ----------------
+  const isOwner =
+    targetUserId == null || // 파라미터가 없으면 내 페이지
+    (loggedInUser?.userId != null && targetUserId === loggedInUser.userId);
+
+
+  const sortedReviews = useMemo(() => {
+    const arr = [...detailReviews];
+    if (sortOrder === "latest") {
+      arr.sort(
+        (a, b) =>
+          parseDateString(b.createdAt).getTime() -
+          parseDateString(a.createdAt).getTime()
+      );
+    } else if (sortOrder === "views") {
+      arr.sort((a, b) => (b.totalViews || 0) - (a.totalViews || 0));
+    } else if (sortOrder === "likes") {
+      arr.sort((a, b) => b.likeCount - a.likeCount);
+    }
+    return arr;
+  }, [detailReviews, sortOrder]);
+
+  // 페이지네이션 정보 업데이트
+  useEffect(() => {
+    const totalPages = Math.ceil(sortedReviews.length / ITEMS_PER_PAGE) || 0;
+    setPageInfo((prev) => {
+      const currentPage = prev.currentPage >= totalPages ? 0 : prev.currentPage;
+      return {
+        ...prev,
+        currentPage,
+        size: ITEMS_PER_PAGE,
+        pageContentAmount: totalPages,
+      };
+    });
+  }, [sortedReviews]);
+
+  const handleSortChange = (order: "latest" | "views" | "likes") => {
+    setSortOrder(order);
+    setPageInfo((prev) => ({ ...prev, currentPage: 0 }));
+  };
+
+  const startIdx = pageInfo.currentPage * ITEMS_PER_PAGE;
+  const endIdx = startIdx + ITEMS_PER_PAGE;
+  const currentPageReviews = sortedReviews.slice(startIdx, endIdx);
+
   const handleReviewClick = (reviewId: number) => {
-    // 상세 리뷰 클릭 시 상세 페이지로 이동
+    // 여기서는 특정 리뷰 ID를 클릭했을 때 해당 상세 리뷰 페이지로 이동합니다.
     navigate(`/reviews/detail/${reviewId}`);
   };
 
+  // ---------------- Render ----------------
+  const titlePrefix = isOwner
+    ? "내가 작성한"
+    : targetUserNickname
+    ? `${targetUserNickname} 님이 작성한`
+    : "사용자가 작성한"; // 닉네임 로드 전/실패 시 대체 문구
+
+  // 로그인 사용자 정보가 아직 없고 내 페이지인지 판별 안 된 경우 로딩
+  if (!loggedInUser && targetUserId == null) {
+    return (
+      <PageContainer>
+        <VideoBackground />
+        <EmptyState>프로필 정보를 로드 중입니다...</EmptyState>
+      </PageContainer>
+    );
+  }
+
   return (
     <PageContainer>
+      <VideoBackground />
       <SectionWrapper>
         <PageHeader>
-          <BackButton onClick={() => navigate("/mypage")}>
+          <BackButton
+            onClick={() =>
+              navigate(
+                isOwner
+                  ? "/mypage"
+                  : `/mypage/${targetUserId}`
+              )
+            }
+          >
             <svg
               width="24"
               height="24"
@@ -311,41 +364,59 @@ const MyReviewsDetailPage: React.FC = () => {
               />
             </svg>
           </BackButton>
-          <PageTitle>내가 작성한 상세 리뷰</PageTitle>
+          <PageTitle>
+            {titlePrefix} <PinkText>상세 리뷰</PinkText>
+          </PageTitle>
         </PageHeader>
+
         <SortOptions>
           <SortButton
             isActive={sortOrder === "latest"}
-            onClick={() => setSortOrder("latest")}
+            onClick={() => handleSortChange("latest")}
           >
             최신순
           </SortButton>
           <SortButton
             isActive={sortOrder === "views"}
-            onClick={() => setSortOrder("views")}
+            onClick={() => handleSortChange("views")}
           >
             조회순
           </SortButton>
           <SortButton
             isActive={sortOrder === "likes"}
-            onClick={() => setSortOrder("likes")}
+            onClick={() => handleSortChange("likes")}
           >
             좋아요순
           </SortButton>
         </SortOptions>
-        {sortedReviews && sortedReviews.length > 0 ? (
-          <ReviewList>
-            {sortedReviews.map((review: DetailReviewType) => (
-              <DetailReviewCard
-                key={review.reviewId}
-                review={review}
-                isMine={true}
-                showProfile={true}
-                onClick={() => handleReviewClick(review.reviewId)}
-                // isMobile prop은 필요하다면 여기에 추가 (예: useMediaQuery 훅 사용)
+
+        {sortedReviews.length > 0 ? (
+          <>
+            <ReviewList>
+              {currentPageReviews.map((review) => (
+                <DetailReviewCard
+                  key={review.reviewId}
+                  review={review}
+                  // isMine은 현재 보고 있는 유저의 ID와 로그인한 유저의 ID가 같은지 여부로 판단
+                  isMine={isOwner}
+                  showProfile={true}
+                  onClick={() => handleReviewClick(review.reviewId)}
+                />
+              ))}
+            </ReviewList>
+
+            {pageInfo.pageContentAmount > 1 && (
+              <Pagination
+                size={pageInfo.size}
+                itemsPerPage={ITEMS_PER_PAGE}
+                pageContentAmount={pageInfo.pageContentAmount}
+                currentPage={pageInfo.currentPage}
+                setPageInfo={setPageInfo}
+                pageInfo={pageInfo}
+                selectedOption={sortOrder}
               />
-            ))}
-          </ReviewList>
+            )}
+          </>
         ) : (
           <EmptyState>작성한 상세 리뷰가 없습니다.</EmptyState>
         )}
