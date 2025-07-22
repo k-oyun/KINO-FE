@@ -1,12 +1,12 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import styled, { keyframes } from 'styled-components';
-import { useNavigate, useParams } from 'react-router-dom';
-import axios from 'axios';
+import React, { useState, useEffect, useMemo, useCallback } from "react";
+import styled, { keyframes } from "styled-components";
+import { useNavigate, useParams } from "react-router-dom";
+import axios from "axios";
 
-import UserListItem from '../../components/mypage/UserListItem';
-import VideoBackground from '../../components/VideoBackground';
-import useMyPageApi from '../../api/mypage';
-import Pagination from '../../components/Pagenation';
+import UserListItem from "../../components/mypage/UserListItem";
+import VideoBackground from "../../components/VideoBackground";
+import useMyPageApi from "../../api/mypage";
+import Pagination from "../../components/Pagenation";
 
 // ------------------ 인터페이스 정의 ------------------
 export interface FollowerApiResponse {
@@ -30,10 +30,10 @@ interface UserProfileType {
 }
 
 interface FollowerType {
-  id: string;
+  userId: string;
   nickname: string;
   profileImageUrl: string;
-  isFollowing: boolean;
+  follow: boolean;
 }
 
 interface PageInfo {
@@ -185,8 +185,9 @@ const PopupContainer = styled.div<{ $isVisible: boolean }>`
   min-width: 250px;
   text-align: center;
 
-  animation: ${({ $isVisible }) => ($isVisible ? fadeIn : fadeOut)} 0.5s forwards;
-  visibility: ${({ $isVisible }) => ($isVisible ? 'visible' : 'hidden')};
+  animation: ${({ $isVisible }) => ($isVisible ? fadeIn : fadeOut)} 0.5s
+    forwards;
+  visibility: ${({ $isVisible }) => ($isVisible ? "visible" : "hidden")};
   opacity: ${({ $isVisible }) => ($isVisible ? 1 : 0)};
   transition: visibility 0.5s, opacity 0.5s;
 
@@ -205,16 +206,19 @@ const PopupContainer = styled.div<{ $isVisible: boolean }>`
 const MyFollowersPage: React.FC = () => {
   const navigate = useNavigate();
   const { targetId } = useParams<{ targetId?: string }>();
-  const { getFollower, followUser, unfollowUser, userInfoGet, mypageMain } = useMyPageApi();
+  const { getFollower, followUser, unfollowUser, userInfoGet, mypageMain } =
+    useMyPageApi();
 
   const [followers, setFollowers] = useState<FollowerType[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [loggedInUser, setLoggedInUser] = useState<UserProfileType | null>(null);
-  const [viewedUserNickname, setViewedUserNickname] = useState<string>('');
+  const [loggedInUser, setLoggedInUser] = useState<UserProfileType | null>(
+    null
+  );
+  const [viewedUserNickname, setViewedUserNickname] = useState<string>("");
 
   const [showPopup, setShowPopup] = useState(false);
-  const [popupMessage, setPopupMessage] = useState('');
+  const [popupMessage, setPopupMessage] = useState("");
 
   const [pageInfo, setPageInfo] = useState<PageInfo>({
     currentPage: 0,
@@ -227,7 +231,7 @@ const MyFollowersPage: React.FC = () => {
     setShowPopup(true);
     const timer = setTimeout(() => {
       setShowPopup(false);
-      setPopupMessage('');
+      setPopupMessage("");
     }, 2000);
     return () => clearTimeout(timer);
   }, []);
@@ -269,16 +273,21 @@ const MyFollowersPage: React.FC = () => {
       setError(null);
       try {
         const followerRes = await getFollower(finalUid);
-        const followerData: FollowerApiResponse["data"] | null = followerRes.data.data;
+        const followerData: FollowerApiResponse["data"] | null =
+          followerRes.data.data;
+        console.log("팔로워 데이터:", followerData);
         setFollowers(
           followerData
             ? followerData.map((follower) => ({
-                id: String(follower.userId),
+                userId: String(follower.userId),
                 nickname: follower.nickname,
                 profileImageUrl:
                   follower.profileImageUrl ||
-                  `https://via.placeholder.com/50/CCCCCC/FFFFFF?text=${follower.nickname.substring(0, 1)}`,
-                isFollowing: follower.follow,
+                  `https://via.placeholder.com/50/CCCCCC/FFFFFF?text=${follower.nickname.substring(
+                    0,
+                    1
+                  )}`,
+                follow: follower.follow,
               }))
             : []
         );
@@ -287,14 +296,18 @@ const MyFollowersPage: React.FC = () => {
           setViewedUserNickname(loggedInUser.nickname);
         } else {
           const userProfileRes = await mypageMain(finalUid);
-          setViewedUserNickname(userProfileRes.data?.data?.nickname || "알 수 없음");
+          setViewedUserNickname(
+            userProfileRes.data?.data?.nickname || "알 수 없음"
+          );
         }
       } catch (err) {
         console.error("팔로워 데이터 또는 사용자 정보 불러오기 실패:", err);
         if (axios.isAxiosError(err) && err.response?.status === 401) {
           localStorage.removeItem("accessToken");
           localStorage.removeItem("refreshToken");
-          window.dispatchEvent(new CustomEvent('unauthorized', { detail: { status: 401 } }));
+          window.dispatchEvent(
+            new CustomEvent("unauthorized", { detail: { status: 401 } })
+          );
         } else {
           setError("팔로워 목록을 불러오는 데 실패했습니다.");
         }
@@ -332,14 +345,22 @@ const MyFollowersPage: React.FC = () => {
       if (isCurrentlyFollowing) {
         await unfollowUser(Number(targetUserId));
         if (isOwner) {
-          setFollowers((prev) => prev.filter((f) => f.id !== targetUserId));
+          setFollowers((prev) => prev.filter((f) => f.userId !== targetUserId));
         } else {
-          setFollowers((prev) => prev.map((f) => (f.id === targetUserId ? { ...f, isFollowing: false } : f)));
+          setFollowers((prev) =>
+            prev.map((f) =>
+              f.userId === targetUserId ? { ...f, isFollowing: false } : f
+            )
+          );
         }
         triggerPopup(`${targetUserNickname}님을 언팔로우했습니다.`);
       } else {
         await followUser(Number(targetUserId));
-        setFollowers((prev) => prev.map((f) => (f.id === targetUserId ? { ...f, isFollowing: true } : f)));
+        setFollowers((prev) =>
+          prev.map((f) =>
+            f.userId === targetUserId ? { ...f, isFollowing: true } : f
+          )
+        );
         triggerPopup(`${targetUserNickname}님을 팔로우했습니다.`);
       }
     } catch (err) {
@@ -347,20 +368,29 @@ const MyFollowersPage: React.FC = () => {
       if (axios.isAxiosError(err) && err.response?.status === 401) {
         localStorage.removeItem("accessToken");
         localStorage.removeItem("refreshToken");
-        window.dispatchEvent(new CustomEvent('unauthorized', { detail: { status: 401 } }));
+        window.dispatchEvent(
+          new CustomEvent("unauthorized", { detail: { status: 401 } })
+        );
       } else {
         alert("팔로우/언팔로우 처리 중 오류가 발생했습니다.");
       }
     }
   };
 
-  const getBackPath = useMemo(() => (targetId ? `/mypage/${targetId}` : '/mypage'), [targetId]);
+  const getBackPath = useMemo(
+    () => (targetId ? `/mypage/${targetId}` : "/mypage"),
+    [targetId]
+  );
 
-  const pageTitleText = useMemo(() => (loading ? "팔로워" : isOwner ? "내가 팔로우하는" : `${viewedUserNickname} 님의`), [
-    isOwner,
-    viewedUserNickname,
-    loading,
-  ]);
+  const pageTitleText = useMemo(
+    () =>
+      loading
+        ? "팔로워"
+        : isOwner
+        ? "내가 팔로우하는"
+        : `${viewedUserNickname} 님의`,
+    [isOwner, viewedUserNickname, loading]
+  );
 
   return (
     <PageContainer>
@@ -368,8 +398,20 @@ const MyFollowersPage: React.FC = () => {
       <SectionWrapper>
         <PageHeader>
           <BackButton onClick={() => navigate(getBackPath)}>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M15 5L9 12L15 19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M15 5L9 12L15 19"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
             </svg>
           </BackButton>
           <PageTitle>
@@ -387,11 +429,13 @@ const MyFollowersPage: React.FC = () => {
             <UserList>
               {currentFollowers.map((follower) => (
                 <UserListItem
-                  key={follower.id}
+                  key={follower.userId}
                   user={follower}
                   onFollowToggle={isOwner ? handleFollowToggle : undefined}
-                  showFollowButton={!isOwner}
-                  isMyAccount={isOwner && loggedInUser?.userId === Number(follower.id)}
+                  showFollowButton={
+                    !isOwner && loggedInUser?.userId !== Number(follower.userId)
+                  }
+                  isMyAccount={loggedInUser?.userId === Number(follower.userId)}
                 />
               ))}
             </UserList>

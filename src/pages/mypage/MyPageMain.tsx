@@ -220,7 +220,13 @@ interface FavoriteMovieType {
 
 const parseDateString = (dateStr: string): Date => {
   const parts = dateStr.split(/[. :]/).map(Number);
-  return new Date(parts[0], parts[1] - 1, parts[2], parts[3] ?? 0, parts[4] ?? 0);
+  return new Date(
+    parts[0],
+    parts[1] - 1,
+    parts[2],
+    parts[3] ?? 0,
+    parts[4] ?? 0
+  );
 };
 
 // ------------------ 메인 컴포넌트 ------------------
@@ -228,11 +234,17 @@ const MyPageMain: React.FC = () => {
   const navigate = useNavigate();
   const { targetId } = useParams<{ targetId?: string }>();
 
-  const [shortReviewSort, setShortReviewSort] = useState<"latest" | "rating" | "likes">("latest");
-  const [detailReviewSort, setDetailReviewSort] = useState<"latest" | "views" | "likes">("latest");
+  const [shortReviewSort, setShortReviewSort] = useState<
+    "latest" | "rating" | "likes"
+  >("latest");
+  const [detailReviewSort, setDetailReviewSort] = useState<
+    "latest" | "views" | "likes"
+  >("latest");
 
   // 로그인한 내 정보
-  const [loggedInUser, setLoggedInUser] = useState<UserProfileType | null>(null);
+  const [loggedInUser, setLoggedInUser] = useState<UserProfileType | null>(
+    null
+  );
 
   // 현재 보고 있는 마이페이지 주인
   const [viewedUser, setViewedUser] = useState<UserProfileType | null>(null);
@@ -285,7 +297,6 @@ const MyPageMain: React.FC = () => {
             ? followingRes.data.data.length
             : 0,
         });
-        
       } catch (error) {
         console.error("페이지 주인 정보 로드 실패:", error);
         setViewedUser(null);
@@ -317,9 +328,7 @@ const MyPageMain: React.FC = () => {
       try {
         const res = await mypageReview(uid);
         setDetailReviews(
-          Array.isArray(res.data?.data?.reviews)
-            ? res.data.data.reviews
-            : []
+          Array.isArray(res.data?.data?.reviews) ? res.data.data.reviews : []
         );
       } catch (error) {
         console.error("상세 리뷰 로드 실패:", error);
@@ -371,13 +380,13 @@ const MyPageMain: React.FC = () => {
   ]);
 
   // ------------------ 메모 / 정렬 ------------------
-const isOwner = useMemo(() => {
-  if (!loggedInUser) return false;
-  if (!targetId) return true;
-  const tid = Number(targetId);
-  if (Number.isNaN(tid)) return false;
-  return tid === loggedInUser.userId;
-}, [loggedInUser, targetId]);
+  const isOwner = useMemo(() => {
+    if (!loggedInUser) return false;
+    if (!targetId) return true;
+    const tid = Number(targetId);
+    if (Number.isNaN(tid)) return false;
+    return tid === loggedInUser.userId;
+  }, [loggedInUser, targetId]);
 
   const sortedShortReviews = useMemo(() => {
     const arr = [...shortReviews];
@@ -412,12 +421,11 @@ const isOwner = useMemo(() => {
   }, [detailReviews, detailReviewSort]);
 
   // ------------------ 핸들러 ------------------
-// 이 함수는 DetailReviewCard 클릭 시 특정 상세 리뷰의 고유 페이지로 이동합니다.
-// 즉, '/reviews/detail/:reviewId' 형태의 라우팅이 필요합니다.
-const handleDetailReviewCardClick = (reviewId: number) => {
-  navigate(`/reviews/detail/${reviewId}`);
-};
-
+  // 이 함수는 DetailReviewCard 클릭 시 특정 상세 리뷰의 고유 페이지로 이동합니다.
+  // 즉, '/reviews/detail/:reviewId' 형태의 라우팅이 필요합니다.
+  const handleDetailReviewCardClick = (reviewId: number) => {
+    navigate(`/reviews/detail/${reviewId}`);
+  };
 
   const handleEditShortReview = async (updated: ShortReviewType) => {
     if (!updated.shortReviewId || updated.movieId == null) return;
@@ -443,38 +451,37 @@ const handleDetailReviewCardClick = (reviewId: number) => {
   };
 
   // --- 페이지 이동 헬퍼 함수 ---
-const goShortReviewsPage = useCallback(() => {
-  if (isOwner) {
-    navigate("/mypage/reviews/short");
-  } else if (viewedUser?.userId) {
-    navigate(`/mypage/reviews/short/${viewedUser.userId}`);
-  } else {
-    console.warn("viewedUser 없음: 한줄평 페이지로 이동 못함.");
-  }
-}, [isOwner, viewedUser, navigate]);
+  const goShortReviewsPage = useCallback(() => {
+    if (isOwner) {
+      navigate("/mypage/reviews/short");
+    } else if (viewedUser?.userId) {
+      navigate(`/mypage/reviews/short/${viewedUser.userId}`);
+    } else {
+      console.warn("viewedUser 없음: 한줄평 페이지로 이동 못함.");
+    }
+  }, [isOwner, viewedUser, navigate]);
 
-const goDetailReviewsPage = useCallback(() => {
-  if (isOwner) {
-    // 내 상세 리뷰 목록 페이지로 이동 (파라미터 없음)
-    navigate("/mypage/reviews/detail");
-  } else if (viewedUser?.userId) {
-    // 타인 상세 리뷰 목록 페이지로 이동 (userId 파라미터 포함)
-    navigate(`/mypage/reviews/detail/${viewedUser.userId}`);
-  } else {
-    console.warn("viewedUser 없음: 상세 리뷰 페이지로 이동 못함.");
-  }
-}, [isOwner, viewedUser, navigate]);
+  const goDetailReviewsPage = useCallback(() => {
+    if (isOwner) {
+      // 내 상세 리뷰 목록 페이지로 이동 (파라미터 없음)
+      navigate("/mypage/reviews/detail");
+    } else if (viewedUser?.userId) {
+      // 타인 상세 리뷰 목록 페이지로 이동 (userId 파라미터 포함)
+      navigate(`/mypage/reviews/detail/${viewedUser.userId}`);
+    } else {
+      console.warn("viewedUser 없음: 상세 리뷰 페이지로 이동 못함.");
+    }
+  }, [isOwner, viewedUser, navigate]);
 
-const goFavoritesPage = useCallback(() => {
-  if (isOwner) {
-    navigate("/mypage/movies/favorite");
-  } else if (viewedUser?.userId) {
-    navigate(`/mypage/movies/favorite/${viewedUser.userId}`);
-  } else {
-    console.warn("viewedUser 없음: 찜한 영화 페이지로 이동 못함.");
-  }
-}, [isOwner, viewedUser, navigate]);
-
+  const goFavoritesPage = useCallback(() => {
+    if (isOwner) {
+      navigate("/mypage/movies/favorite");
+    } else if (viewedUser?.userId) {
+      navigate(`/mypage/movies/favorite/${viewedUser.userId}`);
+    } else {
+      console.warn("viewedUser 없음: 찜한 영화 페이지로 이동 못함.");
+    }
+  }, [isOwner, viewedUser, navigate]);
 
   // ------------------ 렌더 ------------------
   // `viewedUser`와 `viewedFollow`가 모두 로드될 때까지 로딩 상태를 보여줍니다.
@@ -542,16 +549,18 @@ const goFavoritesPage = useCallback(() => {
         </SectionHeader>
         <PreviewContent>
           {sortedShortReviews.length > 0 ? (
-            sortedShortReviews.slice(0, 3).map((review) => (
-              <ShortReviewCard
-                key={review.shortReviewId}
-                review={review}
-                onClick={goShortReviewsPage}
-                onEdit={isOwner ? handleEditShortReview : undefined}
-                onDelete={isOwner ? handleDeleteShortReview : undefined}
-                isOwner={isOwner}
-              />
-            ))
+            sortedShortReviews
+              .slice(0, 3)
+              .map((review) => (
+                <ShortReviewCard
+                  key={review.shortReviewId}
+                  review={review}
+                  onClick={goShortReviewsPage}
+                  onEdit={isOwner ? handleEditShortReview : undefined}
+                  onDelete={isOwner ? handleDeleteShortReview : undefined}
+                  isOwner={isOwner}
+                />
+              ))
           ) : (
             <EmptyState>작성한 한줄평이 없습니다.</EmptyState>
           )}
@@ -649,15 +658,14 @@ const goFavoritesPage = useCallback(() => {
         </SectionHeader>
         <MovieCardGrid isEmpty={favoriteMovies.length === 0}>
           {favoriteMovies.length > 0 ? (
-            favoriteMovies.slice(0, 12).map((movie) => (
-              <MovieCard key={movie.myPickId} movie={movie} />
-            ))
+            favoriteMovies
+              .slice(0, 12)
+              .map((movie) => <MovieCard key={movie.myPickId} movie={movie} />)
           ) : (
             <EmptyState>찜한 영화가 없습니다.</EmptyState>
           )}
         </MovieCardGrid>
       </SectionWrapper>
-      
     </MyPageContainer>
   );
 };
