@@ -6,12 +6,13 @@ import { ko, enUS } from "date-fns/locale";
 import ReportModal from "../ReportModal";
 import { useTranslation } from "react-i18next";
 import { useReviewsApi } from "../../api/reviews";
+import DefaultProfileImg from "../../assets/img/profileIcon.png";
 
 export interface DetailReview {
   reviewId: number;
   image?: string;
   userId: number;
-  userProfile: string;
+  userImage: string;
   userNickname: string;
   title: string;
   content: string;
@@ -126,17 +127,27 @@ const DetailReviewMovieTitleText = styled.p`
 
 const ReviewText = styled.p<StyleType>`
   margin: 0;
-  font-size: ${(p) => (p.$ismobile ? "0.7em" : "1em")};
+  font-size: ${(props) => (props.$ismobile ? "0.7em" : "1em")};
   white-space: pre-wrap;
-  word-break: break-word;
-  color: #000;
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
-  min-height: ${(p) => (p.$ismobile ? "5vh" : "8vh")};
   padding: 0 10px;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  word-break: break-word;
+  /* min-height: ${(props) => (props.$ismobile ? "5vh" : "2vh")}; */
+  color: #333;
+
+  img {
+    max-width: 100%;
+    max-height: ${(props) => (props.$ismobile ? "100px" : "200px")};
+    object-fit: cover;
+    border-radius: 8px;
+    height: auto;
+    display: block;
+  }
 `;
 
 const DetailReviewFooter = styled.div<StyleType>`
@@ -311,7 +322,7 @@ const DetailReviewCard: React.FC<DetailReviewCardProps> = ({
     `https://placehold.co/160x270/CCCCCC/FFFFFF?text=${t(
       "detailReviewCard.noImageText"
     )}`;
-  const profileSrc = review.userProfile;
+  const profileSrc = review.userImage || DefaultProfileImg;
 
   return (
     <>
@@ -321,12 +332,6 @@ const DetailReviewCard: React.FC<DetailReviewCardProps> = ({
         role="button"
         tabIndex={0}
       >
-        <DetailMoviePoster
-          $ismobile={isMobile}
-          $showProfile={showProfile}
-          src={posterSrc}
-          alt={t("detailReviewCard.reviewImageAlt")}
-        />
         <ProfileNReview $ismobile={isMobile}>
           {showProfile && (
             <UserProfileWrap $ismobile={isMobile}>
