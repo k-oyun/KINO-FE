@@ -509,8 +509,7 @@ const MyPageMain: React.FC = () => {
   const handleDeleteShortReview = async (movieId: number, reviewId: string) => {
     if (!reviewId || movieId == null) return;
     try {
-      if (!window.confirm(t("mypage.shortReviews.delete.confirm"))) return; // 기존 키 재사용
-
+      
       await deleteShortReview(movieId, reviewId);
       alert(t("mypage.main.shortReviewDelete.success"));
       if (viewedUser?.userId) loadShortReviews(viewedUser.userId);

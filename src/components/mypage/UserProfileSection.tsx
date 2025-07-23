@@ -5,6 +5,7 @@ import { IoIosArrowBack, IoIosSettings } from "react-icons/io";
 import useFollowApi from "../../api/follow";
 import { useMediaQuery } from "react-responsive";
 import DefaultProfileImg from "../../assets/img/profileIcon.png";
+import { useTranslation } from "react-i18next"; // useTranslation 임포트
 
 interface UserProfileType {
   userId: number;
@@ -181,51 +182,51 @@ const UserProfileSection: React.FC<UserProfileSectionProps> = ({
   const [followerCount, setFollowerCount] = useState(follow.follower);
   const { getIsFollowed, postFollow, deleteFollow } = useFollowApi();
   const isMobile = useMediaQuery({ query: "(max-width: 768px)" });
+  const { t } = useTranslation(); // useTranslation 훅 사용
 
   useEffect(() => {
-    console.log(follow);
+    // console.log(follow); // This console.log should also be reviewed for production
     try {
       // 팔로우 상태 확인
       if (!isOwner) {
-        const res = getIsFollowed(userProfile.userId);
-        res
-          .then((data) => {
-            setIsFollowed(data.data.data.following);
-            console.log("팔로우 상태:", isFollowed);
-          })
-          .catch((error) => {
-            console.error("Error fetching follow status:", error);
-          });
+        const checkFollowStatus = async () => {
+          try {
+            const res = await getIsFollowed(userProfile.userId);
+            setIsFollowed(res.data.data.following);
+            // console.log("팔로우 상태:", res.data.data.following); // This console.log should also be reviewed for production
+          } catch (error) {
+            console.error(t("errorFetchingFollowStatus"), error);
+          }
+        };
+        checkFollowStatus();
       }
     } catch (error) {
-      console.error("Error checking follow status:", error);
+      console.error(t("errorCheckingFollowStatus"), error);
     }
-  }, []);
+  }, [getIsFollowed, isOwner, userProfile.userId, t]); // t를 의존성 배열에 추가
 
   const handleFollowerClick = () => navigate(`followers`);
   const handleFollowingClick = () =>
     navigate(`/mypage/following/${userProfile.userId}`);
 
-  const handleFollow = () => {
-    console.log(`팔로우: ${userProfile.nickname}`);
+  const handleFollow = async () => { // async/await 사용
+    // console.log(`팔로우: ${userProfile.nickname}`); // This console.log should also be reviewed for production
     try {
       if (isFollowed) {
         // 팔로우 취소
-        const res = deleteFollow(userProfile.userId);
-        res.then(() => {
-          setIsFollowed(false);
-          setFollowerCount(followerCount - 1);
-        });
+        await deleteFollow(userProfile.userId); // await 사용
+        setIsFollowed(false);
+        setFollowerCount(prev => prev - 1); // 함수형 업데이트
       } else {
         // 팔로우
-        const res = postFollow(userProfile.userId);
-        res.then(() => {
-          setIsFollowed(true);
-          setFollowerCount(followerCount + 1);
-        });
+        await postFollow(userProfile.userId); // await 사용
+        setIsFollowed(true);
+        setFollowerCount(prev => prev + 1); // 함수형 업데이트
       }
     } catch (error) {
-      console.error("Error toggling follow status:", error);
+      console.error(t("errorTogglingFollowStatus"), error);
+      // 사용자에게 오류 알림 (예: 토스트 메시지)
+      // alert(t("errorTogglingFollowStatusGeneric")); // 필요하다면 일반적인 오류 메시지 추가
     }
   };
 
@@ -239,7 +240,9 @@ const UserProfileSection: React.FC<UserProfileSectionProps> = ({
 
       {isOwner && (
         <ButtonsContainer>
-          <TagButton onClick={() => navigate("/mypage/tags")}>태그</TagButton>
+          <TagButton onClick={() => navigate("/mypage/tags")}>
+            {t("userProfileSection.tagButton")}
+          </TagButton>
           <IconButton onClick={() => navigate("/mypage/settings")}>
             <IoIosSettings />
           </IconButton>
@@ -251,17 +254,21 @@ const UserProfileSection: React.FC<UserProfileSectionProps> = ({
           <ProfileImage
             $ismobile={isMobile}
             src={userProfile.image || DefaultProfileImg}
-            alt={`${userProfile.nickname} 프로필 이미지`}
+            alt={t("userProfileSection.profileImageAlt", {
+              nickname: userProfile.nickname,
+            })}
           />
         </ProfileImageWrapper>
         <Nickname $ismobile={isMobile}>{userProfile.nickname}</Nickname>
         <FollowStats>
           <FollowItem onClick={handleFollowerClick} $ismobile={isMobile}>
-            팔로워 {followerCount}
+            {t("userProfileSection.followerCount", { count: followerCount })}
           </FollowItem>
-          <span> | </span>
+          <span> {t("userProfileSection.separator")} </span>
           <FollowItem onClick={handleFollowingClick} $ismobile={isMobile}>
-            팔로잉 {follow.following}
+            {t("userProfileSection.followingCount", {
+              count: follow.following,
+            })}
           </FollowItem>
           {!isOwner && (
             <FollowButton
@@ -269,7 +276,7 @@ const UserProfileSection: React.FC<UserProfileSectionProps> = ({
               $isFollowed={isFollowed}
               $ismobile={isMobile}
             >
-              팔로우
+              {isFollowed ? t("unfollow") : t("follow")}
             </FollowButton>
           )}{" "}
         </FollowStats>
