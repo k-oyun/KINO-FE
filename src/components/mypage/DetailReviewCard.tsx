@@ -14,7 +14,7 @@ export interface DetailReview {
   reviewId: number;
   image?: string;
   userId: number;
-  userImage: string;
+  userImage?: string;
   userNickname: string;
   title: string;
   content: string;
@@ -27,6 +27,7 @@ export interface DetailReview {
 interface DetailReviewCardProps {
   review: DetailReview;
   isMine?: boolean;
+  isMypage?: boolean;
   showProfile?: boolean;
   movieTitle?: string;
   isMobile?: boolean;
@@ -38,10 +39,13 @@ interface StyleType {
   $ismobile?: boolean;
   $showProfile?: boolean;
   $isDarkMode?: boolean;
+  $isMypage?: boolean;
 }
 
 const CardBase = styled.div<StyleType>`
-  background-color: ${(p) => (p.$isDarkMode ? "#222" : "#f6f6f6")};
+  background-color: ${(p) =>
+    p.$isMypage ? "#1a1a1a" : p.$isDarkMode ? "#222" : "#f6f6f6"};
+  color: ${(p) => (p.$isMypage ? "#fff" : "")};
   border-radius: 8px;
   padding: ${(p) => (p.$ismobile ? "15px" : "25px 20px")};
   margin-bottom: 15px;
@@ -227,6 +231,7 @@ const DetailReviewCard: React.FC<DetailReviewCardProps> = ({
   review,
   isMine = false,
   showProfile = false,
+  isMypage = false,
   movieTitle,
   isMobile,
   onClick,
@@ -356,6 +361,7 @@ const DetailReviewCard: React.FC<DetailReviewCardProps> = ({
       <DetailReviewCardContainer
         $isDarkMode={isDarkMode}
         $ismobile={isMobile}
+        $isMypage={isMypage}
         onClick={onClick}
         role="button"
         tabIndex={0}
@@ -371,11 +377,7 @@ const DetailReviewCard: React.FC<DetailReviewCardProps> = ({
                 })}
                 onClick={(e) => {
                   e.stopPropagation();
-                  // TODO: userId를 기반으로 navigate하는 것이 더 안전함.
-                  // 현재 review.userNickname을 사용하고 있는데, 닉네임이 변경될 경우 문제가 될 수 있음.
-                  // review 객체에 userId가 있다면 review.reviewer.userId를 사용하거나,
-                  // 없다면 API 호출을 통해 userId를 가져와야 함.
-                  navigate(`/mypage/${review.userNickname}`);
+                  navigate(`/mypage/${review.userId}`);
                 }}
               />
               <UserText $ismobile={isMobile}>
@@ -414,7 +416,7 @@ const DetailReviewCard: React.FC<DetailReviewCardProps> = ({
                 <LikesDisplay>{review.likeCount}</LikesDisplay>
                 <CommentImage
                   src={
-                    isDarkMode
+                    isMypage || isDarkMode
                       ? "https://img.icons8.com/?size=100&id=61f1pL4hEqO1&format=png&color=FFFFFF"
                       : "https://img.icons8.com/?size=100&id=61f1pL4hEqO1&format=png&color=000000"
                   }

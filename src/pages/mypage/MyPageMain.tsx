@@ -387,8 +387,23 @@ const MyPageMain: React.FC = () => {
     async (uid: number) => {
       try {
         const res = await mypageReview(uid);
+        console.log("상세 리뷰 로드 성공:", res.data.data);
         setDetailReviews(
-          Array.isArray(res.data?.data?.reviews) ? res.data.data.reviews : []
+          Array.isArray(res.data?.data?.reviews)
+            ? res.data.data.reviews.map((review: any) => {
+                const {
+                  likes: likeCount,
+                  comments: commentCount,
+                  ...rest
+                } = review;
+
+                return {
+                  ...rest,
+                  likeCount,
+                  commentCount,
+                } as DetailReviewType;
+              })
+            : []
         );
       } catch (error) {
         console.error("상세 리뷰 로드 실패:", error);
@@ -489,6 +504,8 @@ const MyPageMain: React.FC = () => {
   }, [sortedShortReviews, t]);
 
   const displayDetailReviews = sortedDetailReviews;
+  console.log("detailReviews:", detailReviews);
+  console.log("displayDetailReviews:", displayDetailReviews);
 
   /* ------------------ 핸들러 ------------------ */
   const handleDetailReviewCardClick = (reviewId: number) => {
@@ -696,9 +713,10 @@ const MyPageMain: React.FC = () => {
               .map((review) => (
                 <DetailReviewCard
                   key={review.reviewId}
-                  review={{ ...review, userImage: review.userProfile }}
+                  review={review}
                   isMine={isOwner}
-                  showProfile={true}
+                  isMypage={true}
+                  showProfile={false}
                   onClick={() => handleDetailReviewCardClick(review.reviewId)}
                 />
               ))
