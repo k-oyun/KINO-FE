@@ -126,14 +126,14 @@ const PostMeta = styled.div<styleType>`
 const Writer = styled.div<styleType>`
   display: flex;
   align-items: center;
-  font-size: ${(props) => (props.$ismobile ? "0.8em" : "1.1em")};
+  font-size: ${(props) => (props.$ismobile ? "0.8em" : "1em")};
   margin-top: ${(props) => (props.$ismobile ? "40px" : "60px")};
   cursor: pointer;
 `;
 
 const WriterImage = styled.img<styleType>`
   width: ${(props) => (props.$ismobile ? "25px" : "33px")};
-  height: ${(props) => (props.$ismobile ? "25px" : "33x")};
+  height: ${(props) => (props.$ismobile ? "25px" : "33px")};
   margin-right: ${(props) => (props.$ismobile ? "5px" : "10px")};
   border-radius: 50%;
   object-fit: cover;
@@ -351,6 +351,20 @@ const CommunityDetailPage: React.FC = () => {
     });
   };
 
+  const deleteConfirm = () => {
+    openDialog({
+      title: t("deletePost"),
+      message: t("deleteConfirm"),
+      showCancel: true,
+      isRedButton: true,
+      onConfirm: () => {
+        deletePost();
+        closeDialog();
+      },
+      onCancel: closeDialog,
+    });
+  };
+
   const deletePost = async () => {
     if (!post) return;
     // if (!window.confirm("정말로 이 게시글을 삭제하시겠습니까?")) return;
@@ -494,7 +508,7 @@ const CommunityDetailPage: React.FC = () => {
                     >
                       {t("edit")}
                     </StyledButton>
-                    <DeleteButton $ismobile={isMobile} onClick={deletePost}>
+                    <DeleteButton $ismobile={isMobile} onClick={deleteConfirm}>
                       {t("delete")}
                     </DeleteButton>
                     <BackButton
