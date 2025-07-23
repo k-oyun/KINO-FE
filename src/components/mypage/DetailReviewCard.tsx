@@ -329,7 +329,7 @@ const DetailReviewCard: React.FC<DetailReviewCardProps> = ({
           closeDialog();
         },
       });
-      onDelete?.(review.reviewId); // Call the onDelete callback if provided
+      onDelete?.(review.reviewId);
     } catch (e) {
       console.error("게시글 삭제 실패:", e);
       openDialog({
@@ -375,7 +375,7 @@ const DetailReviewCard: React.FC<DetailReviewCardProps> = ({
                   // 현재 review.userNickname을 사용하고 있는데, 닉네임이 변경될 경우 문제가 될 수 있음.
                   // review 객체에 userId가 있다면 review.reviewer.userId를 사용하거나,
                   // 없다면 API 호출을 통해 userId를 가져와야 함.
-                  navigate(`/mypage/${review.userNickname}`); // 필요시 userId 경로로 수정
+                  navigate(`/mypage/${review.userNickname}`);
                 }}
               />
               <UserText $ismobile={isMobile}>

@@ -18,13 +18,13 @@ interface UserProfileType {
 
 interface DetailReviewType {
   reviewId: number;
-  image: string; // 이 필드는 사용되지 않는 것으로 보여 주석 처리 또는 제거 고려
-  userId: number; // 리뷰 작성자의 ID
-  userProfile: string; // 이 필드는 사용되지 않는 것으로 보여 주석 처리 또는 제거 고려
-  userNickname: string; // 이 필드는 사용되지 않는 것으로 보여 주석 처리 또는 제거 고려
+  image: string; // 사용?
+  userId: number;
+  userProfile: string; // 사용?
+  userNickname: string; // 사용?
   title: string;
   content: string;
-  isMine: boolean; // 로그인한 사용자 본인의 리뷰인지 여부
+  isMine: boolean;
   liked: boolean;
   likeCount: number;
   totalViews: number;
@@ -116,7 +116,7 @@ const BackButton = styled.button`
 `;
 
 const PageTitle = styled.h1`
-  font-size: 1.8em;
+  font-size: 1.75em;
   font-weight: bold;
   color: #e0e0e0;
   @media (max-width: 767px) {
@@ -195,7 +195,7 @@ const MyReviewsDetailPage: React.FC = () => {
   const parsed = rawTargetId !== undefined ? Number(rawTargetId) : undefined;
   const targetUserId =
     rawTargetId && !Number.isNaN(parsed) ? parsed : undefined;
-  const { mypageReview, userInfoGet, mypageMain } = useMypageApi(); // mypageMain 추가
+  const { mypageReview, userInfoGet, mypageMain } = useMypageApi();
   const [loggedInUser, setLoggedInUser] = useState<UserProfileType | null>(
     null
   );
@@ -318,7 +318,6 @@ const MyReviewsDetailPage: React.FC = () => {
   const currentPageReviews = sortedReviews.slice(startIdx, endIdx);
 
   const handleReviewClick = (reviewId: number) => {
-    // 여기서는 특정 리뷰 ID를 클릭했을 때 해당 상세 리뷰 페이지로 이동합니다.
     navigate(`/reviews/detail/${reviewId}`);
   };
 

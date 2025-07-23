@@ -53,7 +53,7 @@ const SectionHeader = styled.div`
 `;
 
 const SectionTitle = styled.h3`
-  font-size: 1.8em;
+  font-size: 1.5em;
   font-weight: bold;
   color: #e0e0e0;
   display: flex;
@@ -62,6 +62,7 @@ const SectionTitle = styled.h3`
 
   svg {
     margin-left: 10px;
+    margin-bottom: 4px;
     font-size: 1.5em;
     color: #f0f0f0;
     transition: transform 0.2s ease-in-out;
@@ -96,6 +97,7 @@ const SortButton = styled.button<{ isActive: boolean }>`
   cursor: pointer;
   padding: 5px 0;
   position: relative;
+  font-size: 0.9em;
 
   &:hover {
     color: #f0f0f0;

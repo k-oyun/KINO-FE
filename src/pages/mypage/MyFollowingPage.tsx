@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo, useCallback } from "react";
 import styled, { keyframes } from "styled-components";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
-import { useTranslation } from "react-i18next"; // useTranslation 임포트
+import { useTranslation } from "react-i18next";
 
 import UserListItem from "../../components/mypage/UserListItem";
 import VideoBackground from "../../components/VideoBackground";
@@ -214,8 +214,8 @@ const MyFollowingPage: React.FC = () => {
   const navigate = useNavigate();
   const { getFollowing, followUser, unfollowUser, userInfoGet, mypageMain } =
     useMyPageApi();
-  const { targetId } = useParams<{ targetId?: string }>(); // targetId를 선택적 속성으로 변경
-  const { t } = useTranslation(); // useTranslation 훅 사용
+  const { targetId } = useParams<{ targetId?: string }>();
+  const { t } = useTranslation();
 
   const [following, setFollowing] = useState<FollowingType[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -223,7 +223,7 @@ const MyFollowingPage: React.FC = () => {
   const [loggedInUser, setLoggedInUser] = useState<UserProfileType | null>(
     null
   );
-  const [viewedUserNickname, setViewedUserNickname] = useState<string>(""); // 닉네임 상태 추가
+  const [viewedUserNickname, setViewedUserNickname] = useState<string>("");
 
   const [showPopup, setShowPopup] = useState(false);
   const [popupMessage, setPopupMessage] = useState("");
@@ -247,16 +247,14 @@ const MyFollowingPage: React.FC = () => {
     []
   );
 
-  // 현재 페이지의 주인이 로그인된 사용자인지 확인
   const isOwner = useMemo(() => {
     if (!loggedInUser) return false;
-    if (!targetId) return true; // targetId가 없으면 내 페이지
+    if (!targetId) return true;
     const tid = Number(targetId);
     if (Number.isNaN(tid)) return false;
     return tid === loggedInUser.userId;
   }, [loggedInUser, targetId]);
 
-  // 로그인한 사용자 정보 로드
   useEffect(() => {
     const loadLoggedInUser = async () => {
       try {
@@ -271,13 +269,10 @@ const MyFollowingPage: React.FC = () => {
   }, [userInfoGet, t]);
 
   useEffect(() => {
-    // 로그인된 사용자 정보가 없으면 로딩만 끝내고 종료
     if (!loggedInUser) {
       setLoading(false);
       return;
     }
-
-    // 팔로잉 목록을 불러올 사용자 ID 결정 (targetId가 있으면 그 ID, 없으면 로그인된 사용자 ID)
     const userIdToLoad = targetId ? Number(targetId) : loggedInUser.userId;
     const finalUid = isNaN(userIdToLoad) ? loggedInUser.userId : userIdToLoad;
 
@@ -300,7 +295,7 @@ const MyFollowingPage: React.FC = () => {
                   0,
                   1
                 )}`,
-              follow: followedUser.follow, // follow 상태를 직접 사용
+              follow: followedUser.follow,
             })
           );
           setFollowing(mappedFollowing);
@@ -308,11 +303,9 @@ const MyFollowingPage: React.FC = () => {
           setFollowing([]);
         }
 
-        // 페이지 제목을 위해 닉네임 설정
         if (isOwner) {
           setViewedUserNickname(loggedInUser.nickname);
         } else {
-          // 타겟 ID가 로그인된 사용자 ID와 다를 경우, 해당 유저의 닉네임을 가져옴
           const userProfileRes = await mypageMain(finalUid);
           setViewedUserNickname(
             userProfileRes.data?.data?.nickname || t("unknown")
@@ -330,7 +323,7 @@ const MyFollowingPage: React.FC = () => {
           setError(t("failedToLoadFollowingList"));
         }
         setFollowing([]);
-        setViewedUserNickname(t("unknown")); // 에러 시 "알 수 없음"으로 표시
+        setViewedUserNickname(t("unknown"));
       } finally {
         setLoading(false);
       }
@@ -398,10 +391,10 @@ const MyFollowingPage: React.FC = () => {
   const pageTitleText = useMemo(
     () =>
       loading
-        ? t("following") // "팔로잉"
+        ? t("following")
         : isOwner
-        ? t("followingMine") // "내가 팔로우하는"
-        : t("followingOf", { nickname: viewedUserNickname }), // "{{nickname}} 님의"
+        ? t("followingMine")
+        : t("followingOf", { nickname: viewedUserNickname }),
     [isOwner, viewedUserNickname, loading, t]
   );
 
@@ -447,9 +440,9 @@ const MyFollowingPage: React.FC = () => {
                   onFollowToggle={handleFollowToggle}
                   showFollowButton={
                     loggedInUser?.userId !== Number(followedUser.userId)
-                  } // 로그인 유저 본인에게는 팔로우 버튼 숨김
+                  }
                   isMyAccount={loggedInUser?.userId === Number(followedUser.userId)}
-                  type="following" // 'type' prop이 UserListItem에서 사용된다면 유지
+                  type="following"
                 />
               ))}
             </UserList>

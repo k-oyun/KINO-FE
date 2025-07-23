@@ -38,6 +38,7 @@ const CardBase = styled.div<StyleType>`
   cursor: pointer;
   color: #f0f0f0;
   margin-bottom: 10px;
+  // padding-top: 3px;
   &:hover {
     transform: translateY(-3px);
   }
@@ -242,11 +243,81 @@ const RatingStars = styled.div`
   }
 `;
 const Heart = styled.img<StyleType>`
-  width: ${(p) => (p.$ismobile ? "16px" : "20px")};
-  height: ${(p) => (p.$ismobile ? "16px" : "20px")};
+  width: ${(p) => (p.$ismobile ? "16px" : "16px")};
+  height: ${(p) => (p.$ismobile ? "16px" : "16px")};
   object-fit: cover;
 `;
 
+// ---------- util --------------
+const parseDateString = (dateStr: string): Date => {
+  if (!dateStr) return new Date(NaN);
+  const parts = dateStr.split(/[. :]/).map(Number);
+  return new Date(
+    parts[0],
+    (parts[1] || 1) - 1,
+    parts[2] || 1,
+    parts[3] ?? 0,
+    parts[4] ?? 0
+  );
+};
+
+const parseShortReviewDate = (dateStr: string): Date => {
+  if (!dateStr) return new Date(NaN);
+  const isoTry = new Date(dateStr);
+  if (!isNaN(isoTry.getTime())) return isoTry;
+  return parseDateString(dateStr);
+};
+
+const getRelativeTime = (
+  dateStr: string,
+  t: (key: string, options?: Record<string, unknown>) => string,
+  nowDate?: Date
+): string => {
+  const now = nowDate ?? new Date();
+  const past = parseShortReviewDate(dateStr);
+  const pastMs = past.getTime();
+  if (isNaN(pastMs)) return dateStr;
+
+  const diffSec = (now.getTime() - pastMs) / 1000;
+
+  if (diffSec < 0) {
+    const futureSec = Math.abs(diffSec);
+    if (futureSec < 60) return t("mypage.relativeTime.soon");
+    if (futureSec < 3600)
+      return t("mypage.relativeTime.minutesLater", {
+        count: Math.floor(futureSec / 60),
+      });
+    if (futureSec < 86400)
+      return t("mypage.relativeTime.hoursLater", {
+        count: Math.floor(futureSec / 3600),
+      });
+    return t("mypage.relativeTime.daysLater", {
+      count: Math.floor(futureSec / 86400),
+    });
+  }
+
+  if (diffSec < 60) return t("mypage.relativeTime.justNow");
+  if (diffSec < 3600)
+    return t("mypage.relativeTime.minutesAgo", {
+      count: Math.floor(diffSec / 60),
+    });
+  if (diffSec < 86400)
+    return t("mypage.relativeTime.hoursAgo", {
+      count: Math.floor(diffSec / 3600),
+    });
+
+  const diffDay = Math.floor(diffSec / 86400);
+  if (diffDay < 30) return t("mypage.relativeTime.daysAgo", { count: diffDay });
+
+  const diffMonth = Math.floor(diffDay / 30);
+  if (diffMonth < 12)
+    return t("mypage.relativeTime.monthsAgo", { count: diffMonth });
+
+  const diffYear = Math.floor(diffMonth / 12);
+  return t("mypage.relativeTime.yearsAgo", { count: diffYear });
+};
+
+// ---------- component --------------
 const ShortReviewCard: React.FC<ShortReviewCardProps> = ({
   review,
   onClick,
@@ -337,6 +408,8 @@ const ShortReviewCard: React.FC<ShortReviewCardProps> = ({
     return stars;
   };
 
+  const displayedTime = getRelativeTime(review.createdAt, t);
+
   return (
     <>
       <ShortReviewCardContainer
@@ -374,10 +447,13 @@ const ShortReviewCard: React.FC<ShortReviewCardProps> = ({
               src="https://img.icons8.com/?size=100&id=V4c6yYlvXtzy&format=png&color=000000"
               alt={t("detailReviewCard.likesAlt")}
               $ismobile={isMobile}
+              style={{ marginRight: "-4px" }}
             />
-            <span style={{ marginBottom: "3px" }}>{review.likes}</span>
+            <span style={{ marginBottom: "3px", paddingTop: "7px" }}>
+              {review.likes}
+            </span>
           </LikesAndRating>
-          <span>{review.createdAt}</span>
+          <span>{displayedTime}</span>
         </CardFooter>
       </ShortReviewCardContainer>
 

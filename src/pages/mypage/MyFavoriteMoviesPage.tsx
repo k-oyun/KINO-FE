@@ -92,7 +92,7 @@ const BackButton = styled.button`
 `;
 
 const PageTitle = styled.h1`
-    font-size: 1.8em;
+    font-size: 1.65em;
     font-weight: bold;
     color: #e0e0e0;
     @media (max-width: 767px) {
