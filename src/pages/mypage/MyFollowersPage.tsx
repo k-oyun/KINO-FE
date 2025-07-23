@@ -6,6 +6,7 @@ import UserListItem from "../../components/mypage/UserListItem";
 import VideoBackground from "../../components/VideoBackground";
 import useMyPageApi from "../../api/mypage";
 import Pagination from "../../components/Pagenation";
+import { useTranslation } from "react-i18next"; // useTranslation 임포트
 
 export interface FollowerApiResponse {
   status: number;
@@ -203,6 +204,7 @@ const MyFollowersPage: React.FC = () => {
   const { targetId } = useParams<{ targetId?: string }>();
   const { getFollower, followUser, unfollowUser, userInfoGet, mypageMain } =
     useMyPageApi();
+  const { t } = useTranslation(); // useTranslation 훅 사용
 
   const [followers, setFollowers] = useState<FollowerType[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -221,15 +223,18 @@ const MyFollowersPage: React.FC = () => {
     pageContentAmount: 0,
   });
 
-  const triggerPopup = useCallback((message: string) => {
-    setPopupMessage(message);
-    setShowPopup(true);
-    const timer = setTimeout(() => {
-      setShowPopup(false);
-      setPopupMessage("");
-    }, 2000);
-    return () => clearTimeout(timer);
-  }, []);
+  const triggerPopup = useCallback(
+    (message: string) => {
+      setPopupMessage(message);
+      setShowPopup(true);
+      const timer = setTimeout(() => {
+        setShowPopup(false);
+        setPopupMessage("");
+      }, 2000);
+      return () => clearTimeout(timer);
+    },
+    []
+  );
 
   const isOwner = useMemo(() => {
     if (!loggedInUser) return false;
@@ -245,12 +250,12 @@ const MyFollowersPage: React.FC = () => {
         const res = await userInfoGet();
         setLoggedInUser(res.data?.data ?? null);
       } catch (err) {
-        console.error("로그인 사용자 정보 로드 실패:", err);
+        console.error(t("failedToLoadLoggedInUserInfo"), err); // 다국어 처리
         setLoggedInUser(null);
       }
     };
     loadLoggedInUser();
-  }, [userInfoGet]);
+  }, [userInfoGet, t]); // t를 의존성 배열에 추가
 
   useEffect(() => {
     if (!loggedInUser) {
@@ -289,11 +294,11 @@ const MyFollowersPage: React.FC = () => {
         } else {
           const userProfileRes = await mypageMain(finalUid);
           setViewedUserNickname(
-            userProfileRes.data?.data?.nickname || "알 수 없음"
+            userProfileRes.data?.data?.nickname || t("unknown") // 다국어 처리
           );
         }
       } catch (err) {
-        console.error("팔로워 데이터 또는 사용자 정보 불러오기 실패:", err);
+        console.error(t("failedToLoadFollowerDataOrUserInfo"), err); // 다국어 처리
         if (axios.isAxiosError(err) && err.response?.status === 401) {
           localStorage.removeItem("accessToken");
           localStorage.removeItem("refreshToken");
@@ -301,16 +306,16 @@ const MyFollowersPage: React.FC = () => {
             new CustomEvent("unauthorized", { detail: { status: 401 } })
           );
         } else {
-          setError("팔로워 목록을 불러오는 데 실패했습니다.");
+          setError(t("failedToLoadFollowerList")); // 다국어 처리
         }
         setFollowers([]);
-        setViewedUserNickname("알 수 없음");
+        setViewedUserNickname(t("unknown")); // 다국어 처리
       } finally {
         setLoading(false);
       }
     };
     loadFollowersAndUserName();
-  }, [loggedInUser, targetId, getFollower, mypageMain, isOwner]);
+  }, [loggedInUser, targetId, getFollower, mypageMain, isOwner, t]); // t를 의존성 배열에 추가
 
   useEffect(() => {
     const totalPages = Math.ceil(followers.length / ITEMS_PER_PAGE) || 0;
@@ -341,22 +346,25 @@ const MyFollowersPage: React.FC = () => {
         } else {
           setFollowers((prev) =>
             prev.map((f) =>
-              f.userId === targetUserId ? { ...f, isFollowing: false } : f
+              f.userId === targetUserId ? { ...f, follow: false } : f // 'isFollowing' 대신 'follow' 사용
             )
           );
         }
-        triggerPopup(`${targetUserNickname}님을 언팔로우했습니다.`);
+        triggerPopup(t("unfollowedUser", { nickname: targetUserNickname })); // 다국어 처리
       } else {
         await followUser(Number(targetUserId));
         setFollowers((prev) =>
           prev.map((f) =>
-            f.userId === targetUserId ? { ...f, isFollowing: true } : f
+            f.userId === targetUserId ? { ...f, follow: true } : f // 'isFollowing' 대신 'follow' 사용
           )
         );
-        triggerPopup(`${targetUserNickname}님을 팔로우했습니다.`);
+        triggerPopup(t("followedUser", { nickname: targetUserNickname })); // 다국어 처리
       }
     } catch (err) {
-      console.error(`팔로우/언팔로우 실패 for user ${targetUserId}:`, err);
+      console.error(
+        t("failedToFollowUnfollow", { userId: targetUserId }), // 다국어 처리
+        err
+      );
       if (axios.isAxiosError(err) && err.response?.status === 401) {
         localStorage.removeItem("accessToken");
         localStorage.removeItem("refreshToken");
@@ -364,7 +372,7 @@ const MyFollowersPage: React.FC = () => {
           new CustomEvent("unauthorized", { detail: { status: 401 } })
         );
       } else {
-        alert("팔로우/언팔로우 처리 중 오류가 발생했습니다.");
+        alert(t("errorProcessingFollowUnfollow")); // 다국어 처리
       }
     }
   };
@@ -377,11 +385,11 @@ const MyFollowersPage: React.FC = () => {
   const pageTitleText = useMemo(
     () =>
       loading
-        ? "팔로워"
+        ? t("followers") // 다국어 처리
         : isOwner
-        ? "내가 팔로우하는"
-        : `${viewedUserNickname} 님의`,
-    [isOwner, viewedUserNickname, loading]
+        ? t("followersOfMine") // 다국어 처리
+        : t("followersOf", { nickname: viewedUserNickname }), // 다국어 처리
+    [isOwner, viewedUserNickname, loading, t] // t를 의존성 배열에 추가
   );
 
   return (
@@ -408,14 +416,16 @@ const MyFollowersPage: React.FC = () => {
           </BackButton>
           <PageTitle>
             {pageTitleText}
-            <PinkText>팔로워</PinkText>
+            <PinkText>{t("followers")}</PinkText> {/* 다국어 처리 */}
           </PageTitle>
         </PageHeader>
 
         {loading ? (
-          <EmptyState>팔로워 목록을 불러오는 중...</EmptyState>
+          <EmptyState>{t("loadingFollowerList")}</EmptyState> // 다국어 처리
         ) : error ? (
-          <EmptyState>오류 발생: {error}</EmptyState>
+          <EmptyState>
+            {t("errorOccurred")}: {error}
+          </EmptyState> // 다국어 처리
         ) : followers.length > 0 ? (
           <>
             <UserList>
@@ -444,7 +454,7 @@ const MyFollowersPage: React.FC = () => {
             )}
           </>
         ) : (
-          <EmptyState>아직 팔로워가 없습니다.</EmptyState>
+          <EmptyState>{t("noFollowersYet")}</EmptyState> // 다국어 처리
         )}
       </SectionWrapper>
 
