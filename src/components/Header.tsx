@@ -51,7 +51,7 @@ const HeaderMenuBtn = styled.button<styleType>`
   color: ${({ theme }) => theme.textColor};
   position: relative;
   height: 100%;
-  min-width: 5%;
+  min-width: 8%;
   padding: 10px;
   margin-right: 15px;
   margin-left: ${(props) => (props.$ismobile ? "3px" : null)};
@@ -67,7 +67,7 @@ const HeaderMenuBtn = styled.button<styleType>`
 
 const UserInfoContainer = styled.div<styleType>`
   display: flex;
-  width: ${(props) => (props.$ismobile ? "30%" : "auto")};
+  width: 30%;
   min-width: 12%;
   justify-content: flex-end;
   align-items: center;
