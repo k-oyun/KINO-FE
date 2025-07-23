@@ -7,7 +7,7 @@ import VideoBackground from "../../components/VideoBackground";
 import Pagination from "../../components/Pagenation";
 import { useTranslation } from "react-i18next";
 
-// ---------------- Types ----------------w
+// ---------------- Types ----------------
 interface ShortReviewType {
   movieId: number;
   shortReviewId: string;
@@ -102,7 +102,7 @@ const BackButton = styled.button`
 `;
 
 const PageTitle = styled.h1`
-  font-size: 1.8em;
+  font-size: 1.75em;
   font-weight: bold;
   color: #e0e0e0;
   @media (max-width: 767px) {
@@ -133,6 +133,7 @@ const SortButton = styled.button<{ isActive: boolean }>`
   cursor: pointer;
   padding: 5px 0;
   position: relative;
+  font-size: 0.9em;
   &:hover {
     color: #f0f0f0;
   }

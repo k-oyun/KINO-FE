@@ -5,7 +5,7 @@ import { IoIosArrowBack, IoIosSettings } from "react-icons/io";
 import useFollowApi from "../../api/follow";
 import { useMediaQuery } from "react-responsive";
 import DefaultProfileImg from "../../assets/img/profileIcon.png";
-import { useTranslation } from "react-i18next"; // useTranslation 임포트
+import { useTranslation } from "react-i18next";
 
 interface UserProfileType {
   userId: number;
@@ -62,8 +62,8 @@ const ProfileContent = styled.div`
 `;
 
 const ProfileImageWrapper = styled.div<StyleType>`
-  width: ${(props) => (props.$ismobile ? "70px" : "120px")};
-  height: ${(props) => (props.$ismobile ? "70px" : "120px")};
+  width: ${(props) => (props.$ismobile ? "70px" : "110px")};
+  height: ${(props) => (props.$ismobile ? "70px" : "110px")};
   border-radius: 50%;
   overflow: hidden;
   border: 3px solid #f0f0f0;
@@ -71,8 +71,8 @@ const ProfileImageWrapper = styled.div<StyleType>`
 `;
 
 const ProfileImage = styled.img<StyleType>`
-  width: ${(props) => (props.$ismobile ? "70px" : "120px")};
-  height: ${(props) => (props.$ismobile ? "70px" : "120px")};
+  width: ${(props) => (props.$ismobile ? "70px" : "110px")};
+  height: ${(props) => (props.$ismobile ? "70px" : "110px")};
   object-fit: cover;
   object-position: center;
 `;
@@ -80,14 +80,14 @@ const ProfileImage = styled.img<StyleType>`
 const Nickname = styled.h2<StyleType>`
   color: #f0f0f0;
   margin: 0;
-  font-size: ${(props) => (props.$ismobile ? "1em" : "2em")};
+  font-size: ${(props) => (props.$ismobile ? "1em" : "1.8em")};
   font-weight: bold;
   text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.7);
 `;
 
 const FollowStats = styled.p`
   color: #e0e0e0;
-  font-size: 1.1em;
+  font-size: 1.0em;
   margin: 5px 0 0;
   text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.7);
 `;
@@ -148,8 +148,8 @@ const BaseIconButton = styled.button`
   }
 
   svg {
-    width: 24px;
-    height: 24px;
+    width: 26px;
+    height: 26px;
     vertical-align: middle;
   }
 `;
@@ -182,18 +182,17 @@ const UserProfileSection: React.FC<UserProfileSectionProps> = ({
   const [followerCount, setFollowerCount] = useState(follow.follower);
   const { getIsFollowed, postFollow, deleteFollow } = useFollowApi();
   const isMobile = useMediaQuery({ query: "(max-width: 768px)" });
-  const { t } = useTranslation(); // useTranslation 훅 사용
+  const { t } = useTranslation();
 
   useEffect(() => {
-    // console.log(follow); // This console.log should also be reviewed for production
+    // console.log(follow);
     try {
-      // 팔로우 상태 확인
       if (!isOwner) {
         const checkFollowStatus = async () => {
           try {
             const res = await getIsFollowed(userProfile.userId);
             setIsFollowed(res.data.data.following);
-            // console.log("팔로우 상태:", res.data.data.following); // This console.log should also be reviewed for production
+            // console.log("팔로우 상태:", res.data.data.following);
           } catch (error) {
             console.error(t("errorFetchingFollowStatus"), error);
           }
@@ -203,30 +202,27 @@ const UserProfileSection: React.FC<UserProfileSectionProps> = ({
     } catch (error) {
       console.error(t("errorCheckingFollowStatus"), error);
     }
-  }, [getIsFollowed, isOwner, userProfile.userId, t]); // t를 의존성 배열에 추가
+  }, [getIsFollowed, isOwner, userProfile.userId, t]);
 
   const handleFollowerClick = () => navigate(`followers`);
   const handleFollowingClick = () =>
     navigate(`/mypage/following/${userProfile.userId}`);
 
-  const handleFollow = async () => { // async/await 사용
-    // console.log(`팔로우: ${userProfile.nickname}`); // This console.log should also be reviewed for production
+  const handleFollow = async () => {
+    // console.log(`팔로우: ${userProfile.nickname}`);
     try {
       if (isFollowed) {
-        // 팔로우 취소
-        await deleteFollow(userProfile.userId); // await 사용
+        await deleteFollow(userProfile.userId);
         setIsFollowed(false);
-        setFollowerCount(prev => prev - 1); // 함수형 업데이트
+        setFollowerCount(prev => prev - 1);
       } else {
-        // 팔로우
-        await postFollow(userProfile.userId); // await 사용
+        await postFollow(userProfile.userId);
         setIsFollowed(true);
-        setFollowerCount(prev => prev + 1); // 함수형 업데이트
+        setFollowerCount(prev => prev + 1);
       }
     } catch (error) {
       console.error(t("errorTogglingFollowStatus"), error);
-      // 사용자에게 오류 알림 (예: 토스트 메시지)
-      // alert(t("errorTogglingFollowStatusGeneric")); // 필요하다면 일반적인 오류 메시지 추가
+      // alert(t("errorTogglingFollowStatusGeneric"));
     }
   };
 

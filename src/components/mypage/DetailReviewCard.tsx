@@ -334,7 +334,7 @@ const DetailReviewCard: React.FC<DetailReviewCardProps> = ({
           closeDialog();
         },
       });
-      onDelete?.(review.reviewId); // Call the onDelete callback if provided
+      onDelete?.(review.reviewId);
     } catch (e) {
       console.error("게시글 삭제 실패:", e);
       openDialog({
