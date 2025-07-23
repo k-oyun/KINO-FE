@@ -14,7 +14,8 @@
   "submit": "등록하기",
   "edit": " 수정",
   "delete": "삭제",
-  "cancel": "취소",
+  "deleteConfirm": "정말로 삭제하시겠습니까?",
+  "cancle": "취소",
   "confirm": "확인",
   "report": "신고",
   "reportReason": "신고 사유",
@@ -238,5 +239,9 @@
   "mypage.relativeTime.hoursAgo": "{{count}}시간 전",
   "mypage.relativeTime.daysAgo": "{{count}}일 전",
   "mypage.relativeTime.monthsAgo": "{{count}}달 전",
-  "mypage.relativeTime.yearsAgo": "{{count}}년 전"
+  "mypage.relativeTime.yearsAgo": "{{count}}년 전",
+
+  "editTitle": "리뷰 수정",
+  "editConfirmMessage": "이 리뷰를 정말 수정하시겠습니까?",
+  "writeErrorMessage": "게시글 작성 중 오류가 발생했습니다. 다시 시도해주세요."
 }

@@ -8,6 +8,7 @@ import { useTranslation } from "react-i18next";
 import { useReviewsApi } from "../../api/reviews";
 import DefaultProfileImg from "../../assets/img/profileIcon.png";
 import { useDialog } from "../../context/DialogContext";
+import { usePreferMode } from "../../hooks/usePreferMode";
 
 export interface DetailReview {
   reviewId: number;
@@ -36,10 +37,11 @@ interface DetailReviewCardProps {
 interface StyleType {
   $ismobile?: boolean;
   $showProfile?: boolean;
+  $isDarkMode?: boolean;
 }
 
 const CardBase = styled.div<StyleType>`
-  background-color: #d9d9d9;
+  background-color: ${(p) => (p.$isDarkMode ? "#222" : "#f6f6f6")};
   border-radius: 8px;
   padding: ${(p) => (p.$ismobile ? "15px" : "25px 20px")};
   margin-bottom: 15px;
@@ -65,7 +67,6 @@ const ProfileNReview = styled.div<StyleType>`
   padding: ${(p) => (p.$ismobile ? "0" : "0 20px")};
   width: 60vw;
   max-width: 100%;
-  color: #000;
 `;
 
 const UserProfileWrap = styled.div<StyleType>`
@@ -75,8 +76,8 @@ const UserProfileWrap = styled.div<StyleType>`
 `;
 
 const UserImage = styled.img<StyleType>`
-  width: ${(p) => (p.$ismobile ? "30px" : "60px")};
-  height: ${(p) => (p.$ismobile ? "30px" : "60px")};
+  width: ${(p) => (p.$ismobile ? "25px" : "40px")};
+  height: ${(p) => (p.$ismobile ? "25px" : "40px")};
   border: 2px solid #fd6782;
   object-fit: cover;
   border-radius: 50%;
@@ -88,8 +89,7 @@ const UserImage = styled.img<StyleType>`
 const UserText = styled.div<StyleType>`
   display: flex;
   flex-direction: column;
-  margin-left: ${(p) => (p.$ismobile ? "5px" : "20px")};
-  margin-top: ${(p) => (p.$ismobile ? "5px" : "6px")};
+  margin-left: ${(p) => (p.$ismobile ? "8px" : "20px")};
 `;
 
 const UserNickname = styled.div<StyleType>`
@@ -107,7 +107,6 @@ const DetailReviewTitleText = styled.h4<StyleType>`
   font-size: ${(p) => (p.$ismobile ? "0.8em" : "1.15em")};
   margin-bottom: ${(p) => (p.$ismobile ? "5px" : "15px")};
   margin-top: 0;
-  color: #000;
 `;
 
 const DetailReviewMovieTitleText = styled.p`
@@ -129,7 +128,6 @@ const ReviewText = styled.p<StyleType>`
   overflow: hidden;
   word-break: break-word;
   /* min-height: ${(props) => (props.$ismobile ? "5vh" : "2vh")}; */
-  color: #333;
 
   img {
     max-width: 100%;
@@ -168,7 +166,6 @@ const LikesDisplay = styled.span`
   display: flex;
   align-items: center;
   gap: 3px;
-  color: #000;
 `;
 
 const CommentImage = styled.img<StyleType>`
@@ -182,7 +179,6 @@ const CommentDisplay = styled.span`
   display: flex;
   align-items: center;
   gap: 3px;
-  color: #000;
   margin-right: 5px;
 `;
 
@@ -236,6 +232,7 @@ const DetailReviewCard: React.FC<DetailReviewCardProps> = ({
   onClick,
   onDelete,
 }) => {
+  const isDarkMode = usePreferMode();
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const { deleteReview, postReviewReport } = useReviewsApi();
@@ -304,6 +301,20 @@ const DetailReviewCard: React.FC<DetailReviewCardProps> = ({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [menuOpen]);
 
+  const deleteConfirm = () => {
+    openDialog({
+      title: t("deletePost"),
+      message: t("deleteConfirm"),
+      showCancel: true,
+      isRedButton: true,
+      onConfirm: () => {
+        deletePost();
+        closeDialog();
+      },
+      onCancel: () => closeDialog(),
+    });
+  };
+
   const deletePost = async () => {
     try {
       const res = await deleteReview(review.reviewId);
@@ -343,6 +354,7 @@ const DetailReviewCard: React.FC<DetailReviewCardProps> = ({
   return (
     <>
       <DetailReviewCardContainer
+        $isDarkMode={isDarkMode}
         $ismobile={isMobile}
         onClick={onClick}
         role="button"
@@ -401,7 +413,11 @@ const DetailReviewCard: React.FC<DetailReviewCardProps> = ({
                 />
                 <LikesDisplay>{review.likeCount}</LikesDisplay>
                 <CommentImage
-                  src="https://img.icons8.com/?size=100&id=61f1pL4hEqO1&format=png&color=000000"
+                  src={
+                    isDarkMode
+                      ? "https://img.icons8.com/?size=100&id=61f1pL4hEqO1&format=png&color=FFFFFF"
+                      : "https://img.icons8.com/?size=100&id=61f1pL4hEqO1&format=png&color=000000"
+                  }
                   alt={t("detailReviewCard.commentsAlt")}
                   $ismobile={isMobile}
                 />
@@ -436,7 +452,7 @@ const DetailReviewCard: React.FC<DetailReviewCardProps> = ({
                     $ismobile={isMobile}
                     onClick={(e) => {
                       e.stopPropagation();
-                      deletePost();
+                      deleteConfirm();
                       setMenuOpen(false);
                     }}
                   >

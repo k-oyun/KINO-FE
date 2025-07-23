@@ -490,7 +490,7 @@ const MyPageMain: React.FC = () => {
 
   /* ------------------ 핸들러 ------------------ */
   const handleDetailReviewCardClick = (reviewId: number) => {
-    navigate(`/reviews/detail/${reviewId}`);
+    navigate(`/community/${reviewId}`);
   };
 
   const handleEditShortReview = async (updated: ShortReviewType) => {
