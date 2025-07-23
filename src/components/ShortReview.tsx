@@ -9,6 +9,7 @@ import { ko } from "date-fns/locale";
 import { formatDate, utcToKstString } from "../utils/date";
 import { useTranslation } from "react-i18next";
 import DefaultProfileImg from "../assets/img/profileIcon.png";
+import { useDialog } from "../context/DialogContext";
 
 interface ShortReviewProps {
   isMobile: boolean;
@@ -224,6 +225,7 @@ const WarningBox = styled.div<styleType>`
 `;
 
 const ShortReview = ({ isMobile, movieId, isUserActive }: ShortReviewProps) => {
+  const { openDialog, closeDialog } = useDialog();
   const { t } = useTranslation();
   const [rating, setRating] = useState<number>(0);
   const [review, setReview] = useState<string>("");
@@ -308,6 +310,20 @@ const ShortReview = ({ isMobile, movieId, isUserActive }: ShortReviewProps) => {
     setRating(reviewRating); // Reset rating after editing
     console.log("Editing review:", editReviewId, oldContent);
   };
+
+  const editConfirm = () => {
+    openDialog({
+      title: t("editTitle"),
+      message: t("editConfirmMessage"),
+      showCancel: true,
+      isRedButton: true,
+      onConfirm: () => {
+        closeDialog();
+        handleReviewUpdate();
+      },
+      onCancel: () => closeDialog(),
+    });
+  };
   const handleReviewUpdate = () => {
     if (editText.trim() === "") {
       // alert("한줄평을 입력해주세요.");
@@ -334,7 +350,13 @@ const ShortReview = ({ isMobile, movieId, isUserActive }: ShortReviewProps) => {
       });
     } catch (error: any) {
       console.error("Error updating review:", error);
-      // alert("리뷰 수정에 실패했습니다.");
+      openDialog({
+        title: t("editTitle"),
+        message: t("writeErrorMessage"),
+        showCancel: false,
+        isRedButton: true,
+        onConfirm: () => closeDialog(),
+      });
     }
   };
 
@@ -344,6 +366,21 @@ const ShortReview = ({ isMobile, movieId, isUserActive }: ShortReviewProps) => {
     setEditText("");
     setReview("");
   };
+
+  const deleteConfirm = (reviewId: number) => {
+    openDialog({
+      title: t("deletePost"),
+      message: t("deleteConfirm"),
+      showCancel: true,
+      isRedButton: true,
+      onConfirm: () => {
+        handleReviewDelete(reviewId);
+        closeDialog();
+      },
+      onCancel: () => closeDialog(),
+    });
+  };
+
   const handleReviewDelete = (reviewId: number) => {
     try {
       const res = deleteShortReview(movieId, reviewId);
@@ -355,7 +392,13 @@ const ShortReview = ({ isMobile, movieId, isUserActive }: ShortReviewProps) => {
       });
     } catch (error: any) {
       console.error("Error deleting review:", error);
-      // alert("리뷰 삭제에 실패했습니다.");
+      openDialog({
+        title: t("deletePost"),
+        message: t("deletePostFailure"),
+        showCancel: false,
+        isRedButton: true,
+        onConfirm: () => closeDialog(),
+      });
     }
   };
 
@@ -486,7 +529,7 @@ const ShortReview = ({ isMobile, movieId, isUserActive }: ShortReviewProps) => {
                       <ShortButton
                         $ismobile={isMobile}
                         $isEdit={true}
-                        onClick={() => handleReviewUpdate()}
+                        onClick={() => editConfirm()}
                       >
                         {t("edit")}
                       </ShortButton>
@@ -548,9 +591,7 @@ const ShortReview = ({ isMobile, movieId, isUserActive }: ShortReviewProps) => {
                           </Btn>
                           <Btn
                             $ismobile={isMobile}
-                            onClick={() =>
-                              handleReviewDelete(review.shortReviewId)
-                            }
+                            onClick={() => deleteConfirm(review.shortReviewId)}
                           >
                             | {t("delete")}
                           </Btn>

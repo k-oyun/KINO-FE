@@ -10,6 +10,7 @@ import useHomeApi from "../../api/home";
 import ProgressCircle from "../../components/ProgressCycle";
 import { motion } from "framer-motion";
 import { set } from "date-fns";
+import { useDialog } from "../../context/DialogContext";
 
 // 필요한 타입은 이 파일 내에서 직접 정의합니다.
 // interface CreatePostRequest {
@@ -261,6 +262,7 @@ const ErrorMessage = styled.div`
 `;
 
 const CommunityCreatePage: React.FC = () => {
+  const { openDialog, closeDialog } = useDialog();
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [title, setTitle] = useState("");
@@ -282,6 +284,30 @@ const CommunityCreatePage: React.FC = () => {
   const [movieHoverProgress, setMovieHoverProgress] = useState(0);
   const movieHoverTimer = useRef<number | null>(null);
 
+  const editConfirm = (id: string) => {
+    openDialog({
+      title: t("editTitle"),
+      message: t("editConfirmMessage"),
+      showCancel: true,
+      isRedButton: true,
+      onConfirm: () => {
+        closeDialog();
+        goUpdateReview(id);
+      },
+      onCancel: () => {
+        closeDialog();
+      },
+    });
+  };
+
+  const goUpdateReview = (id: string) => {
+    const res = updateReview(title, content, movieId, parseInt(id));
+    res.then((data) => {
+      console.log("게시글 수정 성공:", data.data);
+      navigate(`/community/${data.data.data}`);
+    });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -296,12 +322,7 @@ const CommunityCreatePage: React.FC = () => {
     try {
       if (id) {
         // 수정 모드
-        const res = updateReview(title, content, movieId, parseInt(id));
-        res.then((data) => {
-          console.log("게시글 수정 성공:", data.data);
-          navigate(`/community/${data.data.data}`);
-        });
-        return;
+        editConfirm(id);
       } else {
         const res = postReview(title, content, movieId);
         res.then((data) => {
@@ -312,6 +333,13 @@ const CommunityCreatePage: React.FC = () => {
     } catch (e) {
       console.error("Failed to create post:", e);
       setError("게시글 작성에 실패했습니다. 다시 시도해주세요.");
+      openDialog({
+        title: t("editTitle"),
+        message: t("writeErrorMessage"),
+        showCancel: false,
+        isRedButton: true,
+        onConfirm: () => closeDialog(),
+      });
     } finally {
       setIsLoading(false);
     }
