@@ -245,7 +245,7 @@
   "editTitle": "Review Edit",
   "editConfirmMessage": "Are you sure you want to edit this review?",
   "writeErrorMessage": "An error occurred while writing the post. Please try again.",
-  "notFoundReview": "Review does not exist."
+  "notFoundReview": "Review does not exist.",
 
   "followersOfMine": "Who follows Me, ",
   "followersOf": "{{nickname}}'s",
@@ -271,5 +271,4 @@
   "errorFetchingFollowStatus": "Error fetching follow status:",
   "errorCheckingFollowStatus": "Error checking follow status:",
   "errorTogglingFollowStatus": "Error toggling follow status:"
-
 }

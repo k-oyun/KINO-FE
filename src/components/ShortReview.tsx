@@ -10,6 +10,7 @@ import { formatDate, utcToKstString } from "../utils/date";
 import { useTranslation } from "react-i18next";
 import DefaultProfileImg from "../assets/img/profileIcon.png";
 import { useDialog } from "../context/DialogContext";
+import { useNavigate } from "react-router-dom";
 
 interface ShortReviewProps {
   isMobile: boolean;
@@ -225,6 +226,7 @@ const WarningBox = styled.div<styleType>`
 `;
 
 const ShortReview = ({ isMobile, movieId, isUserActive }: ShortReviewProps) => {
+  const navigate = useNavigate();
   const { openDialog, closeDialog } = useDialog();
   const { t } = useTranslation();
   const [rating, setRating] = useState<number>(0);
@@ -484,6 +486,7 @@ const ShortReview = ({ isMobile, movieId, isUserActive }: ShortReviewProps) => {
                     $ismobile={isMobile}
                     src={review.userProfile || DefaultProfileImg}
                     alt={review.userNickname}
+                    onClick={() => navigate(`/mypage/${review.userId}`)}
                   />
                   <UserText $ismobile={isMobile}>
                     <UserNickname $ismobile={isMobile} /> {review.userNickname}
