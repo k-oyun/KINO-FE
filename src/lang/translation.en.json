@@ -246,4 +246,30 @@
   "editConfirmMessage": "Are you sure you want to edit this review?",
   "writeErrorMessage": "An error occurred while writing the post. Please try again.",
   "notFoundReview": "Review does not exist."
+
+  "followersOfMine": "Who follows Me, ",
+  "followersOf": "{{nickname}}'s",
+  "loadingFollowerList": "Loading follower list...",
+  "errorOccurred": "Error occurred",
+  "noFollowersYet": "No followers yet.",
+  "unfollowedUser": "Unfollowed {{nickname}}.",
+  "followedUser": "Followed {{nickname}}.",
+  "failedToFollowUnfollow": "Failed to follow/unfollow for user {{userId}}:",
+  "errorProcessingFollowUnfollow": "An error occurred while processing follow/unfollow.",
+  "failedToLoadLoggedInUserInfo": "Failed to load logged-in user info:",
+  "failedToLoadFollowerDataOrUserInfo": "Failed to load follower data or user info:",
+  "failedToLoadFollowerList": "Failed to load follower list.",
+  "unknown": "Unknown",
+
+  "followingMine": "Who I follow,",
+  "followingOf": "{{nickname}}'s",
+  "loadingFollowingList": "Loading following list...",
+  "noFollowingYet": "No users followed yet.",
+  "failedToLoadFollowingDataOrUserInfo": "Failed to load following data or user info:",
+  "failedToLoadFollowingList": "Failed to load following list.",
+
+  "errorFetchingFollowStatus": "Error fetching follow status:",
+  "errorCheckingFollowStatus": "Error checking follow status:",
+  "errorTogglingFollowStatus": "Error toggling follow status:"
+
 }
