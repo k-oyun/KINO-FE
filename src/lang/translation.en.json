@@ -15,7 +15,7 @@
   "edit": "Edit",
   "delete": "Delete",
   "deleteConfirm": "Are you sure you want to delete this?",
-  "cancel": "Cancel",
+  "cancle": "Cancel",
   "confirm": "Confirm",
   "report": "Report",
   "reportReason": "Report Reason",
@@ -244,5 +244,6 @@
 
   "editTitle": "Review Edit",
   "editConfirmMessage": "Are you sure you want to edit this review?",
-  "writeErrorMessage": "An error occurred while writing the post. Please try again."
+  "writeErrorMessage": "An error occurred while writing the post. Please try again.",
+  "notFoundReview": "Review does not exist."
 }
