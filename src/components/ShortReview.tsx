@@ -8,6 +8,7 @@ import { formatDistanceToNow, set } from "date-fns";
 import { ko } from "date-fns/locale";
 import { formatDate, utcToKstString } from "../utils/date";
 import { useTranslation } from "react-i18next";
+import DefaultProfileImg from "../assets/img/profileIcon.png";
 
 interface ShortReviewProps {
   isMobile: boolean;
@@ -438,7 +439,7 @@ const ShortReview = ({ isMobile, movieId, isUserActive }: ShortReviewProps) => {
                 <UserProfile $ismobile={isMobile}>
                   <UserImage
                     $ismobile={isMobile}
-                    src={review.userProfile}
+                    src={review.userProfile || DefaultProfileImg}
                     alt={review.userNickname}
                   />
                   <UserText $ismobile={isMobile}>

@@ -5,6 +5,7 @@ import useHomeApi from "../api/home";
 
 interface userStateProps {
   setIsNewUser: (value: boolean) => void;
+  setIsFirstLogin: (value: boolean) => void;
 }
 
 interface styleProps {
@@ -108,7 +109,7 @@ const ConfirmBtn = styled.button<{ $isbtnpos: boolean; $ismobile: boolean }>`
   }
 `;
 
-const SurveyModal = ({ setIsNewUser }: userStateProps) => {
+const SurveyModal = ({ setIsNewUser, setIsFirstLogin }: userStateProps) => {
   const [username, setUsername] = useState("권오윤");
   const [selectedGenre, setSelectedGenre] = useState<number[]>([]);
   const [isBtnPos, setIsBtnPos] = useState(false);
@@ -205,6 +206,7 @@ const SurveyModal = ({ setIsNewUser }: userStateProps) => {
           onClick={() => {
             console.log("clicked");
             postSurvey(selectedGenre);
+            setIsFirstLogin(false);
           }}
         >
           확인
@@ -212,6 +214,7 @@ const SurveyModal = ({ setIsNewUser }: userStateProps) => {
         <SkipBtn
           onClick={() => {
             setIsNewUser(false);
+            setIsFirstLogin(false);
             postSurvey([]);
           }}
         >

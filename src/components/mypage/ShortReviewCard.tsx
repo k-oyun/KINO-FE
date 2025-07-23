@@ -1,11 +1,6 @@
 import React, { useState, useCallback } from "react";
 import styled from "styled-components";
-import {
-  FaThumbsUp,
-  FaEllipsisV,
-  FaStar,
-  FaRegStar,
-} from "react-icons/fa";
+import { FaThumbsUp, FaEllipsisV, FaStar, FaRegStar } from "react-icons/fa";
 import { useTranslation } from "react-i18next";
 
 export interface ShortReview {
@@ -246,6 +241,11 @@ const RatingStars = styled.div`
     font-size: 0.9em;
   }
 `;
+const Heart = styled.img<StyleType>`
+  width: ${(p) => (p.$ismobile ? "16px" : "20px")};
+  height: ${(p) => (p.$ismobile ? "16px" : "20px")};
+  object-fit: cover;
+`;
 
 const ShortReviewCard: React.FC<ShortReviewCardProps> = ({
   review,
@@ -255,9 +255,10 @@ const ShortReviewCard: React.FC<ShortReviewCardProps> = ({
   isMobile,
   isOwner,
 }) => {
-  const { t } = useTranslation(); 
+  const { t } = useTranslation();
 
-  const canManage = (typeof isOwner === "boolean" ? isOwner : Boolean(onEdit && onDelete));
+  const canManage =
+    typeof isOwner === "boolean" ? isOwner : Boolean(onEdit && onDelete);
 
   const [isMenuOpen, setMenuOpen] = useState(false);
   const [isEditModalOpen, setEditModalOpen] = useState(false);
@@ -276,39 +277,48 @@ const ShortReviewCard: React.FC<ShortReviewCardProps> = ({
     [isMenuOpen, onClick]
   );
 
-  const toggleMenu = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (!canManage) return;
-    setMenuOpen((v) => !v);
-  }, [canManage]);
+  const toggleMenu = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      if (!canManage) return;
+      setMenuOpen((v) => !v);
+    },
+    [canManage]
+  );
 
-  const handleEdit = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (!canManage) return;
-    setEditContent(review.content);
-    setEditRating(review.rating);
-    setEditModalOpen(true);
-    setMenuOpen(false);
-  }, [canManage, review.content, review.rating]);
+  const handleEdit = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      if (!canManage) return;
+      setEditContent(review.content);
+      setEditRating(review.rating);
+      setEditModalOpen(true);
+      setMenuOpen(false);
+    },
+    [canManage, review.content, review.rating]
+  );
 
-  const handleDelete = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (!canManage) return;
-    setMenuOpen(false);
-    if (review.movieId == null) {
-      alert(t('mypage.shortReviews.delete.noMovieIdError'));
-      return;
-    }
-    // TODO: window.confirm 대신 커스텀 모달 UI 사용
-    if (window.confirm(t('mypage.shortReviews.delete.confirm'))) {
-      onDelete?.(review.movieId, review.shortReviewId);
-    }
-  }, [canManage, onDelete, review.movieId, review.shortReviewId, t]);
+  const handleDelete = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      if (!canManage) return;
+      setMenuOpen(false);
+      if (review.movieId == null) {
+        alert(t("mypage.shortReviews.delete.noMovieIdError"));
+        return;
+      }
+      // TODO: window.confirm 대신 커스텀 모달 UI 사용
+      if (window.confirm(t("mypage.shortReviews.delete.confirm"))) {
+        onDelete?.(review.movieId, review.shortReviewId);
+      }
+    },
+    [canManage, onDelete, review.movieId, review.shortReviewId, t]
+  );
 
   const handleEditSubmit = useCallback(() => {
     if (!canManage) return;
     if (review.movieId == null) {
-      alert(t('mypage.shortReviews.edit.noMovieIdError'));
+      alert(t("mypage.shortReviews.edit.noMovieIdError"));
       return;
     }
     onEdit?.({
@@ -338,15 +348,17 @@ const ShortReviewCard: React.FC<ShortReviewCardProps> = ({
         <CardHeader>
           <MovieTitle>{review.movieTitle}</MovieTitle>
           {canManage && (
-            <MenuTrigger aria-label={t('shortReviewCard.menuTriggerAriaLabel')} onClick={toggleMenu}>
+            <MenuTrigger
+              aria-label={t("shortReviewCard.menuTriggerAriaLabel")}
+              onClick={toggleMenu}
+            >
               <FaEllipsisV />
               {isMenuOpen && (
-                <DropdownMenu
-                  onClick={(e) => e.stopPropagation()}
-                  role="menu"
-                >
-                  <DropdownItem onClick={handleEdit}>{t('edit')}</DropdownItem>
-                  <DropdownItem onClick={handleDelete}>{t('delete')}</DropdownItem>
+                <DropdownMenu onClick={(e) => e.stopPropagation()} role="menu">
+                  <DropdownItem onClick={handleEdit}>{t("edit")}</DropdownItem>
+                  <DropdownItem onClick={handleDelete}>
+                    {t("delete")}
+                  </DropdownItem>
                 </DropdownMenu>
               )}
             </MenuTrigger>
@@ -358,9 +370,12 @@ const ShortReviewCard: React.FC<ShortReviewCardProps> = ({
         <CardFooter>
           <LikesAndRating>
             <RatingStars>{renderStars(review.rating)}</RatingStars>
-            <Likes>
-              <FaThumbsUp /> {review.likes}
-            </Likes>
+            <Heart
+              src="https://img.icons8.com/?size=100&id=V4c6yYlvXtzy&format=png&color=000000"
+              alt={t("detailReviewCard.likesAlt")}
+              $ismobile={isMobile}
+            />
+            <span style={{ marginBottom: "3px" }}>{review.likes}</span>
           </LikesAndRating>
           <span>{review.createdAt}</span>
         </CardFooter>
@@ -369,14 +384,14 @@ const ShortReviewCard: React.FC<ShortReviewCardProps> = ({
       {isEditModalOpen && (
         <ModalBackdrop onClick={() => setEditModalOpen(false)}>
           <ModalContent onClick={(e) => e.stopPropagation()}>
-            <h3>{t('shortReviewCard.editModalTitle')}</h3>
+            <h3>{t("shortReviewCard.editModalTitle")}</h3>
             <input type="text" value={review.movieTitle} readOnly />
             <textarea
               value={editContent}
               onChange={(e) => setEditContent(e.target.value)}
             />
             <div className="rating-input">
-              <span>{t('shortReviewCard.ratingLabel')}</span>
+              <span>{t("shortReviewCard.ratingLabel")}</span>
               {[1, 2, 3, 4, 5].map((star) => (
                 <span
                   key={star}
@@ -390,9 +405,11 @@ const ShortReviewCard: React.FC<ShortReviewCardProps> = ({
             </div>
             <div className="actions">
               <CancelButton onClick={() => setEditModalOpen(false)}>
-                {t('cancel')}
+                {t("cancel")}
               </CancelButton>
-              <SaveButton onClick={handleEditSubmit}>{t('shortReviewCard.saveButton')}</SaveButton>
+              <SaveButton onClick={handleEditSubmit}>
+                {t("shortReviewCard.saveButton")}
+              </SaveButton>
             </div>
           </ModalContent>
         </ModalBackdrop>

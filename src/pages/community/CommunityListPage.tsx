@@ -11,7 +11,7 @@ interface DetailReview {
   reviewId: number;
   image: string;
   userId: number;
-  userProfile: string;
+  userImage: string;
   userNickname: string;
   title: string;
   content: string;

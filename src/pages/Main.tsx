@@ -11,6 +11,7 @@ import { KinoLogoPlaceholderSVG } from "../assets/svg/KinoLogoPlaceholder.tsx";
 import { KinoPosterPlaceholderSVG } from "../assets/svg/KinoPosterPlaceholder.tsx";
 import ProgressCircle from "../components/ProgressCycle.tsx";
 import { useTranslation } from "react-i18next";
+import useAuthApi from "../api/auth.ts";
 
 interface styleType {
   $ismobile: boolean;
@@ -452,9 +453,11 @@ interface MovieList {
 }
 const Main = () => {
   const [keyword, setKeyword] = useState("");
+  const [isFirstLogin, setIsFirstLogin] = useState(false);
   const [isNewUser, setIsNewUser] = useState(false);
   const isMobile = useMediaQuery({ query: "(max-width: 767px)" });
   const { getHomeApi, searchHomeApi } = useHomeApi();
+  const { userInfoGet } = useAuthApi();
   const navigate = useNavigate();
   const [isReviewLoading, setIsReviewLoading] = useState(true);
   const [isMovieLoading, setIsMovieLoading] = useState(true);
@@ -468,6 +471,14 @@ const Main = () => {
     runningTime: 0,
     genres: [],
   });
+
+  useEffect(() => {
+    const userDataGet = async () => {
+      const res = await userInfoGet();
+      setIsFirstLogin(res.data.data.isFirstLogin);
+    };
+    userDataGet();
+  }, []);
 
   const [topLikeReviewList, setTopLikeReviewList] = useState<
     TopLikeReviewListType[]
@@ -629,11 +640,16 @@ const Main = () => {
   const { t } = useTranslation();
 
   useEffect(() => {
-    console.log(hoveredReview?.reviewId);
-  }, [hoveredReview]);
+    console.log("ddsadasdsa", isFirstLogin);
+  }, []);
   return (
     <>
-      {isNewUser && <SurveyModal setIsNewUser={setIsNewUser} />}
+      {isFirstLogin && (
+        <SurveyModal
+          setIsNewUser={setIsNewUser}
+          setIsFirstLogin={setIsFirstLogin}
+        />
+      )}
       <MainHeader
         keyword={keyword}
         setKeyword={setKeyword}

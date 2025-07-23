@@ -115,7 +115,7 @@ const Review = ({
         reviews.map((review) => (
           <DetailReviewCard
             key={review.reviewId}
-            review={review}
+            review={{ ...review, userImage: review.userProfile }}
             isMine={review.isMine}
             showProfile={true}
             isMobile={isMobile}

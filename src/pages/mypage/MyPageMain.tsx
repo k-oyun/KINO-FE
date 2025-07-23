@@ -171,7 +171,6 @@ const PinkText = styled.span`
   margin-left: 0.25em;
 `;
 
-
 // ---------- type --------------
 interface UserProfileType {
   userId: number;
@@ -225,7 +224,13 @@ interface FavoriteMovieType {
 const parseDateString = (dateStr: string): Date => {
   if (!dateStr) return new Date(NaN);
   const parts = dateStr.split(/[. :]/).map(Number);
-  return new Date(parts[0], (parts[1] || 1) - 1, parts[2] || 1, parts[3] ?? 0, parts[4] ?? 0);
+  return new Date(
+    parts[0],
+    (parts[1] || 1) - 1,
+    parts[2] || 1,
+    parts[3] ?? 0,
+    parts[4] ?? 0
+  );
 };
 
 const parseShortReviewDate = (dateStr: string): Date => {
@@ -235,7 +240,11 @@ const parseShortReviewDate = (dateStr: string): Date => {
   return parseDateString(dateStr);
 };
 
-const getRelativeTime = (dateStr: string, t: (key: string, options?: Record<string, unknown>) => string, nowDate?: Date): string => {
+const getRelativeTime = (
+  dateStr: string,
+  t: (key: string, options?: Record<string, unknown>) => string,
+  nowDate?: Date
+): string => {
   const now = nowDate ?? new Date();
   const past = parseShortReviewDate(dateStr);
   const pastMs = past.getTime();
@@ -246,20 +255,35 @@ const getRelativeTime = (dateStr: string, t: (key: string, options?: Record<stri
   if (diffSec < 0) {
     const futureSec = Math.abs(diffSec);
     if (futureSec < 60) return t("mypage.relativeTime.soon");
-    if (futureSec < 3600) return t("mypage.relativeTime.minutesLater", { count: Math.floor(futureSec / 60) });
-    if (futureSec < 86400) return t("mypage.relativeTime.hoursLater", { count: Math.floor(futureSec / 3600) });
-    return t("mypage.relativeTime.daysLater", { count: Math.floor(futureSec / 86400) });
+    if (futureSec < 3600)
+      return t("mypage.relativeTime.minutesLater", {
+        count: Math.floor(futureSec / 60),
+      });
+    if (futureSec < 86400)
+      return t("mypage.relativeTime.hoursLater", {
+        count: Math.floor(futureSec / 3600),
+      });
+    return t("mypage.relativeTime.daysLater", {
+      count: Math.floor(futureSec / 86400),
+    });
   }
 
   if (diffSec < 60) return t("mypage.relativeTime.justNow");
-  if (diffSec < 3600) return t("mypage.relativeTime.minutesAgo", { count: Math.floor(diffSec / 60) });
-  if (diffSec < 86400) return t("mypage.relativeTime.hoursAgo", { count: Math.floor(diffSec / 3600) });
+  if (diffSec < 3600)
+    return t("mypage.relativeTime.minutesAgo", {
+      count: Math.floor(diffSec / 60),
+    });
+  if (diffSec < 86400)
+    return t("mypage.relativeTime.hoursAgo", {
+      count: Math.floor(diffSec / 3600),
+    });
 
   const diffDay = Math.floor(diffSec / 86400);
   if (diffDay < 30) return t("mypage.relativeTime.daysAgo", { count: diffDay });
 
   const diffMonth = Math.floor(diffDay / 30);
-  if (diffMonth < 12) return t("mypage.relativeTime.monthsAgo", { count: diffMonth });
+  if (diffMonth < 12)
+    return t("mypage.relativeTime.monthsAgo", { count: diffMonth });
 
   const diffYear = Math.floor(diffMonth / 12);
   return t("mypage.relativeTime.yearsAgo", { count: diffYear });
@@ -271,10 +295,16 @@ const MyPageMain: React.FC = () => {
   const navigate = useNavigate();
   const { targetId } = useParams<{ targetId?: string }>();
 
-  const [shortReviewSort, setShortReviewSort] = useState<"latest" | "rating" | "likes">("latest");
-  const [detailReviewSort, setDetailReviewSort] = useState<"latest" | "views" | "likes">("latest");
+  const [shortReviewSort, setShortReviewSort] = useState<
+    "latest" | "rating" | "likes"
+  >("latest");
+  const [detailReviewSort, setDetailReviewSort] = useState<
+    "latest" | "views" | "likes"
+  >("latest");
 
-  const [loggedInUser, setLoggedInUser] = useState<UserProfileType | null>(null);
+  const [loggedInUser, setLoggedInUser] = useState<UserProfileType | null>(
+    null
+  );
 
   const [viewedUser, setViewedUser] = useState<UserProfileType | null>(null);
   const [viewedFollow, setViewedFollow] = useState<Follow | null>(null);
@@ -356,9 +386,7 @@ const MyPageMain: React.FC = () => {
       try {
         const res = await mypageReview(uid);
         setDetailReviews(
-          Array.isArray(res.data?.data?.reviews)
-            ? res.data.data.reviews
-            : []
+          Array.isArray(res.data?.data?.reviews) ? res.data.data.reviews : []
         );
       } catch (error) {
         console.error("상세 리뷰 로드 실패:", error);
@@ -377,6 +405,7 @@ const MyPageMain: React.FC = () => {
             ? res.data.data.myPickMovies
             : []
         );
+        console.log("찜한 영화 로드 성공:", res.data.data.myPickMovies);
       } catch (error) {
         console.error("찜한 영화 로드 실패:", error);
         setFavoriteMovies([]);
@@ -451,7 +480,10 @@ const MyPageMain: React.FC = () => {
 
   const displayShortReviews = useMemo(() => {
     const now = new Date();
-    return sortedShortReviews.map((r) => ({ ...r, createdAt: getRelativeTime(r.createdAt, t, now) }));
+    return sortedShortReviews.map((r) => ({
+      ...r,
+      createdAt: getRelativeTime(r.createdAt, t, now),
+    }));
   }, [sortedShortReviews, t]);
 
   const displayDetailReviews = sortedDetailReviews;
@@ -466,11 +498,11 @@ const MyPageMain: React.FC = () => {
     try {
       const payload = { content: updated.content, rating: updated.rating };
       await updateShortReview(updated.movieId, updated.shortReviewId, payload);
-      alert(t('mypage.main.shortReviewEdit.success'));
+      alert(t("mypage.main.shortReviewEdit.success"));
       if (viewedUser?.userId) loadShortReviews(viewedUser.userId);
     } catch (err) {
       console.error("한줄평 수정 실패:", err);
-      alert(t('mypage.main.shortReviewEdit.failure'));
+      alert(t("mypage.main.shortReviewEdit.failure"));
     }
   };
 
@@ -479,11 +511,11 @@ const MyPageMain: React.FC = () => {
     try {
       
       await deleteShortReview(movieId, reviewId);
-      alert(t('mypage.main.shortReviewDelete.success'));
+      alert(t("mypage.main.shortReviewDelete.success"));
       if (viewedUser?.userId) loadShortReviews(viewedUser.userId);
     } catch (err) {
       console.error("한줄평 삭제 실패:", err);
-      alert(t('mypage.main.shortReviewDelete.failure'));
+      alert(t("mypage.main.shortReviewDelete.failure"));
     }
   };
 
@@ -494,7 +526,7 @@ const MyPageMain: React.FC = () => {
     } else if (viewedUser?.userId) {
       navigate(`/mypage/reviews/short/${viewedUser.userId}`);
     } else {
-      console.warn(t('mypage.main.navigation.noShortReviewPage'));
+      console.warn(t("mypage.main.navigation.noShortReviewPage"));
     }
   }, [isOwner, viewedUser, navigate, t]);
 
@@ -504,7 +536,7 @@ const MyPageMain: React.FC = () => {
     } else if (viewedUser?.userId) {
       navigate(`/mypage/reviews/detail/${viewedUser.userId}`);
     } else {
-      console.warn(t('mypage.main.navigation.noDetailReviewPage'));
+      console.warn(t("mypage.main.navigation.noDetailReviewPage"));
     }
   }, [isOwner, viewedUser, navigate, t]);
 
@@ -514,7 +546,7 @@ const MyPageMain: React.FC = () => {
     } else if (viewedUser?.userId) {
       navigate(`/mypage/movies/favorite/${viewedUser.userId}`);
     } else {
-      console.warn(t('mypage.main.navigation.noFavoriteMoviesPage'));
+      console.warn(t("mypage.main.navigation.noFavoriteMoviesPage"));
     }
   }, [isOwner, viewedUser, navigate, t]);
 
@@ -523,7 +555,7 @@ const MyPageMain: React.FC = () => {
     return (
       <MyPageContainer>
         <VideoBackground />
-        <EmptyState>{t('mypage.main.loadingProfile')}</EmptyState>
+        <EmptyState>{t("mypage.main.loadingProfile")}</EmptyState>
       </MyPageContainer>
     );
   }
@@ -542,8 +574,12 @@ const MyPageMain: React.FC = () => {
         <SectionHeader>
           {/* SectionTitle 클릭 시 한줄평 목록 페이지로 이동 */}
           <SectionTitle onClick={goShortReviewsPage}>
-            {isOwner ? t('mypage.main.shortReviewSection.titlePrefix.my') : t('mypage.main.shortReviewSection.titlePrefix.other', { nickname: viewedUser.nickname })}
-            <PinkText>{t('shortReview')}</PinkText>
+            {isOwner
+              ? t("mypage.main.shortReviewSection.titlePrefix.my")
+              : t("mypage.main.shortReviewSection.titlePrefix.other", {
+                  nickname: viewedUser.nickname,
+                })}
+            <PinkText>{t("shortReview")}</PinkText>
             <svg
               width="24"
               height="24"
@@ -565,36 +601,40 @@ const MyPageMain: React.FC = () => {
               isActive={shortReviewSort === "latest"}
               onClick={() => setShortReviewSort("latest")}
             >
-              {t('Bylatest')}
+              {t("Bylatest")}
             </SortButton>
             <SortButton
               isActive={shortReviewSort === "rating"}
               onClick={() => setShortReviewSort("rating")}
             >
-              {t('Byrating')}
+              {t("Byrating")}
             </SortButton>
             <SortButton
               isActive={shortReviewSort === "likes"}
               onClick={() => setShortReviewSort("likes")}
             >
-              {t('Bylikdes')}
+              {t("Bylikdes")}
             </SortButton>
           </SortOptions>
         </SectionHeader>
         <PreviewContent>
           {displayShortReviews.length > 0 ? (
-            displayShortReviews.slice(0, 3).map((review) => (
-              <ShortReviewCard
-                key={review.shortReviewId}
-                review={review}
-                onClick={goShortReviewsPage}
-                onEdit={isOwner ? handleEditShortReview : undefined}
-                onDelete={isOwner ? handleDeleteShortReview : undefined}
-                isOwner={isOwner}
-              />
-            ))
+            displayShortReviews
+              .slice(0, 3)
+              .map((review) => (
+                <ShortReviewCard
+                  key={review.shortReviewId}
+                  review={review}
+                  onClick={goShortReviewsPage}
+                  onEdit={isOwner ? handleEditShortReview : undefined}
+                  onDelete={isOwner ? handleDeleteShortReview : undefined}
+                  isOwner={isOwner}
+                />
+              ))
           ) : (
-            <EmptyState>{t('mypage.main.shortReviewSection.emptyState')}</EmptyState>
+            <EmptyState>
+              {t("mypage.main.shortReviewSection.emptyState")}
+            </EmptyState>
           )}
         </PreviewContent>
       </SectionWrapper>
@@ -604,8 +644,12 @@ const MyPageMain: React.FC = () => {
         <SectionHeader>
           {/* SectionTitle 클릭 시 상세 리뷰 목록 페이지로 이동 */}
           <SectionTitle onClick={goDetailReviewsPage}>
-            {isOwner ? t('mypage.main.detailedReviewSection.titlePrefix.my') : t('mypage.main.detailedReviewSection.titlePrefix.other', { nickname: viewedUser.nickname })}
-            <PinkText>{t('detailedReview')}</PinkText>
+            {isOwner
+              ? t("mypage.main.detailedReviewSection.titlePrefix.my")
+              : t("mypage.main.detailedReviewSection.titlePrefix.other", {
+                  nickname: viewedUser.nickname,
+                })}
+            <PinkText>{t("detailedReview")}</PinkText>
             <svg
               width="24"
               height="24"
@@ -627,35 +671,39 @@ const MyPageMain: React.FC = () => {
               isActive={detailReviewSort === "latest"}
               onClick={() => setDetailReviewSort("latest")}
             >
-              {t('Bylatest')}
+              {t("Bylatest")}
             </SortButton>
             <SortButton
               isActive={detailReviewSort === "views"}
               onClick={() => setDetailReviewSort("views")}
             >
-              {t('Byviews')}
+              {t("Byviews")}
             </SortButton>
             <SortButton
               isActive={detailReviewSort === "likes"}
               onClick={() => setDetailReviewSort("likes")}
             >
-              {t('Bylikdes')}
+              {t("Bylikdes")}
             </SortButton>
           </SortOptions>
         </SectionHeader>
         <PreviewContent>
           {displayDetailReviews.length > 0 ? (
-            displayDetailReviews.slice(0, 3).map((review) => (
-              <DetailReviewCard
-                key={review.reviewId}
-                review={review}
-                isMine={isOwner}
-                showProfile={true}
-                onClick={() => handleDetailReviewCardClick(review.reviewId)}
-              />
-            ))
+            displayDetailReviews
+              .slice(0, 3)
+              .map((review) => (
+                <DetailReviewCard
+                  key={review.reviewId}
+                  review={{ ...review, userImage: review.userProfile }}
+                  isMine={isOwner}
+                  showProfile={true}
+                  onClick={() => handleDetailReviewCardClick(review.reviewId)}
+                />
+              ))
           ) : (
-            <EmptyState>{t('mypage.main.detailedReviewSection.emptyState')}</EmptyState>
+            <EmptyState>
+              {t("mypage.main.detailedReviewSection.emptyState")}
+            </EmptyState>
           )}
         </PreviewContent>
       </SectionWrapper>
@@ -665,8 +713,12 @@ const MyPageMain: React.FC = () => {
         <SectionHeader>
           {/* SectionTitle 클릭 시 찜한 영화 목록 페이지로 이동 */}
           <SectionTitle onClick={goFavoritesPage}>
-            {isOwner ? t('mypage.main.favoriteMoviesSection.titlePrefix.my') : t('mypage.main.favoriteMoviesSection.titlePrefix.other', { nickname: viewedUser.nickname })}
-            <PinkText>{t('myPickMovies')}</PinkText>
+            {isOwner
+              ? t("mypage.main.favoriteMoviesSection.titlePrefix.my")
+              : t("mypage.main.favoriteMoviesSection.titlePrefix.other", {
+                  nickname: viewedUser.nickname,
+                })}
+            <PinkText>{t("myPickMovies")}</PinkText>
             <svg
               width="24"
               height="24"
@@ -684,16 +736,19 @@ const MyPageMain: React.FC = () => {
             </svg>
           </SectionTitle>
           <SortOptions>
-            <SortButton isActive={true}>{t('Bylatest')}</SortButton> {/* 찜한 영화는 최신순만 있음 */}
+            <SortButton isActive={true}>{t("Bylatest")}</SortButton>{" "}
+            {/* 찜한 영화는 최신순만 있음 */}
           </SortOptions>
         </SectionHeader>
         <MovieCardGrid isEmpty={favoriteMovies.length === 0}>
           {favoriteMovies.length > 0 ? (
-            favoriteMovies.slice(0, 12).map((movie) => (
-              <MovieCard key={movie.myPickId} movie={movie} />
-            ))
+            favoriteMovies
+              .slice(0, 12)
+              .map((movie) => <MovieCard key={movie.myPickId} movie={movie} />)
           ) : (
-            <EmptyState>{t('mypage.main.favoriteMoviesSection.emptyState')}</EmptyState>
+            <EmptyState>
+              {t("mypage.main.favoriteMoviesSection.emptyState")}
+            </EmptyState>
           )}
         </MovieCardGrid>
       </SectionWrapper>
