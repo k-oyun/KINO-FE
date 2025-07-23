@@ -15,7 +15,7 @@
   "edit": "Edit",
   "delete": "Delete",
   "deleteConfirm": "Are you sure you want to delete this?",
-  "cancel": "Cancel",
+  "cancle": "Cancel",
   "confirm": "Confirm",
   "report": "Report",
   "reportReason": "Report Reason",
@@ -242,6 +242,11 @@
   "mypage.relativeTime.monthsAgo": "{{count}} months ago",
   "mypage.relativeTime.yearsAgo": "{{count}} years ago",
 
+  "editTitle": "Review Edit",
+  "editConfirmMessage": "Are you sure you want to edit this review?",
+  "writeErrorMessage": "An error occurred while writing the post. Please try again.",
+  "notFoundReview": "Review does not exist."
+
   "followersOfMine": "Who follows Me, ",
   "followersOf": "{{nickname}}'s",
   "loadingFollowerList": "Loading follower list...",
@@ -266,4 +271,5 @@
   "errorFetchingFollowStatus": "Error fetching follow status:",
   "errorCheckingFollowStatus": "Error checking follow status:",
   "errorTogglingFollowStatus": "Error toggling follow status:"
+
 }
