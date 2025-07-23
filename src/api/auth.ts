@@ -6,13 +6,13 @@ export const useAuthApi = () => {
   };
 
   const loginWithKakao = async (code: string) => {
-    return await axios.get(`/auth/oauth/kakao?code=${code}`);
+    return await axios.get(`auth/oauth/kakao?code=${code}`);
   };
   const loginWithGoogle = async (code: string) => {
-    return await axios.get(`/auth/oauth/google?code=${code}`);
+    return await axios.get(`auth/oauth/google?code=${code}`);
   };
   const loginWithNaver = async (code: string) => {
-    return await axios.get(`/auth/oauth/naver?code=${code}`);
+    return await axios.get(`auth/oauth/naver?code=${code}`);
   };
 
   const userInfoGet = async () => {

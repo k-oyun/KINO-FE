@@ -46,7 +46,7 @@
   "dailyTopPrefix": "일별 조회수",
   "dailyTopHighlight": " TOP 10 영화",
   "monthlyTopPrefix": "월별 조회수",
-  "monthlyTopHighlight": "월별 조회수",
+  "monthlyTopHighlight": " TOP 10 영화",
   "recommendedTopPrefix": "추천",
   "recommendedTopHighlight": " TOP 10 영화",
   "searchResults": "검색 결과",

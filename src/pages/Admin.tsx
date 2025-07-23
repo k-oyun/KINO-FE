@@ -8,6 +8,7 @@ import AdminChart from "../components/admin/AdminChart";
 import useAdminApi from "../api/admin";
 import ShortReview from "../components/ShortReview";
 import { motion } from "framer-motion";
+import useAuthApi from "../api/auth";
 
 interface styleProp {
   $ismobile: boolean;
@@ -115,6 +116,7 @@ const Admin = () => {
   const [selectedReportId, setSelectedReportId] = useState(0);
   const [isConfirmBtnPrs, setIsConfirmBtnprs] = useState(false);
   const { getBanUserStats, getShortReviewStats } = useAdminApi();
+  const { userInfoGet, logout } = useAuthApi();
   const [pageInfo, setPageInfo] = useState<PageType>({
     currentPage: 0,
     size: 12,
@@ -145,7 +147,29 @@ const Admin = () => {
     }
     return "defaultType";
   };
+  interface UserType {
+    userId: number;
+    nickname: string;
+    image: string;
+    email: string;
+    isFirstLogin: boolean;
+  }
+  const [user, setUser] = useState<UserType>({
+    userId: 0,
+    nickname: "",
+    image: "",
+    email: "",
+    isFirstLogin: false,
+  });
 
+  useEffect(() => {
+    const userDataGet = async () => {
+      const res = await userInfoGet();
+      setAdminName(res.data.data.nickname);
+      console.log(adminName);
+    };
+    userDataGet();
+  }, []);
   const now = new Date();
   const startDate = new Date(now);
   startDate.setMonth(startDate.getMonth() - 5);
