@@ -59,15 +59,17 @@
 <br />
 
 
+
+
 # 📱 실행 화면
-| ![LOGIN]() | ![SKELETONE]() |
+| ![LOGIN](https://github.com/user-attachments/assets/4384481f-0ffd-40d9-bdd7-02417c7e1f3a) | ![SKELETONE](https://github.com/user-attachments/assets/f6226e06-c1b0-41ca-ae93-b40d6bf7413e) |
 |:----------:|:----------:|
 | 로그인 화면 | 홈 화면 스켈레톤 |
-| ![HOME SURVEY]() | ![HOME]() |
+| ![HOME SURVEY](https://github.com/user-attachments/assets/aeba0b43-fd49-4973-9557-61536f320cab) | ![HOME](https://github.com/user-attachments/assets/f7c491f6-ceae-41ef-b85e-44b3488c71c5) |
 | 홈 화면 설문조사 | 홈 화면 |
-| ![HOME MODAL]() | ![HOME SEARCH 1]() |
+| ![HOME MODAL](https://github.com/user-attachments/assets/beea61bb-2987-402b-a6d4-427783aa4f12) | ![HOME SEARCH 1](https://github.com/user-attachments/assets/22d735db-96c4-45b4-897a-fc0b9ab8f5c6) |
 | 홈 화면 모달 | 홈 화면 (영화 검색)1 |
-| ![HOME SEARCH 2]() | ![MOVIE DETAIL1]() |
+| ![HOME SEARCH 2](https://github.com/user-attachments/assets/d184405f-048e-4c0c-8105-85f824dcd34a) | ![MOVIE DETAIL1]() |
 | 홈 화면 (영화 검색)2 | 영화 상세 정보 화면1 |
 | ![MOVIE DETAIL2]() | ![MOVIE DETAIL3]() |
 | 영화 상세 정보 화면2 | 영화 상세 정보 화면3 |
