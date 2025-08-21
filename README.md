@@ -54,10 +54,8 @@
   <img src="https://img.shields.io/badge/python-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54"/>
   <img src="https://img.shields.io/badge/MongoDB-%234ea94b.svg?style=for-the-badge&logo=mongodb&logoColor=white"/>
   <img src="https://img.shields.io/badge/AWS-%23FF9900.svg?style=for-the-badge&logo=amazon-aws&logoColor=white"/>
-  
 </div>
 <br />
-
 
 
 
@@ -69,27 +67,27 @@
 | 홈 화면 설문조사 | 홈 화면 |
 | ![HOME MODAL](https://github.com/user-attachments/assets/beea61bb-2987-402b-a6d4-427783aa4f12) | ![HOME SEARCH 1](https://github.com/user-attachments/assets/22d735db-96c4-45b4-897a-fc0b9ab8f5c6) |
 | 홈 화면 모달 | 홈 화면 (영화 검색)1 |
-| ![HOME SEARCH 2](https://github.com/user-attachments/assets/d184405f-048e-4c0c-8105-85f824dcd34a) | ![MOVIE DETAIL1]() |
+| ![HOME SEARCH 2](https://github.com/user-attachments/assets/d184405f-048e-4c0c-8105-85f824dcd34a) | ![MOVIE DETAIL1](https://github.com/user-attachments/assets/071e40cf-8a44-413d-b76d-6347ad325915) |
 | 홈 화면 (영화 검색)2 | 영화 상세 정보 화면1 |
-| ![MOVIE DETAIL2]() | ![MOVIE DETAIL3]() |
+| ![MOVIE DETAIL2](https://github.com/user-attachments/assets/624914ad-7eb5-4228-8ed6-694cd747fbbd) | ![MOVIE DETAIL3](https://github.com/user-attachments/assets/6dcf51eb-b984-47d6-8b3b-9b59ab5d5634) |
 | 영화 상세 정보 화면2 | 영화 상세 정보 화면3 |
-| ![COMMUNITY1]() | ![POST1]() |
+| ![COMMUNITY1](https://github.com/user-attachments/assets/dde8c380-fef1-4b03-b50d-7467b7d2985a) | ![POST1](https://github.com/user-attachments/assets/41072067-8a55-4809-84d1-610ee21ca49c) |
 | 커뮤니티 화면1 | 리뷰 작성 화면1 |
-| ![POST2]() | ![POST3]() |
+| ![POST2](https://github.com/user-attachments/assets/033c0b21-d71a-494c-b62e-33733ab8cb42) | ![POST3](https://github.com/user-attachments/assets/d48a961f-fa6f-43c9-a43b-95466f657c3a) |
 | 리뷰 작성 화면2 | 리뷰 작성 화면3 |
-| ![POST4]() | ![POST-DETAIL1]() |
+| ![POST4](https://github.com/user-attachments/assets/26b9371b-9a42-4467-930a-5fc2ef8f9da6) | ![POST-DETAIL1](https://github.com/user-attachments/assets/7ad384d0-0323-4068-acbb-fedd647c9e61) |
 | 리뷰 작성 화면4 | 리뷰 상세 화면1 |
-| ![POST-DETAIL2]() | ![MyPage1]() |
+| ![POST-DETAIL2](https://github.com/user-attachments/assets/0e3fa089-63c2-4f99-8d82-8380ca9087b6) | ![MyPage1](https://github.com/user-attachments/assets/26a46dee-b9d1-438e-826f-0c70c7a23275) |
 | 리뷰 상세 화면2 | 마이페이지1 |
-| ![MyPage2]() | ![MyPage3]() |
+| ![MyPage2](https://github.com/user-attachments/assets/400b4a75-e9e0-4942-982e-5a52f30c20fc) | ![MyPage3](https://github.com/user-attachments/assets/d8860e86-c295-45c0-a1d6-fa1b80d8b825) |
 | 마이페이지2 | 사용자 정보 변경 |
-| ![MyPage4]() | ![MyPage5]() |
+| ![MyPage4](https://github.com/user-attachments/assets/56587f78-f49e-43e0-8c1a-4c15a565100c) | ![MyPage5](https://github.com/user-attachments/assets/f36a0256-b89e-4581-8671-ead94769c4b9) |
 | 선호 장르 변경 | 팔로우/팔로잉 |
-| ![ADMIN1]() | ![ADMIN2]() |
+| ![ADMIN1](https://github.com/user-attachments/assets/d8090aea-927e-4088-9895-52e9a4a207bc) | ![ADMIN2](https://github.com/user-attachments/assets/6c26a8e1-25e6-426d-96cf-f1f6b21335d2) |
 | 관리자 페이지1 | 관리자 페이지2 |
-| ![ADMIN3]() | ![ADMIN4]() |
+| ![ADMIN3](https://github.com/user-attachments/assets/b0664805-5941-467f-ba1c-3eaeb4866320) | ![ADMIN4](https://github.com/user-attachments/assets/5dd0fa56-fa6e-4893-9038-fd43e150dd81) |
 | 관리자 페이지3 | 관리자 페이지4 |
-| ![ADMIN5]() | ![ADMIN6]() |
+| ![ADMIN5](https://github.com/user-attachments/assets/baee05e5-673a-4bc5-9ead-241a90e17714) | ![ADMIN6](https://github.com/user-attachments/assets/05861ea8-d33c-437d-93a9-4062b7acf260) |
 | 관리자 페이지5 | 관리자 페이지6 |
 
 <br />
